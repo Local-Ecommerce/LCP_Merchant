@@ -109,7 +109,7 @@ const SidebarItem = ({ item }) => {
             {subnav &&
                 item.subNav.map((item, index) => {
                     return (
-                        <SidebarChild to={item.path} onClick={item.subNav ? showSubnav : null}>
+                        <SidebarChild to={item.path} onClick={item.subNav ? showSubnav : null} key={index}>
                             <Row>
                                 {item.icon}
                                 <SidebarLabel>{item.title}</SidebarLabel>

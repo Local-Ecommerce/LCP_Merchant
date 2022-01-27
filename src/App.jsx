@@ -3,10 +3,11 @@ import React from 'react';
 
 import Header  from './pages/Header';
 import Sidebar from './pages/Sidebar';
+import Home  from './pages/Home';
 
 import Menu from './pages/Menu/Menu';
 
-import { BrowserRouter as Router, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
 
 const HeaderWrapper = styled.div`
     position:absolute;
@@ -25,20 +26,30 @@ const ContentWrapper = styled.div`
   left:245px; top:62px; right:0; bottom:0;
 `;
 
+const SidebarLayout = () => (
+	<>
+		<SidebarWrapper>
+			<Sidebar />
+		</SidebarWrapper>
+
+		<HeaderWrapper>
+			<Header />
+		</HeaderWrapper>
+		
+		<ContentWrapper>
+			<Outlet />
+		</ContentWrapper>
+	</>
+  );
+
 const App = () => {
     return (
 		<Router>
 			<Routes>
-				<SidebarWrapper>
-					<Sidebar />
-				</SidebarWrapper>
-				
-				<HeaderWrapper>
-					<Header />
-				</HeaderWrapper>
-
-				<ContentWrapper>
-				</ContentWrapper>
+				<Route element={<SidebarLayout/>}>
+					<Route exact path="/" element={<Home />} />
+					<Route path="/menus" element={<Menu />} />
+				</Route>
 			</Routes>
 		</Router>
     )

@@ -45,7 +45,7 @@ const SidebarData = [
         subNav: [
             {
                 title: 'Bảng giá',
-                path: '/',
+                path: '/menus',
                 icon: '',
             },
             {

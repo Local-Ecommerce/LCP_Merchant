@@ -72,7 +72,7 @@ const MenuItem = ({ item, handleGetDeleteItem }) =>  {
     if (item === 0) {
         return (
             <TableRow>
-                <TableData colSpan={4} >
+                <TableData colSpan={4} center>
                     <h4>Không tìm thấy dữ liệu.</h4>
                 </TableData>
             </TableRow>
@@ -104,8 +104,7 @@ const MenuItem = ({ item, handleGetDeleteItem }) =>  {
     return (
         <TableRow>
             <TableData>{item.MenuName}</TableData>
-            <TableData>{item.Resident.ResidentName}</TableData>
-
+            <TableData center>{item.Type}</TableData>
             <TableData center>
                 <Status active={activeCheck}>{activeLabel}</Status>
             </TableData>

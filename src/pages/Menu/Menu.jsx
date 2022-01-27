@@ -3,12 +3,19 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import Modal from 'react-modal';
 import MenuList from '../../components/Menu/MenuList';
-import ReactPaginate from "react-paginate";
 import { publicRequest } from "../../RequestMethod";
 import { toast } from 'react-toastify';
+import { Search, Error, Logout, Summarize } from '@mui/icons-material';
+import { Link } from 'react-router-dom';
+
+import Menus from '../../mockdata/Menus';
+
+const PageWrapper = styled.div`
+    margin: 50px 40px;
+`;
 
 const Title = styled.h1`
-    font-size: 30px;
+    font-size: 16px;
     color: #383838;
     margin: 15px;
 `;
@@ -18,22 +25,27 @@ const Row = styled.div`
     width: 100%;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+`;
+
+const StyledSearchIcon = styled(Search)`
+    && {
+        color: grey;
+    }
 `;
 
 const ButtonWrapper = styled.div`
     display: flex;
-    width: 31%;
+    width: 60%;
     justify-content: center;
     align-items: center;
     border-radius: 5px;
-    border-color: #E0E0E0;
+    border-color: #D8D8D8;
     border-style: solid;
     border-width: thin;
     height: 44px;
     padding: 0px 3px 0px 8px;
     background-color: #ffffff;
-    box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
 `;
 
 const Input = styled.input`
@@ -62,19 +74,18 @@ const Button = styled.button`
     }
 `;
 
-const SelectWrapper = styled.div`
+const DropdownWrapper = styled.div`
     display: flex;
     width: ${props => props.width};
     justify-content: center;
     align-items: center;
     border-radius: 5px;
-    border-color: #E0E0E0;
+    border-color: #D8D8D8;
     border-style: solid;
     border-width: thin;
     height: 44px;
     padding: 0px 3px 0px 8px;
     background-color: #ffffff;
-    box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
 `;
 
 const Select = styled.select`
@@ -90,7 +101,10 @@ const Select = styled.select`
 `;
 
 const TableWrapper = styled.div`
-    margin-top: 30px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 6px;
+    box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
 `;
 
 const Table = styled.table`
@@ -98,11 +112,9 @@ const Table = styled.table`
     border-collapse: collapse;
     width: 100%;
     max-width: 100%;
-    margin-bottom: 16px;
     background-color: #fff;
     overflow: hidden;
     border-radius: 5px;
-    box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
 `;
 
 const TableHead = styled.thead`
@@ -114,8 +126,6 @@ const TableHeader = styled.th`
     width: ${props => props.width};
     text-align: ${props => props.center ? "center" : "left"};
     padding: 16px;
-    vertical-align: top;
-    vertical-align: bottom;
 `;
 
 const TableBody = styled.tbody`
@@ -124,89 +134,17 @@ const TableBody = styled.tbody`
 
 const TableRow = styled.tr``;
 
-const ItemsPerPageWrapper = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48%;
+const NoMenuWrapper = styled.div`
+    width: 40%;
+    height: auto;
+    margin: 0 auto;
+    text-align: center;
 `;
 
-const StyledPaginateContainer = styled.div`
-    margin-right: 10px;
-    box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
-
-    .pagination {
-    padding: 0px;
-    margin: 0px;
-    color: #0366d6;
-    display: flex;
-    padding-left: 0;
-    list-style: none;
-    border-radius: 0.25rem;
-    }
-
-    .break-me {
-    cursor: default;
-    }
-
-    .active {
-    border-color: transparent;
-    background-color: #0366d6;
-    color: white;
-    }
-
-    .page-link {
-    position: relative;
-    display: block;
-    padding: 0.5rem 0.75rem;
-    margin-left: -1px;
-    line-height: 1.25;
-    color: #007bff;
-    background-color: #fff;
-    border: 1px solid #dee2e6;
-    }
-
-    .page-link:hover {
-    color: #0056b3;
-    text-decoration: none;
-    background-color: #e9ecef;
-    border-color: #dee2e6;
-    }
-
-    .page-link:focus {
-    z-index: 2;
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-    }
-
-    .page-link:not(:disabled):not(.disabled) {
-    cursor: pointer;
-    }
-
-    .page-item:first-child .page-link {
-    margin-left: 0;
-    border-top-left-radius: 0.25rem;
-    border-bottom-left-radius: 0.25rem;
-    }
-
-    .page-item:last-child .page-link {
-    border-top-right-radius: 0.25rem;
-    border-bottom-right-radius: 0.25rem;
-    }
-
-    .page-item.active .page-link {
-    z-index: 1;
-    color: #fff;
-    background-color: #007bff;
-    border-color: #007bff;
-    }
-
-    .page-item.disabled .page-link {
-    color: #6c757d;
-    pointer-events: none;
-    cursor: auto;
-    background-color: #fff;
-    border-color: #dee2e6;
+const StyledMenuIcon = styled(Summarize)`
+    && {
+        font-size: 144px;
+        color: grey;
     }
 `;
 
@@ -253,6 +191,36 @@ const ModalButton = styled.button`
     }
 `;
 
+const TipText = styled.div`
+    margin: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    font-size: 14px;
+    color: #383838;
+`;
+
+const StyledExclamationIcon = styled(Error)`
+    && {
+        font-size: 20px;
+        margin: 0px 7px;
+        color: #17a2b8;
+    }
+`;
+
+const StyledLinkIcon = styled(Logout)`
+    && {
+        font-size: 16px;
+        margin: 0px 7px;
+        color: #007bff;
+    }
+`;
+
+const StyledLink = styled(Link)`
+    color: #007bff;
+`;
+
 const customStyles = {
     content: {
         top: '50%',
@@ -271,25 +239,19 @@ const Menu = () =>  {
 
     const [APIdata, setAPIdata] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
-    const [currentItems, setCurrentItems] = useState([]);
-
-    const [pageCount, setPageCount] = useState(1);
-    const [itemOffset, setItemOffset] = useState(0);
-    const [currentPage, setCurrentPage] = useState(0);
-    const [itemsPerPage, setItemsPerPage] = useState(5);
 
     const [change, setChange] = useState(false);
     const [search, setSearch] = useState(''); //search filter
     const [status, setStatus] = useState('0'); //status filter
 
     useEffect(() => {  //fetch api data
-        const url = "menu/all";
+        //const url = "menu/all";
 
         const fetchData = async () => {
             try {
-                const res = await fetch(publicRequest(url), { method: 'GET' });
-                const json = await res.json();
-                setAPIdata(json.Data);
+                /*const res = await fetch(publicRequest(url), { method: 'GET' });
+                const json = await res.json();*/
+                setAPIdata(Menus);
             } catch (error) { }
         };
         fetchData();
@@ -298,57 +260,23 @@ const Menu = () =>  {
     useEffect(() => {   //filter based on 'search' & 'status'
         const result = APIdata.filter((item) => {
             if (status !== '0') {
-                return [item.MenuName, item.Resident.ResidentName].join('').toLowerCase().includes(search.toLowerCase())
+                return [item.MenuName, item.Type].join('').toLowerCase().includes(search.toLowerCase())
                     && item.Status === parseInt(status)
             } else {
-                return [item.MenuName, item.Resident.ResidentName].join('').toLowerCase().includes(search.toLowerCase())
+                return [item.MenuName, item.Type].join('').toLowerCase().includes(search.toLowerCase())
             }
         })
         setFilteredData(result);
-    }, [search, status, APIdata, itemsPerPage]);
-
-    useEffect(() => {   //paging
-        const paging = () => {
-            try {
-                const endOffset = (itemOffset + itemsPerPage);
-                setCurrentItems(filteredData.slice(itemOffset, endOffset));
-                setPageCount(Math.ceil(filteredData.length / itemsPerPage));
-            } catch (error) { }
-        };
-        paging();
-    }, [filteredData, itemOffset]);
-
-    useEffect(() => {   //set active page
-        if (currentItems.length === 0) {
-            if (itemOffset >= 5) {
-                setItemOffset(itemOffset - 5);
-                setCurrentPage(filteredData.length / itemsPerPage - 1);
-            }
-        }
-    }, [currentItems]);
-
-    const handlePageClick = (event) => {
-        const newOffset = event.selected * itemsPerPage % filteredData.length;
-        setItemOffset(newOffset);
-        setCurrentPage(event.selected);
-    };
+    }, [search, status, APIdata]);
 
     const handleSearch = (searchValue, statusValue) => {
         setSearch(searchValue);
         setStatus(statusValue);
-        setItemOffset(0);   //back to page 1
-        setCurrentPage(0);
     }
 
     const clearSearch = () => {
         setSearch('');
         document.getElementById("search").value = '';
-    }
-
-    const handleChangeItemsPerPage = (value) => {
-        setItemsPerPage(parseInt(value));
-        setItemOffset(0);   //back to page 1
-        setCurrentPage(0);
     }
 
     const handleGetDeleteItem = (id, name) => {
@@ -375,86 +303,64 @@ const Menu = () =>  {
     };
 
     return (
-        <div>
+        <PageWrapper>
             <Title>Danh sách bảng giá</Title>
 
-                <Row>
-                    <ButtonWrapper>
-                        <Input id="search" placeholder="Search theo tên bảng giá" onChange={(event) => handleSearch(event.target.value, status)}/>
-                        <Button onClick={() => clearSearch()}>Clear</Button>
-                    </ButtonWrapper>
+            <TableWrapper>
+                {(APIdata.length !== 0) ? 
+                <div>
+                    <Row>
+                        <ButtonWrapper>
+                            <StyledSearchIcon />
+                            <Input id="search" placeholder="Search theo tên bảng giá" onChange={(event) => handleSearch(event.target.value, status)}/>
+                            <Button onClick={() => clearSearch()}>Clear</Button>
+                        </ButtonWrapper>
 
-                    <SelectWrapper width="16%">
-                        <Select value={status} onChange={(event) => handleSearch(search, event.target.value)}>
-                            <option value="0">--- Lọc trạng thái ---</option>
-                            <option value="14004">Deleted</option>
-                            <option value="14002">Inactive</option>
-                            <option value="14001">Active</option>
-                        </Select>
-                    </SelectWrapper>
-
-                    <ItemsPerPageWrapper>
-                        Số hàng mỗi trang:&nbsp;
-                        <SelectWrapper width="40px">
-                            <Select value={itemsPerPage} onChange={(event) => handleChangeItemsPerPage(event.target.value)}>
-                                <option value="5">5</option>
-                                <option value="6">6</option>
-                                <option value="7">7</option>
-                                <option value="8">8</option>
-                                <option value="9">9</option>
-                                <option value="10">10</option>
-                                <option value="15">15</option>
-                                <option value="20">20</option>
+                        <DropdownWrapper width="16%">
+                            <Select value={status} onChange={(event) => handleSearch(search, event.target.value)}>
+                                <option value="0">Trạng thái</option>
+                                <option value="14004">Deleted</option>
+                                <option value="14002">Inactive</option>
+                                <option value="14001">Active</option>
                             </Select>
-                        </SelectWrapper>              
-                    </ItemsPerPageWrapper>  
-                </Row>
+                        </DropdownWrapper>
 
-                <TableWrapper>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableHeader width="50%">Tên bảng giá</TableHeader>
-                            <TableHeader width="20%">Chủ cửa hàng</TableHeader>
-                            <TableHeader width="15%" center>Trạng thái</TableHeader>
-                            <TableHeader width="15%" center>Chỉnh sửa</TableHeader>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        <MenuList currentItems={currentItems} handleGetDeleteItem={handleGetDeleteItem} />
-                    </TableBody>
-                </Table>
+                        <DropdownWrapper width="16%">
+                            <Select value={status} onChange={(event) => handleSearch(search, event.target.value)}>
+                                <option value="0">Sắp xếp</option>
+                                <option value="14004">Deleted</option>
+                                <option value="14002">Inactive</option>
+                                <option value="14001">Active</option>
+                            </Select>
+                        </DropdownWrapper>
+                    </Row>
 
-                <Row>
-                    { currentItems.length !== 0 
-                    ? <small>Hiển thị {currentPage * itemsPerPage + 1} - {currentPage * itemsPerPage + currentItems.length} trong tổng số {filteredData.length} bộ sưu tập.</small>
-                    : null }
-
-                    <StyledPaginateContainer>
-                        <ReactPaginate
-                            nextLabel="Next >"
-                            onPageChange={handlePageClick}
-                            pageRangeDisplayed={3}
-                            marginPagesDisplayed={2}
-                            pageCount={pageCount}
-                            previousLabel="< Prev"
-                            pageClassName="page-item"
-                            pageLinkClassName="page-link"
-                            previousClassName="page-item"
-                            previousLinkClassName="page-link"
-                            nextClassName="page-item"
-                            nextLinkClassName="page-link"
-                            breakLabel="..."
-                            breakClassName="page-item"
-                            breakLinkClassName="page-link"
-                            containerClassName="pagination"
-                            activeClassName="active"
-                            forcePage={currentPage}
-                            renderOnZeroPageCount={null}
-                        />
-                    </StyledPaginateContainer>
-                </Row>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableHeader width="50%">Tiêu đề</TableHeader>
+                                <TableHeader width="20%" center>Loại</TableHeader>
+                                <TableHeader width="15%" center>Trạng thái</TableHeader>
+                                <TableHeader width="15%" center>Hành động</TableHeader>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            <MenuList currentItems={filteredData} handleGetDeleteItem={handleGetDeleteItem} />
+                        </TableBody>
+                    </Table>
+                </div> 
+                : 
+                <NoMenuWrapper>
+                    <StyledMenuIcon />
+                </NoMenuWrapper>
+                }
             </TableWrapper>
+
+            <TipText>
+                <StyledExclamationIcon />
+                Tìm hiểu thêm về&nbsp;<StyledLink to="/menus">bảng giá</StyledLink>
+                <StyledLinkIcon />
+            </TipText>
 
             <Modal isOpen={DeleteModal} onRequestClose={() => toggleDeleteModal(!DeleteModal)} style={customStyles} ariaHideApp={false}>
                 <ModalTitle>Xác Nhận Xóa</ModalTitle>
@@ -466,7 +372,7 @@ const Menu = () =>  {
                     <ModalButton red onClick={() => { handleDeleteItem(deleteItem.id); toggleDeleteModal(!DeleteModal) }}>Xóa</ModalButton>
                 </ModalButtonWrapper>
             </Modal>
-        </div>
+        </PageWrapper>
     )
 }
 
