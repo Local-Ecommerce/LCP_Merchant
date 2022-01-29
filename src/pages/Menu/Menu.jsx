@@ -34,7 +34,7 @@ const StyledSearchIcon = styled(Search)`
     }
 `;
 
-const ButtonWrapper = styled.div`
+const SearchBar = styled.div`
     display: flex;
     width: 60%;
     justify-content: center;
@@ -126,10 +126,11 @@ const TableHeader = styled.th`
     width: ${props => props.width};
     text-align: ${props => props.center ? "center" : "left"};
     padding: 16px;
+    font-size: 15px;
 `;
 
 const TableBody = styled.tbody`
-    border-top: 2px solid #dee2e6;
+    border-top: 1px solid #dee2e6;
 `;
 
 const TableRow = styled.tr``;
@@ -144,7 +145,48 @@ const NoMenuWrapper = styled.div`
 const StyledMenuIcon = styled(Summarize)`
     && {
         font-size: 144px;
-        color: grey;
+        color: #D8D8D8;
+    }
+`;
+
+const NoMenuTitle = styled.div`
+    margin: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: 600;
+    color: #383838;
+`;
+
+const NoMenuText = styled.div`
+    margin: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    font-size: 14px;
+    color: #383838;
+    line-height: 1.8;
+`;
+
+const NoMenuButton = styled.button`
+    border-radius: 5px;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    background-color: #17a2b8;
+    color: white;
+    font-weight: 600;
+    margin-top: 20px;
+
+    &:active {
+    transform: translateY(1px);
+    }
+
+    &:hover {
+    opacity: 0.8;
     }
 `;
 
@@ -310,11 +352,11 @@ const Menu = () =>  {
                 {(APIdata.length !== 0) ? 
                 <div>
                     <Row>
-                        <ButtonWrapper>
+                        <SearchBar>
                             <StyledSearchIcon />
-                            <Input id="search" placeholder="Search theo tên bảng giá" onChange={(event) => handleSearch(event.target.value, status)}/>
+                            <Input id="search" placeholder="Tìm kiếm bảng giá" onChange={(event) => handleSearch(event.target.value, status)}/>
                             <Button onClick={() => clearSearch()}>Clear</Button>
-                        </ButtonWrapper>
+                        </SearchBar>
 
                         <DropdownWrapper width="16%">
                             <Select value={status} onChange={(event) => handleSearch(search, event.target.value)}>
@@ -352,6 +394,20 @@ const Menu = () =>  {
                 : 
                 <NoMenuWrapper>
                     <StyledMenuIcon />
+
+                    <NoMenuTitle>
+                        Bạn hiện chưa có bảng giá
+                    </NoMenuTitle>
+
+                    <NoMenuText>
+                        Tạo bảng giá và đưa các sản phẩm vào giúp khách hàng có thể thấy được sản phẩm của cửa hàng.
+                    </NoMenuText>
+
+                    <Link to="/addMenu">
+                        <NoMenuButton>
+                            Tạo bảng giá
+                        </NoMenuButton>
+                    </Link>
                 </NoMenuWrapper>
                 }
             </TableWrapper>

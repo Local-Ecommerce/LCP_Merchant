@@ -19,12 +19,14 @@ const SidebarLink = styled(Link)`
         background-color: rgba(246, 246, 247, 1);
         cursor: pointer;
         text-decoration: none;
+        color: #17a2b8;
     }
 
     &:focus {
         background-color: rgba(246, 246, 247, 1);
         cursor: pointer;
         text-decoration: none;
+        color: #17a2b8;
     }
 `;
 
@@ -45,12 +47,14 @@ const SidebarDiv = styled.div`
         background-color: rgba(246, 246, 247, 1);
         cursor: pointer;
         text-decoration: none;
+        color: #17a2b8;
     }
 
     &:focus {
         background-color: rgba(246, 246, 247, 1);
         cursor: pointer;
         text-decoration: none;
+        color: #17a2b8;
     }
 `;
 

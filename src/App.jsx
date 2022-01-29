@@ -6,17 +6,19 @@ import Sidebar from './pages/Sidebar';
 import Home  from './pages/Home';
 
 import Menu from './pages/Menu/Menu';
+import AddMenu from './pages/Menu/AddMenu';
+import EditMenu from './pages/Menu/EditMenu';
 
 import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
 
 const HeaderWrapper = styled.div`
-    position:absolute;
+    position:absolute; position: fixed; 
     left:0; right:0;
     height: 62px;
 `;
 
 const SidebarWrapper = styled.div`
-    position:absolute;
+    position:absolute; position: fixed; 
     left:0; top:0px; bottom: 0;
     width: 245px;
 `;
@@ -28,6 +30,10 @@ const ContentWrapper = styled.div`
 
 const SidebarLayout = () => (
 	<>
+		<ContentWrapper>
+			<Outlet />
+		</ContentWrapper>
+
 		<SidebarWrapper>
 			<Sidebar />
 		</SidebarWrapper>
@@ -35,10 +41,6 @@ const SidebarLayout = () => (
 		<HeaderWrapper>
 			<Header />
 		</HeaderWrapper>
-		
-		<ContentWrapper>
-			<Outlet />
-		</ContentWrapper>
 	</>
   );
 
@@ -49,6 +51,8 @@ const App = () => {
 				<Route element={<SidebarLayout/>}>
 					<Route exact path="/" element={<Home />} />
 					<Route path="/menus" element={<Menu />} />
+					<Route path="/addMenu" element={<AddMenu />} />
+					<Route path="/menu/:id" element={<EditMenu />} />
 				</Route>
 			</Routes>
 		</Router>

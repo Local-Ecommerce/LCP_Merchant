@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Edit, Delete, ContentPasteSearch } from '@mui/icons-material';
-import { Link } from "react-router-dom";
+import { Delete } from '@mui/icons-material';
+import { useNavigate } from "react-router-dom";
 
 const Button = styled.button`
     padding: 3px;
@@ -20,17 +20,19 @@ const Button = styled.button`
 const TableRow = styled.tr`
     &:hover {
         background-color: #F5F5F5;
+        cursor: pointer;
     }
 `;
 
 const TableData = styled.td`
-    padding: 1rem;
+    padding: 16px;
     vertical-align: top;
     border-bottom: 1px solid #dee2e6;
     vertical-align: middle;
     text-align: ${props => props.center ? "center" : "left"};
     overflow: hidden;
     white-space: nowrap;
+    font-size: 15px;
 `;
 
 const Status = styled.span`
@@ -50,18 +52,6 @@ const Status = styled.span`
         "#dc3545"};
 `;
 
-const StyledSearchIcon = styled(ContentPasteSearch)`
-    &:hover {
-    color: #dc3545;
-    }
-`;
-
-const StyledEditIcon = styled(Edit)`
-    &:hover {
-    color: #dc3545;
-    }
-`;
-
 const StyledDeleteIcon = styled(Delete)`
     &:hover {
     color: ${props => props.disabled === true ? "#E0E0E0" : "#dc3545"};
@@ -69,6 +59,8 @@ const StyledDeleteIcon = styled(Delete)`
 `;
 
 const MenuItem = ({ item, handleGetDeleteItem }) =>  {
+    const navigate = useNavigate();
+
     if (item === 0) {
         return (
             <TableRow>
@@ -101,8 +93,12 @@ const MenuItem = ({ item, handleGetDeleteItem }) =>  {
             break;
     }
 
+    const handleRowClick = (id) => {
+        navigate("/menu/" + id);
+    }  
+
     return (
-        <TableRow>
+        <TableRow onClick={()=> handleRowClick(item.MenuId)}>
             <TableData>{item.MenuName}</TableData>
             <TableData center>{item.Type}</TableData>
             <TableData center>
@@ -110,18 +106,6 @@ const MenuItem = ({ item, handleGetDeleteItem }) =>  {
             </TableData>
 
             <TableData center>
-                <Link to={"/menu/" + item.MenuId}>
-                    <Button>
-                        <StyledSearchIcon />
-                    </Button>
-                </Link>
-
-                <Link to={"/editMenu/" + item.MenuId}>
-                    <Button>
-                        <StyledEditIcon/>
-                    </Button>
-                </Link>
-
                 <Button disabled={disabledCheck} onClick={() => handleGetDeleteItem(item.MenuId, item.MenuName)}>
                     <StyledDeleteIcon disabled={disabledCheck} />
                 </Button>
