@@ -1,0 +1,88 @@
+const Products = [
+    {
+        ProductId: '1',
+        ProductName: 'Bánh mì 2 trứng',
+        Type: 'Tươi sống',
+        Image: '../../images/product1.png',
+        Status: 1005,
+    },
+    {
+        ProductId: '1',
+        ProductName: 'Bánh mì 3 trứng',
+        Type: 'Tươi sống',
+        Image: '../../images/product1.png',
+        Status: 1005,
+    },
+    {
+        ProductId: '1',
+        ProductName: 'Bánh mì 4 trứng',
+        Type: 'Tươi sống',
+        Image: '../../images/product1.png',
+        Status: 1005,
+    },
+    {
+        ProductId: '1',
+        ProductName: 'Bánh mì 5 trứng',
+        Type: 'Tươi sống',
+        Image: '../../images/product1.png',
+        Status: 1007,
+    },
+    {
+        ProductId: '1',
+        ProductName: 'Bánh mì 6 trứng',
+        Type: 'Tươi sống',
+        Image: '../../images/product1.png',
+        Status: 1005,
+    },
+    {
+        ProductId: '1',
+        ProductName: 'Bánh mì 7 trứng dài thòn lòn để test khoảng trắng dư chấm chấm chấm chấm chấm chấm chấm chấm',
+        Type: 'Tươi sống',
+        Image: '../../images/product1.png',
+        Status: 1005,
+    },
+    {
+        ProductId: '1',
+        ProductName: 'Bánh mì 8 trứng',
+        Type: 'Tươi sống',
+        Image: '../../images/product1.png',
+        Status: 1005,
+    },
+    {
+        ProductId: '1',
+        ProductName: 'Bánh mì 8 trứng',
+        Type: 'Tươi sống',
+        Image: '../../images/product1.png',
+        Status: 1005,
+    },
+    {
+        ProductId: '1',
+        ProductName: 'Bánh mì 8 trứng',
+        Type: 'Tươi sống',
+        Image: '../../images/product1.png',
+        Status: 1005,
+    },
+    {
+        ProductId: '1',
+        ProductName: 'Bánh mì 8 trứng',
+        Type: 'Tươi sống',
+        Image: '../../images/product1.png',
+        Status: 1005,
+    },
+    {
+        ProductId: '1',
+        ProductName: 'Bánh mì 8 trứng',
+        Type: 'Tươi sống',
+        Image: '../../images/product1.png',
+        Status: 1005,
+    },
+    {
+        ProductId: '1',
+        ProductName: 'Bánh mì 8 trứng',
+        Type: 'Tươi sống',
+        Image: '../../images/product1.png',
+        Status: 1005,
+    },
+];
+
+export default Products;

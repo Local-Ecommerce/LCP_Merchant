@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate } from "react-router-dom";
 import { publicRequest } from "../../RequestMethod";
@@ -6,6 +6,7 @@ import { KeyboardBackspace, ArrowRight } from '@mui/icons-material';
 import { TextField, Checkbox, Radio, RadioGroup, FormControlLabel } from '@mui/material';
 import { TimePicker, LocalizationProvider } from '@mui/lab';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
+import { DateTime } from 'luxon';
 
 const PageWrapper = styled.div`
     width: 720px;
@@ -120,17 +121,35 @@ const Button = styled.button`
 const AddMenu = () => {
     let navigate = useNavigate();
 
-    const [createTitle, setCreateTitle] = useState(null);
-    const [createText, setCreateText] = useState(null);
-    const [value, setValue] = React.useState(new Date('2014-08-18T21:11:54'));
+    const [input, setInput] = useState({
+        'title': '',
+        'description': '',
+        'type': 'Tươi sống',
+        'startTime': DateTime.now().toISO(),
+        'endTime': DateTime.now().toISO(),
+        'status': 0
+    });
+    const [dateOfWeek, setDateOfWeek] = useState({ t2:true, t3:false, t4:false, t5:false, t6:false, t7:false, cn:false });
+    const [error, setError] = useState({ 'titleError': '', 'timeError': '' });
 
-    const handleChange = (newValue) => {
-        setValue(newValue);
-    };
+    function handleChange(e) {
+        const { name, value } = e.target;
+        setInput(input => ({ ...input, [name]: value }));
+    }
+
+    function handleToggleDate(e) {
+        const { name, checked } = e.target;
+        setDateOfWeek(date => ({ ...date, [name]: checked }));
+    }
+
+    function handleToggleAllDate(e) {
+        const { checked } = e.target;
+        setDateOfWeek({ t2:checked, t3:checked, t4:checked, t5:checked, t6:checked, t7:checked, cn:checked });
+    }
 
     const handleAddMenu = (event) => {
         event.preventDefault();
-        if (checkValid(createTitle)) {
+        if (checkValid()) {
             const url = "menu/create";
 
             const addMenu = async () => {
@@ -139,14 +158,12 @@ const AddMenu = () => {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            title: createTitle,
-                            text: createText,
-                            residentId: null,
+                            title: input.title,
                         })
                     });
                     const json = await res.json();
                     if (json.ResultMessage === "SUCCESS") {
-                        navigate('/menu', {name: createTitle} );
+                        navigate('/menu', {name: input.title} );
                     }
                 } catch (error) { }
             };
@@ -154,11 +171,20 @@ const AddMenu = () => {
         }
     }
 
-    const checkValid = (title) => {
-        if (title === null || title === '') {
-            setCreateTitle('');
+    const checkValid = () => {
+        let check = false;
+        if (input.title === null || input.title === '') {
+            setError(error => ({ ...error, titleError: 'Vui lòng nhập tiêu đề' }));
+            check = true;
+        }
+        if (input.startTime >= input.endTime) {
+            setError(error => ({ ...error, timeError: 'Giờ bắt đầu không được lớn hơn giờ kết thúc' }));
+            check = true;
+        }
+        if (check) {
             return false;
         }
+        setError(error => ({ ...error, titleError: '', timeError: '' }));
         return true;
     }
 
@@ -175,18 +201,18 @@ const AddMenu = () => {
                     <StyledTextFieldMb
                         fullWidth placeholder="Ví dụ: Thịt cá các loại, đồ gia dụng, etc" 
                         inputProps={{style: {fontSize: 14}}}
-                        value={createTitle}
-                        onChange={event => setCreateTitle(event.target.value)}
-                        error={createTitle === ''}
-                        helperText={createTitle === '' ? 'Vui lòng nhập tiêu đề' : ''}
+                        value={input.title} name='title'
+                        onChange={handleChange}
+                        error={error.titleError !== ''}
+                        helperText={error.titleError}
                     />
 
                     <StyledFormLabel>Mô tả</StyledFormLabel>
                     <TextField
                         fullWidth multiline rows={4}
                         inputProps={{style: {fontSize: 14}}}
-                        value={createText}
-                        onChange={event => setCreateText(event.target.value)}
+                        value={input.description} name='description'
+                        onChange={handleChange}
                     />
                 </ContainerWrapper>
 
@@ -211,14 +237,14 @@ const AddMenu = () => {
                     <StyledFormLabel>Ngày hoạt động</StyledFormLabel>
                     
                     <DatePickerWrapper>
-                        <FormControlLabel value="monday" control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Chọn toàn bộ</span>} labelPlacement="top" />
-                        <FormControlLabel value="monday" control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 2</span>} labelPlacement="top" />
-                        <FormControlLabel value="tuesday" control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 3</span>} labelPlacement="top" />
-                        <FormControlLabel value="wednesday" control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 4</span>} labelPlacement="top" />
-                        <FormControlLabel value="thursday" control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 5</span>} labelPlacement="top" />
-                        <FormControlLabel value="friday" control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 6</span>} labelPlacement="top" />
-                        <FormControlLabel value="saturday" control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 7</span>} labelPlacement="top" />
-                        <FormControlLabel value="sunday" control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>C.Nhật</span>} labelPlacement="top" />
+                        <FormControlLabel checked={dateOfWeek.t2 && dateOfWeek.t3 && dateOfWeek.t4 && dateOfWeek.t5 && dateOfWeek.t6 && dateOfWeek.t7 && dateOfWeek.cn} onClick={handleToggleAllDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Chọn toàn bộ</span>} labelPlacement="top" />
+                        <FormControlLabel checked={dateOfWeek.t2} name='t2' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 2</span>} labelPlacement="top" />
+                        <FormControlLabel checked={dateOfWeek.t3} name='t3' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 3</span>} labelPlacement="top" />
+                        <FormControlLabel checked={dateOfWeek.t4} name='t4' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 4</span>} labelPlacement="top" />
+                        <FormControlLabel checked={dateOfWeek.t5} name='t5' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 5</span>} labelPlacement="top" />
+                        <FormControlLabel checked={dateOfWeek.t6} name='t6' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 6</span>} labelPlacement="top" />
+                        <FormControlLabel checked={dateOfWeek.t7} name='t7' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 7</span>} labelPlacement="top" />
+                        <FormControlLabel checked={dateOfWeek.cn} name='cn' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>C.Nhật</span>} labelPlacement="top" />
                     </DatePickerWrapper>
                 </ContainerWrapper>
 
@@ -226,10 +252,18 @@ const AddMenu = () => {
                     <StyledFormLabel>Thời gian hoạt động</StyledFormLabel>
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <TimePickerWrapper>
-                            <TimePicker label="Giờ mở cửa" value={value} onChange={handleChange} renderInput={(params) => <TextField {...params} />} />
-                            <StyledArrowIcon />
-                            <TimePicker label="Giờ đóng cửa" value={value} onChange={handleChange} renderInput={(params) => <TextField {...params} />} />
-                        </TimePickerWrapper>
+                            <TimePicker 
+                                    value={input.startTime}
+                                    onChange={time => handleChange({ target: { value: time, name: 'startTime' } })} 
+                                    renderInput={(params) => <TextField {...params} error={error.timeError !== ''} helperText={error.timeError} />} />
+
+                                <StyledArrowIcon />
+
+                                <TimePicker 
+                                    value={input.endTime}
+                                    onChange={time => handleChange({ target: { value: time, name: 'endTime' } })} 
+                                    renderInput={(params) => <TextField {...params} error={error.timeError !== ''} helperText={error.timeError} />} />
+                            </TimePickerWrapper>
                     </LocalizationProvider>
                 </ContainerWrapper>
 
