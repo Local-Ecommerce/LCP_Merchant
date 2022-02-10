@@ -4,6 +4,7 @@ import Modal from 'react-modal';
 import { Notifications, Search } from '@mui/icons-material';
 import { Badge } from '@mui/material';
 
+import Logo from '../components/Header/Logo';
 import Avatar from '../components/Header/Avatar';
 
 const Wrapper = styled.div`
@@ -135,7 +136,7 @@ const Header = () => {
 
     return (
         <Wrapper>
-            <Avatar />
+            <Logo />
 
             <SearchField>
                 <StyledSearchIcon />

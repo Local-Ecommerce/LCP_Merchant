@@ -115,7 +115,7 @@ const AddButton = styled.button`
     display: flex;
     padding: 6px 10px;
     margin: 20px 0px 15px 0px;
-    background-color: #17a2b8;
+    background-color: ${props => props.theme};
     border-style: none;
     border-radius: 5px;
     color: #fff;
@@ -223,7 +223,7 @@ const Button = styled.button`
     border: none;
     padding: 10px 15px;
     cursor: pointer;
-    background-color: #17a2b8;
+    background-color: ${props => props.theme};
     color: white;
     font-weight: 600;
 
@@ -237,6 +237,7 @@ const Button = styled.button`
 `;
 
 const EditMenu = () => {
+    const theme = "#17a2b8";
     let navigate = useNavigate();
 
     const [menu, setMenu] = useState([]);
@@ -383,7 +384,7 @@ const EditMenu = () => {
                 <ProductWrapper>
                     <SpaceBetween>
                         <StyledFormLabel>Sản phẩm</StyledFormLabel>
-                        <AddButton>
+                        <AddButton theme={theme}>
                             <StyledAddIcon />
                             Thêm sản phẩm
                         </AddButton>
@@ -470,7 +471,7 @@ const EditMenu = () => {
             
             <FooterWrapper>
                 <FloatRight>
-                    <Button>Lưu</Button>
+                    <Button theme={theme}>Lưu</Button>
                 </FloatRight>
             </FooterWrapper>
         </PageWrapper>

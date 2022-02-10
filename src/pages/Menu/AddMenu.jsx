@@ -105,7 +105,7 @@ const Button = styled.button`
     border: none;
     padding: 10px 15px;
     cursor: pointer;
-    background-color: #17a2b8;
+    background-color: ${props => props.theme};
     color: white;
     font-weight: 600;
 
@@ -119,6 +119,7 @@ const Button = styled.button`
 `;
 
 const AddMenu = () => {
+    const theme = "#17a2b8";
     let navigate = useNavigate();
 
     const [input, setInput] = useState({
@@ -269,7 +270,7 @@ const AddMenu = () => {
 
                 <FooterWrapper>
                     <FloatRight>
-                        <Button>Lưu</Button>
+                        <Button theme={theme}>Lưu</Button>
                     </FloatRight>
                 </FooterWrapper>
             </form>

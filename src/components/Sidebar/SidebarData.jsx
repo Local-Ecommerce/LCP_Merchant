@@ -6,7 +6,6 @@ import {
     House,
     BarChart,
     Settings,
-    Logout,
 } from '@mui/icons-material';
 
 const SidebarData = [
@@ -73,12 +72,17 @@ const SidebarData = [
     {
         title: 'Cài đặt',
         path: '/',
-        icon: <Settings />
-    },
-    {
-        title: 'Log out',
-        path: '/',
-        icon: <Logout />
+        icon: <Settings />,
+        iconClosed: <ArrowDropDown />,
+        iconOpened: <ArrowDropUp />,
+
+        subNav: [
+            {
+                title: 'Thông tin cửa hàng',
+                path: '/settings/detail',
+                icon: '',
+            }
+        ]
     }
 ];
 

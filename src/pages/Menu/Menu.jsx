@@ -64,7 +64,7 @@ const Input = styled.input`
 const Button = styled.button`
     height: 36px;
     width: 70px;
-    background-color: #17a2b8;
+    background-color: ${props => props.theme};
     border-style: none;
     border-radius: 5px;
     color: #fff;
@@ -176,7 +176,7 @@ const NoMenuButton = styled.button`
     border: none;
     padding: 10px 15px;
     cursor: pointer;
-    background-color: #17a2b8;
+    background-color: ${props => props.theme};
     color: white;
     font-weight: 600;
     margin-top: 20px;
@@ -276,6 +276,7 @@ const customStyles = {
 };
 
 const Menu = () =>  {
+    const theme = "#17a2b8";
     const [DeleteModal, toggleDeleteModal] = useState(false);
     const [deleteItem, setDeleteItem] = useState({id: '', name: ''});
 
@@ -355,7 +356,7 @@ const Menu = () =>  {
                         <SearchBar>
                             <StyledSearchIcon />
                             <Input id="search" placeholder="Tìm kiếm bảng giá" onChange={(event) => handleSearch(event.target.value, status)}/>
-                            <Button onClick={() => clearSearch()}>Clear</Button>
+                            <Button theme={theme} onClick={() => clearSearch()}>Clear</Button>
                         </SearchBar>
 
                         <DropdownWrapper width="16%">
@@ -404,7 +405,7 @@ const Menu = () =>  {
                     </NoMenuText>
 
                     <Link to="/addMenu">
-                        <NoMenuButton>
+                        <NoMenuButton theme={theme}>
                             Tạo bảng giá
                         </NoMenuButton>
                     </Link>

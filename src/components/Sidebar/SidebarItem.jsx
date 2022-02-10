@@ -19,14 +19,14 @@ const SidebarLink = styled(Link)`
         background-color: rgba(246, 246, 247, 1);
         cursor: pointer;
         text-decoration: none;
-        color: #17a2b8;
+        color: ${props => props.theme};
     }
 
     &:focus {
         background-color: rgba(246, 246, 247, 1);
         cursor: pointer;
         text-decoration: none;
-        color: #17a2b8;
+        color: ${props => props.theme};
     }
 `;
 
@@ -47,14 +47,14 @@ const SidebarDiv = styled.div`
         background-color: rgba(246, 246, 247, 1);
         cursor: pointer;
         text-decoration: none;
-        color: #17a2b8;
+        color: ${props => props.theme};
     }
 
     &:focus {
         background-color: rgba(246, 246, 247, 1);
         cursor: pointer;
         text-decoration: none;
-        color: #17a2b8;
+        color: ${props => props.theme};
     }
 `;
 
@@ -62,6 +62,20 @@ const SidebarChild = styled(SidebarLink)`
     color: #8e9092;
     padding: 0px 20px 0px 44px;
     height: 45px;
+
+    &:hover {
+        background-color: rgba(246, 246, 247, 1);
+        cursor: pointer;
+        text-decoration: none;
+        color: ${props => props.theme};
+    }
+
+    &:focus {
+        background-color: rgba(246, 246, 247, 1);
+        cursor: pointer;
+        text-decoration: none;
+        color: ${props => props.theme};
+    }
 `;
 
 const Row = styled.div`
@@ -75,6 +89,7 @@ const SidebarLabel = styled.span`
 `;
 
 const SidebarItem = ({ item }) => {
+    const theme = "#17a2b8";
     const [subnav, setSubnav] = useState(false);
     const showSubnav = () => setSubnav(!subnav);
 
@@ -82,7 +97,7 @@ const SidebarItem = ({ item }) => {
         <>
             {
             (item.path !== null) ?
-            <SidebarLink to={item.path} onClick={item.subNav ? showSubnav : null}>
+            <SidebarLink theme={theme} to={item.path} onClick={item.subNav ? showSubnav : null}>
                 <Row>
                     {item.icon}
                     <SidebarLabel>{item.title}</SidebarLabel>
@@ -96,7 +111,7 @@ const SidebarItem = ({ item }) => {
                 </div>
             </SidebarLink> 
             :
-            <SidebarDiv to={item.path} onClick={item.subNav ? showSubnav : null}>
+            <SidebarDiv theme={theme} to={item.path} onClick={item.subNav ? showSubnav : null}>
                 <Row>
                     {item.icon}
                     <SidebarLabel>{item.title}</SidebarLabel>
@@ -113,7 +128,7 @@ const SidebarItem = ({ item }) => {
             {subnav &&
                 item.subNav.map((item, index) => {
                     return (
-                        <SidebarChild to={item.path} onClick={item.subNav ? showSubnav : null} key={index}>
+                        <SidebarChild theme={theme} to={item.path} onClick={item.subNav ? showSubnav : null} key={index}>
                             <Row>
                                 {item.icon}
                                 <SidebarLabel>{item.title}</SidebarLabel>
