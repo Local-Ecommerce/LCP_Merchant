@@ -8,6 +8,9 @@ import Login from './pages/Login';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+import Product from './pages/Product/Product';
+import AddProduct from './pages/Product/AddProduct';
+
 import Menu from './pages/Menu/Menu';
 import AddMenu from './pages/Menu/AddMenu';
 import EditMenu from './pages/Menu/EditMenu';
@@ -63,6 +66,9 @@ const App = () => {
 			<Routes>
 				<Route element={<SidebarLayout/>}>
 					<Route exact path="/" element={<PrivateRoute> <Home /> </PrivateRoute>} />
+
+					<Route path="/products" element={<PrivateRoute> <Product /> </PrivateRoute>} />
+					<Route path="/addProduct" element={<PrivateRoute> <AddProduct /> </PrivateRoute>} />
 
 					<Route path="/menus" element={<PrivateRoute> <Menu /> </PrivateRoute>} />
 					<Route path="/addMenu" element={<PrivateRoute> <AddMenu /> </PrivateRoute>} />

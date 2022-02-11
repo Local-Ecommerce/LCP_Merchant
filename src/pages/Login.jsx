@@ -97,7 +97,7 @@ const Login = () => {
 
     return (
         <LoginFormContainer>
-            <Title>Welcome to <GreenSpan theme={theme}>LCP+</GreenSpan> </Title>
+            <Title>Welcome to <GreenSpan theme={theme}>LCP</GreenSpan> </Title>
             <SmallText>Trang quản lí dành cho người bán của LCP</SmallText>
             
             <Form onSubmit={() => localStorage.setItem("accessToken", true)}>

@@ -23,13 +23,13 @@ const SidebarData = [
 
         subNav: [
             {
-                title: 'Tất cả sản phẩm',
-                path: '/',
+                title: 'Danh sách sản phẩm',
+                path: '/products',
                 icon: ''
             },
             {
                 title: 'Tạo mới sản phẩm',
-                path: '/',
+                path: '/addProduct',
                 icon: '',
             },
         ]
@@ -48,18 +48,8 @@ const SidebarData = [
                 icon: '',
             },
             {
-                title: 'Bộ sưu tập',
-                path: '/',
-                icon: '',
-            },
-            {
                 title: 'Tạo bảng giá',
                 path: '/addMenu',
-                icon: '',
-            },
-            {
-                title: 'Tạo bộ sưu tập',
-                path: '/',
                 icon: '',
             },
         ]
