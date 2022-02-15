@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import styled from 'styled-components';
+import styled, { ThemeProvider } from 'styled-components';
 import { Link, useNavigate } from "react-router-dom";
 import { publicRequest } from "../../RequestMethod";
-import { KeyboardBackspace, AddCircleOutline, AddPhotoAlternate } from '@mui/icons-material';
-import { TextField, InputAdornment, FormControlLabel, Checkbox } from '@mui/material';
+import { KeyboardBackspace, AddPhotoAlternate, AddCircleOutline } from '@mui/icons-material';
+import { TextField, InputAdornment, FormControlLabel } from '@mui/material';
 
 import Lv1Category from '../../mockdata/Lv1Category';
 import Lv2Category from '../../mockdata/Lv2Category';
 import Lv3Category from '../../mockdata/Lv3Category';
+import ProductOption from '../../components/Product/ProductOption';
 import CategoryList from '../../components/Product/CategoryList';
 
 const PageWrapper = styled.div`
@@ -42,7 +43,7 @@ const Title = styled.h1`
 `;
 
 const ContainerWrapper = styled.div`
-    padding: ${props => props.p0 ? "30px 20px 1px 20px" : "30px 20px"};
+    padding: ${props => props.p0 ? "30px 30px 1px 30px" : "30px 30px"};
     margin-bottom: 20px;
     box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
     background-color: #fff;
@@ -71,12 +72,14 @@ const FloatRight = styled.div`
 `;
 
 const Button = styled.button`
+    display: block;
     border-radius: 5px;
     border: none;
     padding: 10px 15px;
     cursor: pointer;
-    background-color: ${props => props.theme};
-    color: white;
+    border: 1px solid ${props => props.white ? props.theme.greyBorder : props.theme.bg};
+    background: ${props => props.white ? "white" : props.theme.bg};
+    color: ${props => props.white ? props.theme.grey : "white"};
     font-weight: 600;
 
     &:active {
@@ -99,7 +102,7 @@ const ImageWrapper = styled.div`
     flex-direction: column;
     align-items: center;
     font-size: 14px;
-    margin: 0px 40px 20px 0px;
+    margin: 0px 35px 20px 0px;
 `;
 
 const StyledPhotoIcon = styled(AddPhotoAlternate)`
@@ -128,8 +131,16 @@ const HiddenInputFile = styled.input`
     z-index: -1;
 `;
 
+const OptionLabel = styled.div`
+    margin-top: ${props => props.mt ? "20px" : "0px"};
+    margin-bottom: 10px;
+    font-size: 14px;
+`;
+
+
 const AddMenu = () => {
-    const theme = "#17a2b8";
+    const theme = { bg: "#17a2b8", grey: '#2b2b2b', greyBorder: '#c2c2c2' };
+    
     let navigate = useNavigate();
 
     const [input, setInput] = useState({
@@ -143,6 +154,7 @@ const AddMenu = () => {
     const [lv1Category, setLv1Category] = useState([]);
     const [lv2Category, setLv2Category] = useState([]);
     const [lv3Category, setLv3Category] = useState([]);
+    const option = [{id: 1, name: 'Màu sắc'}, {id: 2, name: 'Kích thước'}, {id: 3, name: 'Trọng lượng'}];
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -203,6 +215,7 @@ const AddMenu = () => {
     }
 
     return (
+        <ThemeProvider theme={theme}>
         <PageWrapper>
             <Row>
                 <Link to="/products"><StyledBackIcon /></Link>
@@ -251,67 +264,38 @@ const AddMenu = () => {
 
                     <StyledFormLabel>Hình ảnh</StyledFormLabel>
                     <ImageListWrapper>
-                        <ImageWrapper>
-                            <StyledPhotoIcon /> Ảnh bìa
-                            <HiddenInputFile type="file" id="upload-photo" />
-                        </ImageWrapper>
-                        
-                        <ImageWrapper>
-                            <StyledPhotoIcon /> Hình ảnh 1
-                            <HiddenInputFile type="file" id="upload-photo" />
-                        </ImageWrapper>
-
-                        <ImageWrapper>
-                            <StyledPhotoIcon /> Hình ảnh 2
-                            <HiddenInputFile type="file" id="upload-photo" />
-                        </ImageWrapper>
-
-                        <ImageWrapper>
-                            <StyledPhotoIcon /> Hình ảnh 3
-                            <HiddenInputFile type="file" id="upload-photo" />
-                        </ImageWrapper>
-
-                        <ImageWrapper>
-                            <StyledPhotoIcon /> Hình ảnh 4
-                            <HiddenInputFile type="file" id="upload-photo" />
-                        </ImageWrapper>
-
-                        <ImageWrapper>
-                            <StyledPhotoIcon /> Hình ảnh 5
-                            <HiddenInputFile type="file" id="upload-photo" />
-                        </ImageWrapper>
-
-                        <ImageWrapper>
-                            <StyledPhotoIcon /> Hình ảnh 6
-                            <HiddenInputFile type="file" id="upload-photo" />
-                        </ImageWrapper>
-
-                        <ImageWrapper>
-                            <StyledPhotoIcon /> Hình ảnh 7
-                            <HiddenInputFile type="file" id="upload-photo" />
-                        </ImageWrapper>
-
-                        <ImageWrapper>
-                            <StyledPhotoIcon /> Hình ảnh 8
-                            <HiddenInputFile type="file" id="upload-photo" />
-                        </ImageWrapper>
+                        <ImageWrapper><StyledPhotoIcon /> Ảnh bìa<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
+                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 1<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
+                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 2<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
+                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 3<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
+                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 4<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
+                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 5<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
+                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 6<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
+                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 7<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
+                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 8<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
                     </ImageListWrapper>
                 </ContainerWrapper>
 
 
                 <ContainerWrapper>
                     <StyledFormLabel>Tùy chọn</StyledFormLabel>
-                    <FormControlLabel control={<Checkbox />} label="Thêm tùy chọn sản phẩm, như màu sắc / kích thước / trọng lượng" />
+                    <OptionLabel>Thêm các tùy chọn của sản phẩm, như màu sắc, kích thước hay trọng lượng</OptionLabel>
+                    
+                    <ProductOption type='1' />
+                    <ProductOption type='2' />
+                    <ProductOption type='3' />
+
                 </ContainerWrapper>
 
 
                 <FooterWrapper>
                     <FloatRight>
-                        <Button theme={theme}>Tạo mới</Button>
+                        <Button>Tạo mới</Button>
                     </FloatRight>
                 </FooterWrapper>
             </form>
         </PageWrapper>
+        </ThemeProvider>
     )
 }
 
