@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import React from 'react';
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 import Header  from './pages/Header';
 import Sidebar from './pages/Sidebar';
@@ -55,30 +56,32 @@ const SidebarLayout = () => (
 );
 
 const PrivateRoute = ({ children }) => {
-    const accessToken = localStorage.getItem("accessToken");
+    const { currentUser } = useAuth();
 
-    return accessToken ? children : <Navigate to="/login" />;
+    return currentUser ? children : <Navigate to="/login" />;
 }
 
 const App = () => {
     return (
 		<Router>
-			<Routes>
-				<Route element={<SidebarLayout/>}>
-					<Route exact path="/" element={<PrivateRoute> <Home /> </PrivateRoute>} />
+			<AuthProvider>
+				<Routes>
+					<Route element={<SidebarLayout/>}>
+						<Route exact path="/" element={<PrivateRoute> <Home /> </PrivateRoute>} />
 
-					<Route path="/products" element={<PrivateRoute> <Product /> </PrivateRoute>} />
-					<Route path="/addProduct" element={<PrivateRoute> <AddProduct /> </PrivateRoute>} />
+						<Route path="/products" element={<PrivateRoute> <Product /> </PrivateRoute>} />
+						<Route path="/addProduct" element={<PrivateRoute> <AddProduct /> </PrivateRoute>} />
 
-					<Route path="/menus" element={<PrivateRoute> <Menu /> </PrivateRoute>} />
-					<Route path="/addMenu" element={<PrivateRoute> <AddMenu /> </PrivateRoute>} />
-					<Route path="/menu/:id" element={<PrivateRoute> <EditMenu /> </PrivateRoute>} />
+						<Route path="/menus" element={<PrivateRoute> <Menu /> </PrivateRoute>} />
+						<Route path="/addMenu" element={<PrivateRoute> <AddMenu /> </PrivateRoute>} />
+						<Route path="/menu/:id" element={<PrivateRoute> <EditMenu /> </PrivateRoute>} />
 
-					<Route path="/settings/detail" element={<PrivateRoute> <Detail /> </PrivateRoute>} />
-				</Route>
+						<Route path="/settings/detail" element={<PrivateRoute> <Detail /> </PrivateRoute>} />
+					</Route>
 
-				<Route path="/login" element={<Login />} />
-			</Routes>
+					<Route path="/login" element={<Login />} />
+				</Routes>
+			</AuthProvider>
 		</Router>
     )
 }
