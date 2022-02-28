@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink as Link } from 'react-router-dom';
 import styled from 'styled-components';
 
 const SidebarLink = styled(Link)`
@@ -7,75 +7,33 @@ const SidebarLink = styled(Link)`
     justify-content: space-between;
     align-items: center;
     text-align: center;
-    padding: 0px 20px 0px 20px;
+    padding: 0px 20px;
     list-style: none;
-    height: 50px;
+    height: 45px;
     text-decoration: none;
-    color: #44474a;
+    color: ${props => props.theme.dark};
     font-size: 0.9em;
     font-weight: 600;
 
-    &:hover {
-        background-color: rgba(246, 246, 247, 1);
+    &:hover, &:focus, &[class*="active"] {
+        background-color: ${props => props.theme.hover};
         cursor: pointer;
         text-decoration: none;
-        color: ${props => props.theme};
-    }
-
-    &:focus {
-        background-color: rgba(246, 246, 247, 1);
-        cursor: pointer;
-        text-decoration: none;
-        color: ${props => props.theme};
+        color: ${props => props.theme.blue};
     }
 `;
 
 const SidebarDiv = styled.div`
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    text-align: center;
-    padding: 0px 20px 0px 20px;
+    padding: 0px 20px;
     list-style: none;
-    height: 50px;
+    height: 25px;
     text-decoration: none;
-    color: #44474a;
-    font-size: 0.9em;
+    color: rgba(0,0,0,0.3);
+    font-size: 14px;
     font-weight: 600;
-
-    &:hover {
-        background-color: rgba(246, 246, 247, 1);
-        cursor: pointer;
-        text-decoration: none;
-        color: ${props => props.theme};
-    }
-
-    &:focus {
-        background-color: rgba(246, 246, 247, 1);
-        cursor: pointer;
-        text-decoration: none;
-        color: ${props => props.theme};
-    }
-`;
-
-const SidebarChild = styled(SidebarLink)`
-    color: #8e9092;
-    padding: 0px 20px 0px 44px;
-    height: 45px;
-
-    &:hover {
-        background-color: rgba(246, 246, 247, 1);
-        cursor: pointer;
-        text-decoration: none;
-        color: ${props => props.theme};
-    }
-
-    &:focus {
-        background-color: rgba(246, 246, 247, 1);
-        cursor: pointer;
-        text-decoration: none;
-        color: ${props => props.theme};
-    }
+    margin-top: 15px;
 `;
 
 const Row = styled.div`
@@ -84,23 +42,18 @@ const Row = styled.div`
     align-items: center;
 `;
 
-const SidebarLabel = styled.span`
-    margin-left: 16px;
-`;
-
 const SidebarItem = ({ item }) => {
-    const theme = "#17a2b8";
     const [subnav, setSubnav] = useState(false);
     const showSubnav = () => setSubnav(!subnav);
 
     return (
         <>
             {
-            (item.path !== null) ?
-            <SidebarLink theme={theme} to={item.path} onClick={item.subNav ? showSubnav : null}>
+            item.path ?
+            <SidebarLink to={item.path} onClick={item.subNav ? showSubnav : null}>
                 <Row>
                     {item.icon}
-                    <SidebarLabel>{item.title}</SidebarLabel>
+                    {item.title}
                 </Row>
                 <div>
                     {item.subNav && subnav
@@ -109,40 +62,14 @@ const SidebarItem = ({ item }) => {
                             ? item.iconClosed
                             : null}
                 </div>
-            </SidebarLink> 
+            </SidebarLink>
+
             :
-            <SidebarDiv theme={theme} to={item.path} onClick={item.subNav ? showSubnav : null}>
-                <Row>
-                    {item.icon}
-                    <SidebarLabel>{item.title}</SidebarLabel>
-                </Row>
-                <div>
-                    {item.subNav && subnav
-                        ? item.iconOpened
-                        : item.subNav
-                            ? item.iconClosed
-                            : null}
-                </div>
+
+            <SidebarDiv>
+                {item.title}
             </SidebarDiv>
             }
-            {subnav &&
-                item.subNav.map((item, index) => {
-                    return (
-                        <SidebarChild theme={theme} to={item.path} onClick={item.subNav ? showSubnav : null} key={index}>
-                            <Row>
-                                {item.icon}
-                                <SidebarLabel>{item.title}</SidebarLabel>
-                            </Row>
-                            <div>
-                                {item.subNav && subnav
-                                    ? item.iconOpened
-                                    : item.subNav
-                                        ? item.iconClosed
-                                        : null}
-                            </div>
-                        </SidebarChild>
-                    );
-                })}
         </>
     );
 };

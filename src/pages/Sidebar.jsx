@@ -1,9 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Logout } from '@mui/icons-material';
 import SidebarData from '../components/Sidebar/SidebarData';
 import SidebarItem from '../components/Sidebar/SidebarItem';
-import { useNavigate } from "react-router-dom";
 
 const SidebarWrapper = styled.div`
     background-color: #fff;
@@ -12,78 +10,71 @@ const SidebarWrapper = styled.div`
     max-width: 245px;
     height: 100vh;
     border-right: 1px solid #E0E0E0;
-    overflow-y:scroll;
+    position: fixed; 
+    z-index: 1; 
+    top: 0; 
+    left: 0;
+    overflow: hidden;
 
     &::-webkit-scrollbar {
     display: none;
     }
 `;
 
-const SidebarDiv = styled.div`
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-align: center;
-    padding: 0px 20px 0px 20px;
-    list-style: none;
-    height: 50px;
-    text-decoration: none;
-    color: #44474a;
-    font-size: 0.9em;
-    font-weight: 600;
-
-    &:hover {
-        background-color: rgba(246, 246, 247, 1);
-        cursor: pointer;
-        text-decoration: none;
-        color: ${props => props.theme};
-    }
-
-    &:focus {
-        background-color: rgba(246, 246, 247, 1);
-        cursor: pointer;
-        text-decoration: none;
-        color: ${props => props.theme};
-    }
-`;
-
-const Row = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-`;
-
-const SidebarLabel = styled.span`
-    margin-left: 16px;
-`;
-
 const PaddingBlock = styled.div`
-    height: 85px;
+    height: 90px;
+`;
+
+const AvatarWrapper = styled.div`
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    border-bottom: 1px solid rgba(0,0,0,0.15);
+    padding-bottom: 5px;
+    margin: 0px 15px;
+`;
+
+const Avatar = styled.img`
+    vertical-align: middle;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+`;
+
+const Name = styled.h3`
+    width: 100%;
+    text-align: center;
+    font-size: 16px;
+    margin: 15px 0px;
+    font-weight: 500;
+    line-height: 1.2em;
+`;
+
+const Hello = styled.span`
+    font-size: 16px;
+    color: ${props => props.theme.dark};
+    font-weight: 400;
 `;
 
 const Sidebar = () => {
-    const theme = "#17a2b8";
-    let navigate = useNavigate();
+    const user = JSON.parse(localStorage.getItem('USER'));
 
-    const handleLogOut = () => {
-        localStorage.removeItem("accessToken");
-        navigate("/login");
-    }
-    
     return (
         <SidebarWrapper>
             <PaddingBlock />
+
+            <AvatarWrapper>
+                <Avatar src="./images/user.png" alt="Loich Logo" />
+                <Name>
+                    <Hello>Xin chào, </Hello>{user.Residents[0].ResidentName} <br/> 
+                </Name>
+            </AvatarWrapper>
 
             {SidebarData.map((item, index) => {
                 return <SidebarItem item={item} key={index} />;
             })}
 
-            <SidebarDiv theme={theme} onClick={() => handleLogOut()}>
-                <Row>
-                    <Logout />
-                    <SidebarLabel>Log out</SidebarLabel>
-                </Row>
-            </SidebarDiv>
+            <PaddingBlock />
         </SidebarWrapper>
     );
 };

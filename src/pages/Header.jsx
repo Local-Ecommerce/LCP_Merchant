@@ -1,19 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from "styled-components";
 import Modal from 'react-modal';
-import { Notifications, Search } from '@mui/icons-material';
+import { Link } from 'react-router-dom';
+import { Notifications, Search, AccountCircleOutlined, HelpOutlineOutlined, Logout } from '@mui/icons-material';
 import { Badge } from '@mui/material';
-
-import Logo from '../components/Header/Logo';
-import Avatar from '../components/Header/Avatar';
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import useClickOutside from "../contexts/useClickOutside";
 
 const Wrapper = styled.div`
     display: flex;
     background-color: #fff;
-    padding: 10px 25px;
+    padding: 10px 30px 10px 10px;
     box-shadow: 0 4px 3px -5px rgba(0, 0, 0, 0.75);
     justify-content: space-between;
     align-items: center;
+`;
+
+const Logo = styled.img`
+    width: 80px;
+    height: 40px;
 `;
 
 const SearchField = styled.div`
@@ -47,6 +53,14 @@ const StyledSearchIcon = styled(Search)`
     && {
         color: grey;
     }
+`;
+
+const Avatar = styled.img`
+    vertical-align: middle;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
 `;
 
 const StyledBadge = styled(Badge)`
@@ -131,12 +145,129 @@ const customStyles = {
     },
 };
 
+const DropdownWrapper = styled.div`
+    position: absolute;
+    top: 75px;
+    right: -10px;
+    margin: 0px 20px;
+    background: ${props => props.theme.white};
+    width: 250px;
+    box-sizing: 0 5px 25px rgba(0,0,0,0.1);
+    border-radius: 15px;
+    border: 1px solid rgba(0,0,0,0.1);
+    transition: 0.5s;
+    box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
+
+    &:before {
+        content: '';
+        position: absolute;
+        top: -5px;
+        right: 28px;
+        width: 20px;
+        height: 20px;
+        background: ${props => props.theme.white};
+        transform: rotate(45deg);
+    }
+`;
+
+const Name = styled.h3`
+    width: 100%;
+    text-align: center;
+    font-size: 18px;
+    margin: 15px 0px;
+    font-weight: 500;
+    line-height: 1.2em;
+`;
+
+const Title = styled.span`
+    font-size: 15px;
+    color: ${props => props.theme.dark};
+    font-weight: 400;
+`;
+
+const DropdownList = styled.ul`
+    padding: 0px;
+    margin: 10px 0px;
+    cursor: pointer;
+`;
+
+const DropdownItem = styled.div`
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: ${props => props.theme.dark};
+    height: 50px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    padding: 0px 20px;
+
+    &:hover {
+        color: ${props => props.theme.blue};
+        background-color: ${props => props.theme.hover};
+    }
+`;
+
+const DropdownLink = styled(Link)`
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: ${props => props.theme.dark};
+    height: 50px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    padding: 0px 20px;
+
+    &:hover {
+        color: ${props => props.theme.blue};
+        background-color: ${props => props.theme.hover};
+    }
+`;
+
+const StyledPersonIcon = styled(AccountCircleOutlined)`
+    && {
+        margin-right: 8px;
+        opacity: 0.5;
+
+        &:hover {
+            opacity: 1.0;
+        }
+    }
+`;
+
+const StyledHelpIcon = styled(HelpOutlineOutlined)`
+    && {
+        margin-right: 8px;
+        opacity: 0.5;
+    }
+`;
+
+const StyledLogoutIcon = styled(Logout)`
+    && {
+        margin-right: 8px;
+        opacity: 0.5;
+    }
+`;
+
 const Header = () => {
-    const [NotificationModal, toggleNotificationModal] = React.useState(false);
+    const { logout } = useAuth();
+    const user = JSON.parse(localStorage.getItem('USER'));
+    let navigate = useNavigate();
+    const [NotificationModal, toggleNotificationModal] = useState(false);
+    const [UserDropdown, toggleUserDropdown] = useState(false);
+
+    let clickOutside = useClickOutside(() => {
+        toggleUserDropdown(false);
+    });
+
+    async function handleLogout() {
+        try {
+            await logout();
+        } catch {}
+    }
 
     return (
         <Wrapper>
-            <Logo />
+            <Link to={"/"}>
+                <Logo src='./images/lcp2.png' alt="Loich Logo" />
+            </Link>
 
             <SearchField>
                 <StyledSearchIcon />
@@ -150,8 +281,25 @@ const Header = () => {
                     </StyledBadge>
                 </IconButton>
             
-                <Avatar />
+                <Avatar onClick={() => toggleUserDropdown(!UserDropdown)} src="./images/user.png" alt="Loich Logo" />
             </div>
+
+            {
+            UserDropdown ?
+            <DropdownWrapper ref={clickOutside}>
+                <Name>
+                    {user.Residents[0].ResidentName} <br/> 
+                    <Title>Người bán hàng</Title> 
+                </Name>
+                
+                <DropdownList>
+                    <DropdownLink to={"/"}> <StyledPersonIcon /> Thông tin cá nhân </DropdownLink>
+                    <DropdownLink to={"/"}> <StyledHelpIcon /> Trợ giúp </DropdownLink>
+                    <DropdownItem onClick={handleLogout}> <StyledLogoutIcon /> Đăng xuất </DropdownItem>
+                </DropdownList>
+            </DropdownWrapper>
+            : null
+            }
 
             <Modal isOpen={NotificationModal} onRequestClose={() => toggleNotificationModal(!NotificationModal)} style={customStyles} ariaHideApp={false}>
                 <ModalTitle>Thông báo</ModalTitle>

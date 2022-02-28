@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate } from "react-router-dom";
-import { publicRequest } from "../../RequestMethod";
+import { api } from "../../RequestMethod";
 import { KeyboardBackspace, ArrowRight, Search, AddBox } from '@mui/icons-material';
 import { TextField, Radio, RadioGroup, FormControlLabel } from '@mui/material';
 import { TimePicker, LocalizationProvider } from '@mui/lab';
@@ -269,29 +269,7 @@ const EditMenu = () => {
     }
 
     useEffect(() => {
-        //const url = "menu/1";
-
-        const fetchData = async () => {
-            try {
-                /*const res = await fetch(publicRequest(url), { method: 'GET' });
-                const json = await res.json();*/
-                setMenu(Menus[0]);
-            } catch (error) { }
-        };
-        fetchData();
-    }, [change]);
-
-    useEffect(() => {
-        //const url = "menu/1";
-
-        const fetchData = async () => {
-            try {
-                /*const res = await fetch(publicRequest(url), { method: 'GET' });
-                const json = await res.json();*/
-                setProducts(Products);
-            } catch (error) { }
-        };
-        fetchData();
+        //
     }, [change]);
 
     useEffect(() => {
@@ -332,28 +310,7 @@ const EditMenu = () => {
     }, [dateOfWeek]);
 
     const handleEditMenu = (event) => {
-        event.preventDefault();
-        if (checkValid()) {
-            const url = "menu/create";
-
-            const addMenu = async () => {
-                try {
-                    const res = await fetch(publicRequest(url), {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            title: input.title,
-                            startTime: DateTime.fromISO(input.StartTime).toFormat('HH:mm:ss'),
-                        })
-                    });
-                    const json = await res.json();
-                    if (json.ResultMessage === "SUCCESS") {
-                        navigate('/menu', {name: input.title} );
-                    }
-                } catch (error) { }
-            };
-            addMenu();
-        }
+        //
     }
 
     const checkValid = () => {

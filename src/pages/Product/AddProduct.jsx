@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import { Link, useNavigate } from "react-router-dom";
-import { publicRequest } from "../../RequestMethod";
+import { api } from "../../RequestMethod";
 import { KeyboardBackspace, AddPhotoAlternate, AddCircleOutline } from '@mui/icons-material';
 import { TextField, InputAdornment, FormControlLabel } from '@mui/material';
 
@@ -174,27 +174,7 @@ const AddMenu = () => {
     }
 
     const handleAddMenu = (event) => {
-        event.preventDefault();
-        if (checkValid()) {
-            const url = "menu/create";
-
-            const addMenu = async () => {
-                try {
-                    const res = await fetch(publicRequest(url), {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            title: input.title,
-                        })
-                    });
-                    const json = await res.json();
-                    if (json.ResultMessage === "SUCCESS") {
-                        navigate('/menu', {name: input.title} );
-                    }
-                } catch (error) { }
-            };
-            addMenu();
-        }
+        //
     }
 
     const checkValid = () => {

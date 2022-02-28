@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate } from "react-router-dom";
-import { publicRequest } from "../../RequestMethod";
+import { api } from "../../RequestMethod";
 import { ArrowRight } from '@mui/icons-material';
 import { TextField, Checkbox, Radio, RadioGroup, FormControlLabel } from '@mui/material';
 import { TimePicker, LocalizationProvider } from '@mui/lab';
@@ -150,30 +150,6 @@ const AddMenu = () => {
         setDateOfWeek({ t2:checked, t3:checked, t4:checked, t5:checked, t6:checked, t7:checked, cn:checked });
     }
 
-    const handleAddMenu = (event) => {
-        event.preventDefault();
-        if (checkValid()) {
-            const url = "menu/create";
-
-            const addMenu = async () => {
-                try {
-                    const res = await fetch(publicRequest(url), {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            title: input.title,
-                        })
-                    });
-                    const json = await res.json();
-                    if (json.ResultMessage === "SUCCESS") {
-                        navigate('/menu', {name: input.title} );
-                    }
-                } catch (error) { }
-            };
-            addMenu();
-        }
-    }
-
     const checkValid = () => {
         let check = false;
         if (input.title === null || input.title === '') {
@@ -193,7 +169,7 @@ const AddMenu = () => {
 
     return (
         <PageWrapper>            
-            <form onSubmit={handleAddMenu} id="form">
+            <form id="form">
                 <ContainerWrapper>
                     <HeaderWrapper>
                         <Row>

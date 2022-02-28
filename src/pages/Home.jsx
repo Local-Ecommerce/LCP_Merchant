@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { DateTime } from 'luxon';
 import NotificationList from '../components/Notification/NotificationList';
-
 import Notifications from '../mockdata/Notifications';
 import News from '../mockdata/News';
 
@@ -55,6 +55,17 @@ const TabBody = styled.div`
 `;
 
 const Home = () => {
+    const user = JSON.parse(localStorage.getItem('USER'));
+    const [time, setTime] = useState(DateTime.fromISO(localStorage.getItem('EXPIRED_TIME')).diffNow().toObject().milliseconds);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setTime(DateTime.fromISO(localStorage.getItem('EXPIRED_TIME')).diffNow().toObject().milliseconds);
+        }, 1000);
+      
+        return () => clearTimeout(timer);
+    });
+    
     return (
         <PageWrapper>
             <Flex>
@@ -92,6 +103,13 @@ const Home = () => {
                     </TabWrapper>
                 </RightWrapper>
             </Flex>
+
+            <br/><br/>=============================
+            <br/><br/>Token Expire Time: {localStorage.getItem('EXPIRED_TIME')}
+            <br/><br/>Time left until expire: {time} milliseconds
+            <br/><br/>Access Token: {localStorage.getItem('ACCESS_TOKEN')}
+            <br/><br/>Refresh Token: {localStorage.getItem('REFRESH_TOKEN')}
+            <br/><br/>role: {user && user.RoleId === "R001" && user.Residents[0].Type === "Merchant" ? user.Residents[0].Type : null}
         </PageWrapper>
     )
 }

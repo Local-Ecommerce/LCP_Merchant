@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import Modal from 'react-modal';
 import MenuList from '../../components/Menu/MenuList';
-import { publicRequest } from "../../RequestMethod";
+import { api } from "../../RequestMethod";
 import { toast } from 'react-toastify';
 import { Search, Error, Logout, Summarize } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
@@ -288,28 +288,11 @@ const Menu = () =>  {
     const [status, setStatus] = useState('0'); //status filter
 
     useEffect(() => {  //fetch api data
-        //const url = "menu/all";
-
-        const fetchData = async () => {
-            try {
-                /*const res = await fetch(publicRequest(url), { method: 'GET' });
-                const json = await res.json();*/
-                setAPIdata(Menus);
-            } catch (error) { }
-        };
-        fetchData();
+        //
     }, [change]);
 
     useEffect(() => {   //filter based on 'search' & 'status'
-        const result = APIdata.filter((item) => {
-            if (status !== '0') {
-                return [item.MenuName, item.Type].join('').toLowerCase().includes(search.toLowerCase())
-                    && item.Status === parseInt(status)
-            } else {
-                return [item.MenuName, item.Type].join('').toLowerCase().includes(search.toLowerCase())
-            }
-        })
-        setFilteredData(result);
+        //
     }, [search, status, APIdata]);
 
     const handleSearch = (searchValue, statusValue) => {
@@ -328,21 +311,7 @@ const Menu = () =>  {
     }
 
     const handleDeleteItem = (id) => {
-        const url = "menu/delete/" + id;
-        const deleteData = async () => {
-            try {
-                const res = await fetch(publicRequest(url), { method: 'PUT' });
-                const json = await res.json();
-                if (json.ResultMessage === "SUCCESS") {
-                    setChange(!change);
-                    const notify = () => toast.success("Xóa thành công " + deleteItem.name + "!", {
-                        position: toast.POSITION.TOP_CENTER
-                      });
-                    notify();
-                }
-            } catch (error) { }
-        };
-        deleteData();
+        //
     };
 
     return (

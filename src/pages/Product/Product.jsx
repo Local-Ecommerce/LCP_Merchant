@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import Modal from 'react-modal';
 import ProductList from '../../components/Product/ProductList';
-import { publicRequest } from "../../RequestMethod";
+import { api } from "../../RequestMethod";
 import { toast } from 'react-toastify';
 import { Search, Error, Logout, ProductionQuantityLimits } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
@@ -288,28 +288,11 @@ const Product = () =>  {
     const [status, setStatus] = useState('0'); //status filter
 
     useEffect(() => {  //fetch api data
-        //const url = "product/all";
-
-        const fetchData = async () => {
-            try {
-                /*const res = await fetch(publicRequest(url), { method: 'GET' });
-                const json = await res.json();*/
-                setAPIdata([]);
-            } catch (error) { }
-        };
-        fetchData();
+        //
     }, [change]);
 
     useEffect(() => {   //filter based on 'search' & 'status'
-        const result = APIdata.filter((item) => {
-            if (status !== '0') {
-                return [item.ProductName, item.Type].join('').toLowerCase().includes(search.toLowerCase())
-                    && item.Status === parseInt(status)
-            } else {
-                return [item.ProductName, item.Type].join('').toLowerCase().includes(search.toLowerCase())
-            }
-        })
-        setFilteredData(result);
+        //
     }, [search, status, APIdata]);
 
     const handleSearch = (searchValue, statusValue) => {
@@ -328,21 +311,7 @@ const Product = () =>  {
     }
 
     const handleDeleteItem = (id) => {
-        const url = "product/delete/" + id;
-        const deleteData = async () => {
-            try {
-                const res = await fetch(publicRequest(url), { method: 'PUT' });
-                const json = await res.json();
-                if (json.ResultMessage === "SUCCESS") {
-                    setChange(!change);
-                    const notify = () => toast.success("Xóa thành công " + deleteItem.name + "!", {
-                        position: toast.POSITION.TOP_CENTER
-                      });
-                    notify();
-                }
-            } catch (error) { }
-        };
-        deleteData();
+        //
     };
 
     return (
