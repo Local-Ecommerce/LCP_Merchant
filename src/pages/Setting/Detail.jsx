@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate } from "react-router-dom";
-import { api } from "../../RequestMethod";
 import { ArrowRight } from '@mui/icons-material';
-import { TextField, Checkbox, Radio, RadioGroup, FormControlLabel } from '@mui/material';
-import { TimePicker, LocalizationProvider } from '@mui/lab';
-import AdapterDateFns from '@mui/lab/AdapterDateFns';
-import { DateTime } from 'luxon';
 
 const PageWrapper = styled.div`
     width: 720px;
@@ -27,30 +22,6 @@ const ContainerWrapper = styled.div`
     border-radius: 5px;
 `;
 
-const DatePickerWrapper = styled.div`
-    margin: 20px 0px 0px 0px;
-    display: flex;
-    justify-content: center;
-`;
-
-const TimePickerWrapper = styled.div`
-    margin: 30px 20px 0px 20px;
-    display: flex;
-    justify-content: center;
-`;
-
-const StyledArrowIcon = styled(ArrowRight)`
-    && {
-    margin: 16px 20px;
-    }
-`;
-
-const StyledTextFieldMb = styled(TextField)`
-    && {
-    margin-bottom: 30px;
-    }
-`;
-
 const HeaderWrapper = styled.div`
     padding: 20px;
     border-bottom: 1px solid #D8D8D8;
@@ -68,29 +39,6 @@ const StyledHyperlink = styled.a`
 
 const ContentWrapper = styled.div`
     padding: 20px;
-`;
-
-const StyledFormLabel = styled.div`
-    font-weight: 400;
-    font-size: 14px;
-    margin-top: ${props => props.mt ? "20px" : "0px"};
-    margin-bottom: 10px;
-`;
-
-const RadioLabel = styled.span`
-    font-size: 14px;
-`;
-
-const HelperText = styled.div`
-    margin-left: 30px;
-    align-items: center;
-    text-decoration: none;
-    font-size: 14px;
-    color: #727272;
-`;
-
-const StyledLink = styled(Link)`
-    color: #007bff;
 `;
 
 const FooterWrapper = styled.div`
@@ -121,50 +69,40 @@ const Button = styled.button`
     }
 `;
 
-const AddMenu = () => {
+const FieldLabel = styled.div`
+    font-weight: 400;
+    font-size: 14px;
+    margin-top: ${props => props.mt ? "20px" : "0px"};
+    margin-bottom: 10px;
+`;
+
+const TextField = styled.input`
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 5px;
+    padding: 10px 14px;
+    outline: none;
+    border: 1px solid ${props => props.error ? props.theme.red : props.theme.greyBorder};
+    border-radius: 3px;
+    font-size: 14px;
+`;
+
+const HelperText = styled.span`
+    color: ${props => props.theme.grey};
+    font-size: 13px;
+    padding: 5px;
+    color: ${props => props.theme.red};
+`;
+
+const Detail = () => {
     let navigate = useNavigate();
 
-    const [input, setInput] = useState({
-        'title': 'Tên',
-        'description': '',
-        'type': 'Tươi sống',
-        'startTime': DateTime.now().toISO(),
-        'endTime': DateTime.now().toISO(),
-        'status': 0
-    });
-    const [dateOfWeek, setDateOfWeek] = useState({ t2:true, t3:false, t4:false, t5:false, t6:false, t7:false, cn:false });
-    const [error, setError] = useState({ 'titleError': '', 'timeError': '' });
+    const [input, setInput] = useState({ name: '' });
+    const [error, setError] = useState({ nameError: '' });
 
     function handleChange(e) {
         const { name, value } = e.target;
         setInput(input => ({ ...input, [name]: value }));
-    }
-
-    function handleToggleDate(e) {
-        const { name, checked } = e.target;
-        setDateOfWeek(date => ({ ...date, [name]: checked }));
-    }
-
-    function handleToggleAllDate(e) {
-        const { checked } = e.target;
-        setDateOfWeek({ t2:checked, t3:checked, t4:checked, t5:checked, t6:checked, t7:checked, cn:checked });
-    }
-
-    const checkValid = () => {
-        let check = false;
-        if (input.title === null || input.title === '') {
-            setError(error => ({ ...error, titleError: 'Vui lòng nhập tiêu đề' }));
-            check = true;
-        }
-        if (input.startTime >= input.endTime) {
-            setError(error => ({ ...error, timeError: 'Giờ bắt đầu không được lớn hơn giờ kết thúc' }));
-            check = true;
-        }
-        if (check) {
-            return false;
-        }
-        setError(error => ({ ...error, titleError: '', timeError: '' }));
-        return true;
     }
 
     return (
@@ -179,66 +117,13 @@ const AddMenu = () => {
                     </HeaderWrapper>
 
                     <ContentWrapper>
-                        <StyledFormLabel>Tên cửa hàng</StyledFormLabel>
+                        <FieldLabel>Tên cửa hàng</FieldLabel>
                         <TextField
-                            fullWidth size="small" disabled
-                            inputProps={{style: {fontSize: 14}}}
-                            value={input.title} name='title'
+                            type="text" value={input.name ? input.name : ''} name='name'
                             onChange={handleChange}
-                            error={error.titleError !== ''}
-                            helperText={error.titleError}
-                        />
-
-                        <StyledFormLabel mt>Điện thoại</StyledFormLabel>
-                        <TextField
-                            fullWidth size="small" disabled
-                            inputProps={{style: {fontSize: 14}}}
-                            value={input.title} name='title'
-                            onChange={handleChange}
-                            error={error.titleError !== ''}
-                            helperText={error.titleError}
-                        />
-
-                        <StyledFormLabel mt>Email</StyledFormLabel>
-                        <TextField
-                            fullWidth size="small" disabled
-                            inputProps={{style: {fontSize: 14}}}
-                            value={input.title} name='title'
-                            onChange={handleChange}
-                            error={error.titleError !== ''}
-                            helperText={error.titleError}
-                        />
-                    </ContentWrapper>
-                </ContainerWrapper>
-
-                <ContainerWrapper>
-                    <HeaderWrapper>
-                        <Row>
-                            <Header>Địa chỉ</Header>
-                            <StyledHyperlink>Sửa</StyledHyperlink>
-                        </Row>
-                    </HeaderWrapper>
-
-                    <ContentWrapper>
-                        <StyledFormLabel>Chung cư</StyledFormLabel>
-                        <TextField
-                            fullWidth size="small" disabled
-                            inputProps={{style: {fontSize: 14}}}
-                            value={input.title} name='title'
-                            onChange={handleChange}
-                            error={error.titleError !== ''}
-                            helperText={error.titleError}
-                        />
-
-                        <StyledFormLabel mt>Căn hộ</StyledFormLabel>
-                        <TextField
-                            fullWidth size="small" disabled
-                            inputProps={{style: {fontSize: 14}}}
-                            value={input.title} name='title'
-                            onChange={handleChange}
-                            error={error.titleError !== ''}
-                            helperText={error.titleError}
-                        />
+                            error={error.nameError !== ''}
+                         />
+                         <HelperText>{error.nameError}</HelperText>
                     </ContentWrapper>
                 </ContainerWrapper>
 
@@ -252,4 +137,4 @@ const AddMenu = () => {
     )
 }
 
-export default AddMenu;
+export default Detail;

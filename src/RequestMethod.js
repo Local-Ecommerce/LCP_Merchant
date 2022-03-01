@@ -1,5 +1,5 @@
 import axios from 'axios';
-const BASE_URL = "https://localcommercialplatform-api.azurewebsites.net/api/";
+const BASE_URL = "https://localhost:5001/api/";
 //"https://localhost:5001/api/";
 //"https://localcommercialplatform-api.azurewebsites.net/api/";
 

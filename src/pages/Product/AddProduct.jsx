@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../RequestMethod";
-import { KeyboardBackspace, AddPhotoAlternate, AddCircleOutline } from '@mui/icons-material';
+import { KeyboardBackspace, AddPhotoAlternate, Warning } from '@mui/icons-material';
 import { TextField, InputAdornment, FormControlLabel } from '@mui/material';
 
 import Lv1Category from '../../mockdata/Lv1Category';
@@ -12,8 +12,8 @@ import ProductOption from '../../components/Product/ProductOption';
 import CategoryList from '../../components/Product/CategoryList';
 
 const PageWrapper = styled.div`
-    min-width: 720px;
-    max-width: 1080px;
+    min-width: 600px;
+    max-width: 900px;
     margin: 50px auto;
 `;
 
@@ -69,16 +69,35 @@ const FooterWrapper = styled.div`
 
 const FloatRight = styled.div`
     float: right;
+    display: flex;
+    align-items: center;
+`;
+
+const StyledWarningIcon = styled(Warning)`
+    && {
+        font-size: 22px;
+        color: ${props => props.theme.orange};
+        opacity: 0.9;
+    }
+`;
+
+const HelperText = styled.span`
+    font-size: 14px;
+    padding: 5px;
+    font-weight: 600;
+    color: ${props => props.theme.orange};
+    opacity: 0.9;
+    margin-right: 20px;
 `;
 
 const Button = styled.button`
-    display: block;
+    display: inline-block;
     border-radius: 5px;
     border: none;
     padding: 10px 15px;
     cursor: pointer;
-    border: 1px solid ${props => props.white ? props.theme.greyBorder : props.theme.bg};
-    background: ${props => props.white ? "white" : props.theme.bg};
+    border: 1px solid ${props => props.white ? props.theme.greyBorder : props.theme.blue};
+    background: ${props => props.white ? "white" : props.theme.blue};
     color: ${props => props.white ? props.theme.grey : "white"};
     font-weight: 600;
 
@@ -138,64 +157,59 @@ const OptionLabel = styled.div`
 `;
 
 
-const AddMenu = () => {
-    const theme = { bg: "#17a2b8", grey: '#2b2b2b', greyBorder: '#c2c2c2' };
-    
+const AddMenu = () => {    
     let navigate = useNavigate();
 
-    const [input, setInput] = useState({
-        'title': '',
-        'description': '',
-        'status': 0
-    });
-    const [dateOfWeek, setDateOfWeek] = useState({ t2:true, t3:false, t4:false, t5:false, t6:false, t7:false, cn:false });
-    const [error, setError] = useState({ 'titleError': '', 'timeError': '' });
+    const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: 0, images: [], color: [], size: [],  weight: [] });
+    const [error, setError] = useState({ nameError: '', color: '', size: '', weight: '' });
 
     const [lv1Category, setLv1Category] = useState([]);
     const [lv2Category, setLv2Category] = useState([]);
     const [lv3Category, setLv3Category] = useState([]);
     const option = [{id: 1, name: 'Màu sắc'}, {id: 2, name: 'Kích thước'}, {id: 3, name: 'Trọng lượng'}];
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setInput(input => ({ ...input, [name]: value }));
-    }
-
-    useEffect(() => {
+    useEffect(() => {   //set systemCategory level 1
         setLv1Category(Lv1Category);
     }, []);
 
-    const handleGetSubCategory2 = () => {
+    useEffect(() => {   //console log input test
+        console.log(input);
+    }, [input]);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setInput(input => ({ ...input, [name]: value }));
+    };
+
+    const saveOption = (option, data) => {
+        setError(error => ({ ...error, [option]: '' }));
+        setInput(input => ({ ...input, [option]: data }));
+    }
+
+    const editOption = (option) => {
+        setError(error => ({ ...error, [option]: 'Bạn có tùy chọn chưa lưu!' }));
+        setInput(input => ({ ...input, [option]: [] }));
+    }
+
+    const handleGetCategoryLv1 = (id) => {
+        setInput(input => ({ ...input, category: {lv1: id, lv2: '', lv3: ''} }));
         setLv2Category(Lv2Category);
     }
 
-    const handleGetSubCategory3 = () => {
+    const handleGetCategoryLv2 = (id) => {
+        setInput(input => ({ ...input, category: {lv1: input.category.lv1, lv2: id, lv3: ''} }));
         setLv3Category(Lv3Category);
+    }
+
+    const handleGetCategoryLv3 = (id) => {
+        setInput(input => ({ ...input, category: {lv1: input.category.lv1, lv2: input.category.lv2, lv3: id} }));
     }
 
     const handleAddMenu = (event) => {
         //
     }
 
-    const checkValid = () => {
-        let check = false;
-        if (input.title === null || input.title === '') {
-            setError(error => ({ ...error, titleError: 'Vui lòng nhập tiêu đề' }));
-            check = true;
-        }
-        if (input.startTime >= input.endTime) {
-            setError(error => ({ ...error, timeError: 'Giờ bắt đầu không được lớn hơn giờ kết thúc' }));
-            check = true;
-        }
-        if (check) {
-            return false;
-        }
-        setError(error => ({ ...error, titleError: '', timeError: '' }));
-        return true;
-    }
-
     return (
-        <ThemeProvider theme={theme}>
         <PageWrapper>
             <Row>
                 <Link to="/products"><StyledBackIcon /></Link>
@@ -208,25 +222,35 @@ const AddMenu = () => {
                     <StyledTextFieldMb
                         fullWidth placeholder="Ví dụ: Bánh mì 2 trứng" 
                         inputProps={{style: {fontSize: 14}}}
-                        value={input.title} name='title'
+                        value={input.name ? input.name : ''} name='name'
                         onChange={handleChange}
-                        error={error.titleError !== ''}
-                        helperText={error.titleError}
+                        error={error.nameError !== ''}
+                        helperText={error.nameError}
                     />
 
-                    <StyledFormLabel>Mô tả sản phẩm</StyledFormLabel>
+                    <StyledFormLabel>Mô tả chi tiết</StyledFormLabel>
                     <StyledTextFieldMb
-                        fullWidth multiline rows={4} 
+                        fullWidth multiline rows={4}
+                        placeholder="Khách hàng sẽ thấy mô tả này khi họ vào xem chi tiết sản phẩm." 
                         inputProps={{style: {fontSize: 14}}}
-                        value={input.title} name='title'
+                        value={input.description} name='description'
+                        onChange={handleChange}
+                    />
+
+                    <StyledFormLabel>Mô tả ngắn gọn</StyledFormLabel>
+                    <StyledTextFieldMb
+                        fullWidth multiline rows={2}
+                        placeholder="Khách hàng sẽ thấy mô tả này khi họ nhấn xem sản phẩm." 
+                        inputProps={{style: {fontSize: 14}}}
+                        value={input.shortDescription} name='shortDescription'
                         onChange={handleChange}
                     />
 
                     <StyledFormLabel>Danh mục</StyledFormLabel>
                     <Row spacebetween>
-                        <CategoryList currentItems={lv1Category} handleGetSubCategory={handleGetSubCategory2} />
-                        <CategoryList currentItems={lv2Category} handleGetSubCategory={handleGetSubCategory3} />
-                        <CategoryList currentItems={lv3Category} />
+                        <CategoryList currentItems={lv1Category} selected={input.category.lv1} handleGetCategory={handleGetCategoryLv1} />
+                        <CategoryList currentItems={lv2Category} selected={input.category.lv2} handleGetCategory={handleGetCategoryLv2} />
+                        <CategoryList currentItems={lv3Category} selected={input.category.lv3} handleGetCategory={handleGetCategoryLv3} />
                     </Row>
                 </ContainerWrapper>
 
@@ -234,12 +258,10 @@ const AddMenu = () => {
                 <ContainerWrapper p0>
                     <StyledFormLabel>Giá mặc định</StyledFormLabel>
                     <StyledTextFieldMb
-                        fullWidth
-                        InputProps={{ startAdornment: <InputAdornment position="start">vnđ</InputAdornment> }}
-                        value={input.title} name='title'
+                        fullWidth type="number"
+                        InputProps={{ inputMode: 'numeric', pattern: '[0-9]*', startAdornment: <InputAdornment position="start">vnđ</InputAdornment> }}
+                        value={input.price ? input.price : 0} name='price'
                         onChange={handleChange}
-                        error={error.titleError !== ''}
-                        helperText={error.titleError}
                     />
 
                     <StyledFormLabel>Hình ảnh</StyledFormLabel>
@@ -261,21 +283,29 @@ const AddMenu = () => {
                     <StyledFormLabel>Tùy chọn</StyledFormLabel>
                     <OptionLabel>Thêm các tùy chọn của sản phẩm, như màu sắc, kích thước hay trọng lượng</OptionLabel>
                     
-                    <ProductOption type='1' />
-                    <ProductOption type='2' />
-                    <ProductOption type='3' />
+                    <ProductOption savedData={input.color} type='color' saveOption={saveOption} editOption={editOption} />
+                    <ProductOption savedData={input.size} type='size' saveOption={saveOption} editOption={editOption} />
+                    <ProductOption savedData={input.weight} type='weight' saveOption={saveOption} editOption={editOption} />
 
                 </ContainerWrapper>
 
 
                 <FooterWrapper>
+
                     <FloatRight>
+                        {
+                            (error.color !== '' || error.size !== '' || error.weight !== '') ?
+                            <>
+                                <StyledWarningIcon />
+                                <HelperText>Bạn có tùy chọn chưa lưu!</HelperText>
+                            </>
+                            : null
+                        }
                         <Button>Tạo mới</Button>
                     </FloatRight>
                 </FooterWrapper>
             </form>
         </PageWrapper>
-        </ThemeProvider>
     )
 }
 

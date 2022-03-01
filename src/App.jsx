@@ -100,6 +100,7 @@ const App = () => {
         grey: "#808080",
         greyBorder: "#c4c4c4",
         disabled: "#d8d8d8",
+		orange: "#ff9800",
 
         hover: "rgba(246, 246, 247, 1)",
     };

@@ -17,15 +17,15 @@ const StyledArrowRight = styled(ArrowRight)`
     }
 `;
 
-const CategoryList = ({ currentItems, handleGetSubCategory }) => {
+const CategoryList = ({ currentItems, selected, handleGetCategory }) => {
 
     return (
         <StyledList dense sx={{ width: '100%', maxWidth: 375, height: 300, position: 'relative', overflow: 'auto' }}>
         {
             currentItems && currentItems.map((item, index) => {
                 return (
-                    <ListItem key={index} secondaryAction={item.level !== 3 ? <StyledArrowRight /> : null} disablePadding>
-                        <ListItemButton onClick={() => handleGetSubCategory()}>
+                    <ListItem selected={item.SystemCategoryId === selected} key={index} secondaryAction={item.level !== 3 ? <StyledArrowRight /> : null} disablePadding>
+                        <ListItemButton onClick={() => handleGetCategory(item.SystemCategoryId)}>
                             <ListItemText disableTypography primary={<Typography style={{ color: '#44474a' }}>{item.CategoryName}</Typography>} />
                         </ListItemButton>
                     </ListItem>
