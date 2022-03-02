@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 import Menus from '../../mockdata/Menus';
 
 const PageWrapper = styled.div`
-    margin: 50px 40px;
+    margin: 50px;
 `;
 
 const Title = styled.h1`
@@ -291,27 +291,8 @@ const Menu = () =>  {
         //
     }, [change]);
 
-    useEffect(() => {   //filter based on 'search' & 'status'
-        //
-    }, [search, status, APIdata]);
+    const handleDeleteItem = () => {
 
-    const handleSearch = (searchValue, statusValue) => {
-        setSearch(searchValue);
-        setStatus(statusValue);
-    }
-
-    const clearSearch = () => {
-        setSearch('');
-        document.getElementById("search").value = '';
-    }
-
-    const handleGetDeleteItem = (id, name) => {
-        setDeleteItem({id: id, name: name});
-        toggleDeleteModal(!DeleteModal);
-    }
-
-    const handleDeleteItem = (id) => {
-        //
     };
 
     return (
@@ -319,17 +300,17 @@ const Menu = () =>  {
             <Title>Danh sách bảng giá</Title>
 
             <TableWrapper>
-                {(APIdata.length !== 0) ? 
+                {(Menus.length !== 0) ? 
                 <div>
                     <Row>
                         <SearchBar>
                             <StyledSearchIcon />
-                            <Input id="search" placeholder="Tìm kiếm bảng giá" onChange={(event) => handleSearch(event.target.value, status)}/>
-                            <Button theme={theme} onClick={() => clearSearch()}>Clear</Button>
+                            <Input id="search" placeholder="Tìm kiếm bảng giá" />
+                            <Button theme={theme}>Clear</Button>
                         </SearchBar>
 
                         <DropdownWrapper width="16%">
-                            <Select value={status} onChange={(event) => handleSearch(search, event.target.value)}>
+                            <Select value={status}>
                                 <option value="0">Trạng thái</option>
                                 <option value="14004">Deleted</option>
                                 <option value="14002">Inactive</option>
@@ -338,7 +319,7 @@ const Menu = () =>  {
                         </DropdownWrapper>
 
                         <DropdownWrapper width="16%">
-                            <Select value={status} onChange={(event) => handleSearch(search, event.target.value)}>
+                            <Select value={status}>
                                 <option value="0">Sắp xếp</option>
                                 <option value="14004">Deleted</option>
                                 <option value="14002">Inactive</option>
@@ -357,7 +338,7 @@ const Menu = () =>  {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            <MenuList currentItems={filteredData} handleGetDeleteItem={handleGetDeleteItem} />
+                            <MenuList currentItems={Menus} handleDeleteItem={handleDeleteItem} />
                         </TableBody>
                     </Table>
                 </div> 

@@ -1,10 +1,9 @@
 import React from 'react';
-import { DateTime } from 'luxon';
-import styled, { ThemeProvider } from "styled-components";
+import styled from "styled-components";
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { BrowserRouter as Router, Route, Routes, Outlet, Navigate } from "react-router-dom";
+import { useAuth } from "./contexts/AuthContext";
+import { Route, Routes, Outlet, Navigate } from "react-router-dom";
 
 import Home  from './pages/Home';
 import Login from './pages/Login';
@@ -57,7 +56,7 @@ const SidebarLayout = () => (
 );
 
 const RequireLoggedIn = ({ children }) => {
-    const { toggleModal } = useAuth();
+    const { logout } = useAuth();
     const user = JSON.parse(localStorage.getItem('USER'));
     const accessToken = localStorage.getItem("ACCESS_TOKEN");
     const refreshToken = localStorage.getItem("REFRESH_TOKEN");
@@ -67,98 +66,63 @@ const RequireLoggedIn = ({ children }) => {
     if (typeof user === 'undefined' || user === null 
      || typeof accessToken === 'undefined' || accessToken === null 
      || typeof refreshToken === 'undefined' || refreshToken === null 
-     || typeof expiredTime === 'undefined' || expiredTime === null) {
-        localStorage.removeItem("USER");
-        localStorage.removeItem("ACCESS_TOKEN");
-        localStorage.removeItem("REFRESH_TOKEN");
-        localStorage.removeItem("EXPIRED_TIME");
-        localStorage.removeItem("IS_TOGGLE");
-        console.log("case 1");
+     || typeof expiredTime === 'undefined' || expiredTime === null
+     || typeof isToggle === 'undefined' || isToggle === null || isToggle === "1") {
+        logout();
         return <Navigate to="/login" />;
-    } 
-    else if (expiredTime && DateTime.fromISO(expiredTime).diffNow().toObject().milliseconds < 0) {
-        if (isToggle === "0") {
-            console.log("case 2");
-            toggleModal();
-        } else {
-            console.log("case 3");
-            return <Navigate to="/login" />;
-        }
-    }
-	console.log("case 4");
+    };
     return children;
 }
 
 const App = () => {
-	const theme = {
-        red: "#dc3545",
-        green: "#28a745",
-        blue: "#17a2b8",
-        black: "rgba(0, 0, 0, 0.87)",
-        white: "#fff",
-        dark: "#555",
-        grey: "#808080",
-        greyBorder: "#c4c4c4",
-        disabled: "#d8d8d8",
-		orange: "#ff9800",
-
-        hover: "rgba(246, 246, 247, 1)",
-    };
-
     return (
-		<ThemeProvider theme={theme}>
-			<Router>
-				<AuthProvider>
-					<Routes>
-						<Route element={<RequireLoggedIn> <SidebarLayout/> </RequireLoggedIn>}>
-							<Route 
-								exact path="/" 
-								element={<RequireLoggedIn> <Home /> </RequireLoggedIn>} 
-							/>
+		<Routes>
+			<Route element={<RequireLoggedIn> <SidebarLayout/> </RequireLoggedIn>}>
+				<Route 
+					exact path="/" 
+					element={<RequireLoggedIn> <Home /> </RequireLoggedIn>} 
+				/>
 
-							<Route 
-								path="/products" 
-								element={<RequireLoggedIn> <Product /> </RequireLoggedIn>} 
-							/>
+				<Route 
+					path="/products" 
+					element={<RequireLoggedIn> <Product /> </RequireLoggedIn>} 
+				/>
 
-							<Route path="/addProduct" 
-							element={<RequireLoggedIn> <AddProduct /> </RequireLoggedIn>} 
-							/>
+				<Route path="/addProduct" 
+				element={<RequireLoggedIn> <AddProduct /> </RequireLoggedIn>} 
+				/>
 
-							<Route 
-								path="/menus" 
-								element={<RequireLoggedIn> <Menu /> </RequireLoggedIn>} 
-							/>
+				<Route 
+					path="/menus" 
+					element={<RequireLoggedIn> <Menu /> </RequireLoggedIn>} 
+				/>
 
-							<Route 
-								path="/addMenu" 
-								element={<RequireLoggedIn> <AddMenu /> </RequireLoggedIn>} 
-							/>
+				<Route 
+					path="/addMenu" 
+					element={<RequireLoggedIn> <AddMenu /> </RequireLoggedIn>} 
+				/>
 
-							<Route 
-								path="/menu/:id" 
-								element={<RequireLoggedIn> <EditMenu /> </RequireLoggedIn>} 
-							/>
+				<Route 
+					path="/menu/:id" 
+					element={<RequireLoggedIn> <EditMenu /> </RequireLoggedIn>} 
+				/>
 
-							<Route 
-								path="/settings/detail" 
-								element={<RequireLoggedIn> <Detail /> </RequireLoggedIn>} 
-							/>
-						</Route>
+				<Route 
+					path="/settings/detail" 
+					element={<RequireLoggedIn> <Detail /> </RequireLoggedIn>} 
+				/>
+			</Route>
 
-						<Route 
-							path="/login" 
-							element={<Login />} 
-						/>
+			<Route 
+				path="/login" 
+				element={<Login />} 
+			/>
 
-						<Route 
-							path="*" 
-							element={<PageNotFound />}
-						/>
-					</Routes>
-				</AuthProvider>
-			</Router>
-		</ThemeProvider>
+			<Route 
+				path="*" 
+				element={<PageNotFound />}
+			/>
+		</Routes>
     )
 }
 

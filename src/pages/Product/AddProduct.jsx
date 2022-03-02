@@ -161,7 +161,7 @@ const AddMenu = () => {
     let navigate = useNavigate();
 
     const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: 0, images: [], color: [], size: [],  weight: [] });
-    const [error, setError] = useState({ nameError: '', color: '', size: '', weight: '' });
+    const [error, setError] = useState({ name: '', color: '', size: '', weight: '' });
 
     const [lv1Category, setLv1Category] = useState([]);
     const [lv2Category, setLv2Category] = useState([]);
@@ -206,7 +206,26 @@ const AddMenu = () => {
     }
 
     const handleAddMenu = (event) => {
-        //
+        event.preventDefault();
+
+        if (checkValid()) {
+
+        }
+    }
+
+    const checkValid = () => {
+        let check = false;
+        setError(error => ({ ...error, name: '', color: '', size: '', weight: '' }));
+
+        if (input.name === null || input.name === '') {
+            setError(error => ({ ...error, name: 'Vui lòng nhập tiêu đề' }));
+            check = true;
+        }
+        if (check) {
+            return false;
+        }
+
+        return true;
     }
 
     return (
@@ -224,8 +243,8 @@ const AddMenu = () => {
                         inputProps={{style: {fontSize: 14}}}
                         value={input.name ? input.name : ''} name='name'
                         onChange={handleChange}
-                        error={error.nameError !== ''}
-                        helperText={error.nameError}
+                        error={error.name !== ''}
+                        helperText={error.name}
                     />
 
                     <StyledFormLabel>Mô tả chi tiết</StyledFormLabel>

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../RequestMethod";
+import { toast } from 'react-toastify';
 import { KeyboardBackspace, ArrowRight } from '@mui/icons-material';
 import { TextField, Checkbox, Radio, RadioGroup, FormControlLabel } from '@mui/material';
 import { TimePicker, LocalizationProvider } from '@mui/lab';
@@ -82,8 +83,9 @@ const HelperText = styled.div`
     margin-left: 30px;
     align-items: center;
     text-decoration: none;
-    font-size: 14px;
-    color: #727272;
+    font-size: ${props => props.error ? "13px" : "14px"};
+    margin-top: ${props => props.error ? "10px" : "0px"};
+    color: ${props => props.error ? props.theme.red : "#727272"};
 `;
 
 const StyledLink = styled(Link)`
@@ -105,7 +107,7 @@ const Button = styled.button`
     border: none;
     padding: 10px 15px;
     cursor: pointer;
-    background-color: ${props => props.theme};
+    background-color: ${props => props.theme.blue};
     color: white;
     font-weight: 600;
 
@@ -119,19 +121,29 @@ const Button = styled.button`
 `;
 
 const AddMenu = () => {
-    const theme = "#17a2b8";
     let navigate = useNavigate();
+    const user = JSON.parse(localStorage.getItem('USER'));
+    const [storeId, setStoreId] = useState('');
+    const [menuId, setMenuId] = useState('');
 
-    const [input, setInput] = useState({
-        'title': '',
-        'description': '',
-        'type': 'Tươi sống',
-        'startTime': DateTime.now().toISO(),
-        'endTime': DateTime.now().toISO(),
-        'status': 0
-    });
-    const [dateOfWeek, setDateOfWeek] = useState({ t2:true, t3:false, t4:false, t5:false, t6:false, t7:false, cn:false });
-    const [error, setError] = useState({ 'titleError': '', 'timeError': '' });
+    const [input, setInput] = useState({ name: '', description: '', type: 'Khác', startTime: DateTime.now().toUTC().toISO(), endTime: DateTime.now().toUTC().toISO(), status: 9001 });
+    const [repeatDay, setRepeatDay] = useState({ t2:false, t3:false, t4:false, t5:false, t6:false, t7:false, cn:false });
+    const [error, setError] = useState({ 'name': '', 'time': '' });
+
+    useEffect(() => {   //get store id
+        const fetchData = () => {
+            api.get("stores")
+            .then(function (res) {
+                if (res.data.ResultMessage === "SUCCESS") {
+                    setStoreId(res.data.Data.List[0].MerchantStoreId);
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        }
+        fetchData();
+    }, []);
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -140,31 +152,80 @@ const AddMenu = () => {
 
     function handleToggleDate(e) {
         const { name, checked } = e.target;
-        setDateOfWeek(date => ({ ...date, [name]: checked }));
+        setRepeatDay(date => ({ ...date, [name]: checked }));
     }
 
     function handleToggleAllDate(e) {
         const { checked } = e.target;
-        setDateOfWeek({ t2:checked, t3:checked, t4:checked, t5:checked, t6:checked, t7:checked, cn:checked });
+        setRepeatDay({ t2:checked, t3:checked, t4:checked, t5:checked, t6:checked, t7:checked, cn:checked });
     }
 
     const handleAddMenu = (event) => {
+        event.preventDefault();
+
+        if (checkValid()) {
+            const addData = async () => {
+                api.post("menus", {
+                    menuName: input.name,
+                    menuDescription: input.description,
+                    residentId: user.Residents[0].ResidentId
+                })
+                .then(function (res) {
+                    if (res.data.ResultMessage === "SUCCESS") {
+                        setMenuId(res.data.Data.MenuId);
+                        return api.post("store-menus", [{
+                            timeStart: DateTime.fromISO(input.startTime).toObject(),
+                            timeEnd: DateTime.fromISO(input.endTime).toObject(),
+                            repeatDate: (repeatDay.t2 ? '2' : '') 
+                                        + (repeatDay.t3 ? '3' : '') 
+                                        + (repeatDay.t4 ? '4' : '') 
+                                        + (repeatDay.t5 ? '5' : '') 
+                                        + (repeatDay.t6 ? '6' : '') 
+                                        + (repeatDay.t7 ? '7' : '') 
+                                        + (repeatDay.cn ? '8' : ''),
+                            menuId: menuId,
+                            merchantStoreId: storeId
+                        }])
+                    }
+                })
+                .then(function (res) {
+                    if (res.data.ResultMessage === "SUCCESS") {
+                        const notify = () => toast.success("Tạo thành công bảng giá mới!", {
+                            position: toast.POSITION.TOP_CENTER
+                        });
+                        notify();
+                        navigate("/menus");
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+            };
+            addData();
+        }
     }
 
     const checkValid = () => {
         let check = false;
-        if (input.title === null || input.title === '') {
-            setError(error => ({ ...error, titleError: 'Vui lòng nhập tiêu đề' }));
+        setError(error => ({ ...error, name: '', time: '', repeatDay: '' }));
+
+        if (input.name === null || input.name === '') {
+            setError(error => ({ ...error, name: 'Vui lòng nhập tiêu đề' }));
+            check = true;
+        }
+        if (repeatDay.t2 === false && repeatDay.t3 === false && repeatDay.t4 === false 
+            && repeatDay.t5 === false && repeatDay.t6 === false && repeatDay.t7 === false && repeatDay.cn === false) {
+            setError(error => ({ ...error, repeatDay: 'Không được để trống ngày hoạt động' }));
             check = true;
         }
         if (input.startTime >= input.endTime) {
-            setError(error => ({ ...error, timeError: 'Giờ bắt đầu không được lớn hơn giờ kết thúc' }));
+            setError(error => ({ ...error, time: 'Giờ bắt đầu không được lớn hơn giờ kết thúc' }));
             check = true;
         }
         if (check) {
             return false;
         }
-        setError(error => ({ ...error, titleError: '', timeError: '' }));
+
         return true;
     }
 
@@ -181,17 +242,17 @@ const AddMenu = () => {
                     <StyledTextFieldMb
                         fullWidth placeholder="Ví dụ: Thịt cá các loại, đồ gia dụng, etc" 
                         inputProps={{style: {fontSize: 14}}}
-                        value={input.title} name='title'
+                        value={input.name ? input.name : ''} name='name'
                         onChange={handleChange}
-                        error={error.titleError !== ''}
-                        helperText={error.titleError}
+                        error={error.name !== ''}
+                        helperText={error.name}
                     />
 
                     <StyledFormLabel>Mô tả</StyledFormLabel>
                     <TextField
                         fullWidth multiline rows={4}
                         inputProps={{style: {fontSize: 14}}}
-                        value={input.description} name='description'
+                        value={input.description ? input.description : ''} name='description'
                         onChange={handleChange}
                     />
                 </ContainerWrapper>
@@ -199,13 +260,22 @@ const AddMenu = () => {
                 <ContainerWrapper>
                     <StyledFormLabel>Loại bảng giá</StyledFormLabel>
 
-                    <RadioGroup defaultValue="2">
-                        <FormControlLabel value="1" control={<Radio />} label={<RadioLabel>Tươi sống</RadioLabel>} />
+                    <RadioGroup value={input.type} name='type' onChange={handleChange}>
+                        <FormControlLabel 
+                            value="Tươi sống" 
+                            control={<Radio />} 
+                            label={<RadioLabel>Tươi sống</RadioLabel>} 
+                        />
                         <HelperText>
                             Bảng giá thuộc lại tươi sống sẽ nằm bên mục&nbsp;<b>Tươi sống</b>. 
                             Tìm hiểu thêm về&nbsp;<StyledLink to="/menus">danh mục tươi sống</StyledLink>
                         </HelperText>
-                        <FormControlLabel value="2" control={<Radio />} label={<RadioLabel>Khác</RadioLabel>} />
+
+                        <FormControlLabel 
+                            value="Khác" 
+                            control={<Radio />} 
+                            label={<RadioLabel>Khác</RadioLabel>} 
+                        />
                         <HelperText>
                             Bảng giá thuộc lại khác sẽ nằm bên mục&nbsp;<b>Khác</b>. 
                             Tìm hiểu thêm về&nbsp;<StyledLink to="/menus">danh mục khác</StyledLink>
@@ -217,15 +287,17 @@ const AddMenu = () => {
                     <StyledFormLabel>Ngày hoạt động</StyledFormLabel>
                     
                     <DatePickerWrapper>
-                        <FormControlLabel checked={dateOfWeek.t2 && dateOfWeek.t3 && dateOfWeek.t4 && dateOfWeek.t5 && dateOfWeek.t6 && dateOfWeek.t7 && dateOfWeek.cn} onClick={handleToggleAllDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Chọn toàn bộ</span>} labelPlacement="top" />
-                        <FormControlLabel checked={dateOfWeek.t2} name='t2' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 2</span>} labelPlacement="top" />
-                        <FormControlLabel checked={dateOfWeek.t3} name='t3' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 3</span>} labelPlacement="top" />
-                        <FormControlLabel checked={dateOfWeek.t4} name='t4' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 4</span>} labelPlacement="top" />
-                        <FormControlLabel checked={dateOfWeek.t5} name='t5' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 5</span>} labelPlacement="top" />
-                        <FormControlLabel checked={dateOfWeek.t6} name='t6' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 6</span>} labelPlacement="top" />
-                        <FormControlLabel checked={dateOfWeek.t7} name='t7' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 7</span>} labelPlacement="top" />
-                        <FormControlLabel checked={dateOfWeek.cn} name='cn' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>C.Nhật</span>} labelPlacement="top" />
+                        <FormControlLabel checked={repeatDay.t2 && repeatDay.t3 && repeatDay.t4 && repeatDay.t5 && repeatDay.t6 && repeatDay.t7 && repeatDay.cn} onClick={handleToggleAllDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Chọn toàn bộ</span>} labelPlacement="top" />
+                        <FormControlLabel checked={repeatDay.t2} name='t2' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 2</span>} labelPlacement="top" />
+                        <FormControlLabel checked={repeatDay.t3} name='t3' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 3</span>} labelPlacement="top" />
+                        <FormControlLabel checked={repeatDay.t4} name='t4' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 4</span>} labelPlacement="top" />
+                        <FormControlLabel checked={repeatDay.t5} name='t5' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 5</span>} labelPlacement="top" />
+                        <FormControlLabel checked={repeatDay.t6} name='t6' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 6</span>} labelPlacement="top" />
+                        <FormControlLabel checked={repeatDay.t7} name='t7' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Thứ 7</span>} labelPlacement="top" />
+                        <FormControlLabel checked={repeatDay.cn} name='cn' onClick={handleToggleDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>C.Nhật</span>} labelPlacement="top" />
                     </DatePickerWrapper>
+
+                    <HelperText error>{error.repeatDay}</HelperText>
                 </ContainerWrapper>
 
                 <ContainerWrapper>
@@ -234,22 +306,22 @@ const AddMenu = () => {
                         <TimePickerWrapper>
                             <TimePicker 
                                     value={input.startTime}
-                                    onChange={time => handleChange({ target: { value: time, name: 'startTime' } })} 
-                                    renderInput={(params) => <TextField {...params} error={error.timeError !== ''} helperText={error.timeError} />} />
+                                    onChange={time => handleChange({ target: { value: time.toISOString(), name: 'startTime' } })} 
+                                    renderInput={(params) => <TextField {...params} error={error.time !== ''} helperText={error.time} />} />
 
                                 <StyledArrowIcon />
 
                                 <TimePicker 
                                     value={input.endTime}
-                                    onChange={time => handleChange({ target: { value: time, name: 'endTime' } })} 
-                                    renderInput={(params) => <TextField {...params} error={error.timeError !== ''} helperText={error.timeError} />} />
+                                    onChange={time => handleChange({ target: { value: time.toISOString(), name: 'endTime' } })} 
+                                    renderInput={(params) => <TextField {...params} error={error.time !== ''} helperText={error.time} />} />
                             </TimePickerWrapper>
                     </LocalizationProvider>
                 </ContainerWrapper>
 
                 <FooterWrapper>
                     <FloatRight>
-                        <Button theme={theme}>Lưu</Button>
+                        <Button>Lưu</Button>
                     </FloatRight>
                 </FooterWrapper>
             </form>

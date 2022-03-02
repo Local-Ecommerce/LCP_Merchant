@@ -134,6 +134,10 @@ const ProductItem = ({ item, index, handleGetDeleteItem }) =>  {
             activeLabel = 'WRONG STATUS NUMBER';
             break;
     }
+    
+    if (item === 0) {
+        return null;
+    }
 
     return (
         <ContainerWrapper>

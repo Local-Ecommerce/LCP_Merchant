@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 import Products from '../../mockdata/Products';
 
 const PageWrapper = styled.div`
-    margin: 50px 40px;
+    margin: 50px;
 `;
 
 const Title = styled.h1`

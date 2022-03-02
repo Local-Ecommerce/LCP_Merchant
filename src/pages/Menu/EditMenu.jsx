@@ -10,6 +10,7 @@ import { DateTime } from 'luxon';
 
 import Products from '../../mockdata/Products';
 import Menus from '../../mockdata/Menus';
+import CreateModal from '../../components/Menu/CreateModal';
 import ProductList from '../../components/Product/ProductList';
 
 const PageWrapper = styled.form`
@@ -115,7 +116,7 @@ const AddButton = styled.button`
     display: flex;
     padding: 6px 10px;
     margin: 20px 0px 15px 0px;
-    background-color: ${props => props.theme};
+    background-color: ${props => props.theme.blue};
     border-style: none;
     border-radius: 5px;
     color: #fff;
@@ -201,6 +202,7 @@ const StyledArrowIcon = styled(ArrowRight)`
 
 const StyledFormLabel = styled.div`
     font-weight: 700;
+    font-size: 15px;
     margin: 30px 0px 10px 0px;
 `;
 
@@ -223,7 +225,7 @@ const Button = styled.button`
     border: none;
     padding: 10px 15px;
     cursor: pointer;
-    background-color: ${props => props.theme};
+    background-color: ${props => props.theme.blue};
     color: white;
     font-weight: 600;
 
@@ -236,9 +238,49 @@ const Button = styled.button`
     }
 `;
 
+const NoProductWrapper = styled.div`
+    width: 100%;
+    box-sizing: border-box;
+    height: auto;
+    margin: 0 auto;
+    text-align: center;
+    padding: 20px;
+`;
+
+const NoProductTitle = styled.div`
+    margin: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 600;
+    color: ${props => props.theme.grey};
+`;
+
+const NoProductButton = styled.button`
+    border-radius: 5px;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    background-color: ${props => props.theme.blue};
+    color: white;
+    font-weight: 600;
+    margin-top: 10px;
+
+    &:active {
+    transform: translateY(1px);
+    }
+
+    &:hover {
+    opacity: 0.8;
+    }
+`;
+
 const EditMenu = () => {
-    const theme = "#17a2b8";
     let navigate = useNavigate();
+    const [createModal, setCreateModal] = useState(false);
+    const toggleCreateModal = () => { setCreateModal(!createModal); }
 
     const [menu, setMenu] = useState([]);
     const [products, setProducts] = useState([]);
@@ -341,10 +383,15 @@ const EditMenu = () => {
                 <ProductWrapper>
                     <SpaceBetween>
                         <StyledFormLabel>Sản phẩm</StyledFormLabel>
-                        <AddButton theme={theme}>
-                            <StyledAddIcon />
-                            Thêm sản phẩm
-                        </AddButton>
+                        {
+                            products && products.length ?
+                            <AddButton> 
+                                <StyledAddIcon />
+                                Thêm sản phẩm 
+                            </AddButton>
+                            : 
+                            null
+                        }
                     </SpaceBetween>
 
                     <Row>
@@ -364,14 +411,22 @@ const EditMenu = () => {
                     </Row>
                     
                     <ProductListWrapper>
-                        <ProductList currentItems={products} />
+                        {
+                            products && products.length ?
+                            <ProductList currentItems={products} />
+                            : 
+                            <NoProductWrapper>
+                                <NoProductTitle> Bảng giá chưa có sản phẩm</NoProductTitle>
+                                <NoProductButton type="button" onClick={toggleCreateModal}> Thêm sản phẩm </NoProductButton>
+                            </NoProductWrapper>
+                        }
                     </ProductListWrapper>
                 </ProductWrapper>
                 
                 <MenuWrapper>
                     <StyledFormLabel>Tiêu đề</StyledFormLabel>
                     <TextField
-                        fullWidth placeholder="Ví dụ: Thịt cá các loại, đồ gia dụng, etc" 
+                        fullWidth size="small" placeholder="Ví dụ: Thịt cá các loại, đồ gia dụng, etc" 
                         inputProps={{style: {fontSize: 14}}}
                         value={input.title ? input.title : ''} name='title'
                         onChange={handleChange}
@@ -381,7 +436,7 @@ const EditMenu = () => {
 
                     <StyledFormLabel>Mô tả</StyledFormLabel>
                     <TextField
-                        fullWidth multiline rows={3}
+                        fullWidth size="small" multiline rows={3}
                         inputProps={{style: {fontSize: 14}}}
                         value={input.description ? input.description : ''} name='description'
                         onChange={handleChange}
@@ -395,15 +450,14 @@ const EditMenu = () => {
                     </RadioGroup>
 
                     <StyledFormLabel>Ngày hoạt động</StyledFormLabel>
-                    
                     <DatePickerWrapper>
-                        <WeekDayCheckbox checked={dateOfWeek.t2} name='t2' onClick={handleToggleDate}>T2</WeekDayCheckbox>
-                        <WeekDayCheckbox checked={dateOfWeek.t3} name='t3' onClick={handleToggleDate}>T3</WeekDayCheckbox>
-                        <WeekDayCheckbox checked={dateOfWeek.t4} name='t4' onClick={handleToggleDate}>T4</WeekDayCheckbox>
-                        <WeekDayCheckbox checked={dateOfWeek.t5} name='t5' onClick={handleToggleDate}>T5</WeekDayCheckbox>
-                        <WeekDayCheckbox checked={dateOfWeek.t6} name='t6' onClick={handleToggleDate}>T6</WeekDayCheckbox>
-                        <WeekDayCheckbox checked={dateOfWeek.t7} name='t7' onClick={handleToggleDate}>T7</WeekDayCheckbox>
-                        <WeekDayCheckbox checked={dateOfWeek.cn} name='cn' onClick={handleToggleDate}>CN</WeekDayCheckbox>
+                        <WeekDayCheckbox type="button" checked={dateOfWeek.t2} name='t2' onClick={handleToggleDate}>T2</WeekDayCheckbox>
+                        <WeekDayCheckbox type="button" checked={dateOfWeek.t3} name='t3' onClick={handleToggleDate}>T3</WeekDayCheckbox>
+                        <WeekDayCheckbox type="button" checked={dateOfWeek.t4} name='t4' onClick={handleToggleDate}>T4</WeekDayCheckbox>
+                        <WeekDayCheckbox type="button" checked={dateOfWeek.t5} name='t5' onClick={handleToggleDate}>T5</WeekDayCheckbox>
+                        <WeekDayCheckbox type="button" checked={dateOfWeek.t6} name='t6' onClick={handleToggleDate}>T6</WeekDayCheckbox>
+                        <WeekDayCheckbox type="button" checked={dateOfWeek.t7} name='t7' onClick={handleToggleDate}>T7</WeekDayCheckbox>
+                        <WeekDayCheckbox type="button" checked={dateOfWeek.cn} name='cn' onClick={handleToggleDate}>CN</WeekDayCheckbox>
                     </DatePickerWrapper>
 
                     <StyledFormLabel>Thời gian hoạt động</StyledFormLabel>
@@ -412,14 +466,14 @@ const EditMenu = () => {
                             <TimePicker 
                                 value={input.startTime}
                                 onChange={time => handleChange({ target: { value: time, name: 'startTime' } })} 
-                                renderInput={(params) => <TextField {...params} error={error.timeError !== ''} helperText={error.timeError} />} />
+                                renderInput={(params) => <TextField {...params} size="small" error={error.timeError !== ''} helperText={error.timeError} />} />
 
                             <StyledArrowIcon />
 
                             <TimePicker 
                                 value={input.endTime}
                                 onChange={time => handleChange({ target: { value: time, name: 'endTime' } })} 
-                                renderInput={(params) => <TextField {...params} error={error.timeError !== ''} helperText={error.timeError} />} />
+                                renderInput={(params) => <TextField {...params} size="small" error={error.timeError !== ''} helperText={error.timeError} />} />
                         </TimePickerWrapper>
                     </LocalizationProvider>
                 </MenuWrapper>
@@ -428,9 +482,14 @@ const EditMenu = () => {
             
             <FooterWrapper>
                 <FloatRight>
-                    <Button theme={theme}>Lưu</Button>
+                    <Button>Lưu</Button>
                 </FloatRight>
             </FooterWrapper>
+
+            <CreateModal 
+                display={createModal} 
+                toggle={toggleCreateModal}
+            />
         </PageWrapper>
     )
 }

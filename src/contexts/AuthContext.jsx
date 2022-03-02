@@ -27,10 +27,10 @@ export function AuthProvider({ children }) {
             if (user) {
                 const firebaseToken = await user.getIdToken(true);
                 console.log("Firebase Token: " + firebaseToken);
-                let url = "accounts/login";
-
-                await api.post(url, {
+                
+                await api.post("accounts/login", {
                     firebaseToken: firebaseToken,
+                    role: "Merchant"
                 })
                 .then(function (res) {
                     if (res.data.Data.RoleId === "R001" && res.data.Data.Residents[0].Type === "Merchant") {

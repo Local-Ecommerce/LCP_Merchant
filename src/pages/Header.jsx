@@ -288,7 +288,7 @@ const Header = () => {
             UserDropdown ?
             <DropdownWrapper ref={clickOutside}>
                 <Name>
-                    {user.Residents[0].ResidentName} <br/> 
+                    {!user ? null : user.Residents[0].ResidentName} <br/> 
                     <Title>Người bán hàng</Title> 
                 </Name>
                 

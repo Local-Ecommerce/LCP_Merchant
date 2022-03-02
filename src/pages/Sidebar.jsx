@@ -66,7 +66,7 @@ const Sidebar = () => {
             <AvatarWrapper>
                 <Avatar src="./images/user.png" alt="Loich Logo" />
                 <Name>
-                    <Hello>Xin chào, </Hello>{user.Residents[0].ResidentName} <br/> 
+                    <Hello>Xin chào, </Hello>{!user ? null : user.Residents[0].ResidentName} <br/> 
                 </Name>
             </AvatarWrapper>
 
