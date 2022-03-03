@@ -200,7 +200,7 @@ const StyledArrowIcon = styled(ArrowRight)`
     }
 `;
 
-const StyledFormLabel = styled.div`
+const FormLabel = styled.div`
     font-weight: 700;
     font-size: 15px;
     margin: 30px 0px 10px 0px;
@@ -382,7 +382,7 @@ const EditMenu = () => {
             <FlexWrapper>
                 <ProductWrapper>
                     <SpaceBetween>
-                        <StyledFormLabel>Sản phẩm</StyledFormLabel>
+                        <FormLabel>Sản phẩm</FormLabel>
                         {
                             products && products.length ?
                             <AddButton> 
@@ -424,7 +424,7 @@ const EditMenu = () => {
                 </ProductWrapper>
                 
                 <MenuWrapper>
-                    <StyledFormLabel>Tiêu đề</StyledFormLabel>
+                    <FormLabel>Tiêu đề</FormLabel>
                     <TextField
                         fullWidth size="small" placeholder="Ví dụ: Thịt cá các loại, đồ gia dụng, etc" 
                         inputProps={{style: {fontSize: 14}}}
@@ -434,7 +434,7 @@ const EditMenu = () => {
                         helperText={error.titleError}
                     />
 
-                    <StyledFormLabel>Mô tả</StyledFormLabel>
+                    <FormLabel>Mô tả</FormLabel>
                     <TextField
                         fullWidth size="small" multiline rows={3}
                         inputProps={{style: {fontSize: 14}}}
@@ -442,14 +442,14 @@ const EditMenu = () => {
                         onChange={handleChange}
                     />
 
-                    <StyledFormLabel>Loại bảng giá</StyledFormLabel>
+                    <FormLabel>Loại bảng giá</FormLabel>
 
                     <RadioGroup value={input.type ? input.type : 'Tươi sống'} name='type' onChange={handleChange}>
                         <FormControlLabel value='Tươi sống' control={<Radio />} label={<RadioLabel>Tươi sống</RadioLabel>} />
                         <FormControlLabel value='Khác' control={<Radio />} label={<RadioLabel>Khác</RadioLabel>} />
                     </RadioGroup>
 
-                    <StyledFormLabel>Ngày hoạt động</StyledFormLabel>
+                    <FormLabel>Ngày hoạt động</FormLabel>
                     <DatePickerWrapper>
                         <WeekDayCheckbox type="button" checked={dateOfWeek.t2} name='t2' onClick={handleToggleDate}>T2</WeekDayCheckbox>
                         <WeekDayCheckbox type="button" checked={dateOfWeek.t3} name='t3' onClick={handleToggleDate}>T3</WeekDayCheckbox>
@@ -460,7 +460,7 @@ const EditMenu = () => {
                         <WeekDayCheckbox type="button" checked={dateOfWeek.cn} name='cn' onClick={handleToggleDate}>CN</WeekDayCheckbox>
                     </DatePickerWrapper>
 
-                    <StyledFormLabel>Thời gian hoạt động</StyledFormLabel>
+                    <FormLabel>Thời gian hoạt động</FormLabel>
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <TimePickerWrapper>
                             <TimePicker 

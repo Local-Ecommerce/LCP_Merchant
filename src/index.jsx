@@ -23,15 +23,13 @@ const theme = {
 };
 
 ReactDOM.render(
-  <React.StrictMode>
-		<ThemeProvider theme={theme}>
-			<BrowserRouter>
-				<AuthProvider>
-					<App />
-				</AuthProvider>
-			</BrowserRouter>
-		</ThemeProvider>
-  	</React.StrictMode>,
+	<ThemeProvider theme={theme}>
+		<BrowserRouter>
+			<AuthProvider>
+				<App />
+			</AuthProvider>
+		</BrowserRouter>
+	</ThemeProvider>,
   document.getElementById('root')
 );
 

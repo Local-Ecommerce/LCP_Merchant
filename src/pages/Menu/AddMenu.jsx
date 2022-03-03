@@ -174,8 +174,22 @@ const AddMenu = () => {
                     if (res.data.ResultMessage === "SUCCESS") {
                         setMenuId(res.data.Data.MenuId);
                         return api.post("store-menus", [{
-                            timeStart: DateTime.fromISO(input.startTime).toObject(),
-                            timeEnd: DateTime.fromISO(input.endTime).toObject(),
+                            timeStart: {
+                                "ticks": 0,
+                                "days": 0,
+                                "hours": 0,
+                                "milliseconds": 0,
+                                "minutes": 0,
+                                "seconds": 0
+                            },
+                            timeEnd: {
+                                "ticks": 0,
+                                "days": 0,
+                                "hours": 0,
+                                "milliseconds": 0,
+                                "minutes": 0,
+                                "seconds": 0
+                            },
                             repeatDate: (repeatDay.t2 ? '2' : '') 
                                         + (repeatDay.t3 ? '3' : '') 
                                         + (repeatDay.t4 ? '4' : '') 
