@@ -1,26 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { api } from "../../RequestMethod";
+import { toast } from 'react-toastify';
 import { KeyboardBackspace, ArrowRight, Search, AddBox } from '@mui/icons-material';
-import { TextField, Radio, RadioGroup, FormControlLabel } from '@mui/material';
+import { TextField, Radio, RadioGroup, FormControlLabel, CircularProgress } from '@mui/material';
 import { TimePicker, LocalizationProvider } from '@mui/lab';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import { DateTime } from 'luxon';
 
 import Products from '../../mockdata/Products';
 import Menus from '../../mockdata/Menus';
-import CreateModal from '../../components/Menu/CreateModal';
+import AddItemModal from './AddItemModal';
+import ConfirmModal from './ConfirmModal';
 import ProductList from '../../components/Product/ProductList';
 
 const PageWrapper = styled.form`
-    width: 1080px;
+    min-width: 720px;
+    max-width: 1080px;
     margin: 40px auto;
 `;
 
 const FlexWrapper = styled.div`
     display: flex;
     align-items: flex-start;
+    justify-content: center;
 `;
 
 const ProductWrapper = styled.div`
@@ -51,6 +55,16 @@ const MenuWrapper = styled.div`
 const Row = styled.div`
     display: flex;
     align-items: center;
+`;
+
+const Center = styled.div`
+    position: absolute;
+    margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
+    text-align: center;
+    top: 45%;
 `;
 
 const SpaceBetween = styled.div`
@@ -191,12 +205,13 @@ const WeekDayCheckbox = styled.button`
 const TimePickerWrapper = styled.div`
     margin: 20px 0px 0px 0px;
     display: flex;
+    align-items: center; 
     justify-content: center;
 `;
 
 const StyledArrowIcon = styled(ArrowRight)`
     && {
-    margin: 16px 5px;
+    margin: 5px;
     }
 `;
 
@@ -278,28 +293,66 @@ const NoProductButton = styled.button`
 `;
 
 const EditMenu = () => {
-    let navigate = useNavigate();
-    const [createModal, setCreateModal] = useState(false);
-    const toggleCreateModal = () => { setCreateModal(!createModal); }
+    const { id } = useParams();
+    const [confirmModal, setConfirmModal] = useState(false);
+    const toggleConfirmModal = () => { setConfirmModal(!confirmModal); }
+    const [addItemModal, setAddItemModal] = useState(false);
+    const toggleAddItemModal = () => { setAddItemModal(!addItemModal); }
+    const [stockItems, setStockItems] = useState([]);
+    const [menuItems, setMenuItems] = useState([]);
 
     const [menu, setMenu] = useState([]);
     const [products, setProducts] = useState([]);
 
-    const [input, setInput] = useState({
-        'title': '',
-        'description': '',
-        'type': 'Tươi sống',
-        'startTime': '',
-        'endTime': '',
-        'status': 0
-    });
-    const [dateOfWeek, setDateOfWeek] = useState({ t2:true, t3:false, t4:false, t5:false, t6:false, t7:false, cn:false });
+    const [input, setInput] = useState({ id: '', name: '', description: '', startTime: '', endTime: '' });
+    const [repeatDay, setRepeatDay] = useState({ t2:true, t3:true, t4:true, t5:true, t6:true, t7:true, cn:true });
+    const [error, setError] = useState({ 'name': '', 'timeError': '' });
 
-    const [error, setError] = useState({ 'titleError': '', 'timeError': '' });
+    const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState('');
     const [sort, setSort] = useState(0);
     const [change, setChange] = useState(false);
 
+    useEffect(() => {
+        setLoading(true);
+        let url = "menus?id=" + id;
+        const fetchData = () => {
+            api.get(url)
+            .then(function (res) {
+                if (res.data.ResultMessage === "SUCCESS") {
+                    setMenu(res.data.Data.List[0]);
+                    setProducts(res.data.Data.List[0].ProductInMenus);
+                    setInput({
+                        id: res.data.Data.List[0].MenuId, 
+                        name: res.data.Data.List[0].MenuName, 
+                        description: res.data.Data.List[0].MenuDescription, 
+                        startTime: DateTime.fromFormat(res.data.Data.List[0].TimeStart, 'TT').toUTC().toISO(),
+                        endTime: DateTime.fromFormat(res.data.Data.List[0].TimeEnd, 'TT').toUTC().toISO(),
+                    });
+                    setRepeatDay({
+                        t2: res.data.Data.List[0].RepeatDate.includes('2') ? true : false,
+                        t3: res.data.Data.List[0].RepeatDate.includes('3') ? true : false,
+                        t4: res.data.Data.List[0].RepeatDate.includes('4') ? true : false,
+                        t5: res.data.Data.List[0].RepeatDate.includes('5') ? true : false,
+                        t6: res.data.Data.List[0].RepeatDate.includes('6') ? true : false,
+                        t7: res.data.Data.List[0].RepeatDate.includes('7') ? true : false,
+                        cn: res.data.Data.List[0].RepeatDate.includes('8') ? true : false
+                    });
+                    setLoading(false);
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+                setLoading(false);
+            });
+        }
+        fetchData();
+    }, [change]);
+
+    useEffect(() => {
+        setStockItems(Products);
+    }, []);
+    
     function handleChange(e) {
         const { name, value } = e.target;
         setInput(input => ({ ...input, [name]: value }));
@@ -307,58 +360,51 @@ const EditMenu = () => {
 
     function handleToggleDate(e) {
         const { name, checked } = e.target;
-        setDateOfWeek(date => ({ ...date, [name]: !checked }));
+        setRepeatDay(date => ({ ...date, [name]: !checked }));
     }
+    
+    const handleEditItem = (event) => {
+        event.preventDefault();
 
-    useEffect(() => {
-        //
-    }, [change]);
-
-    useEffect(() => {
-        setInput({
-            'title': menu.MenuName, 
-            'description': menu.Description, 
-            'type': menu.Type, 
-            'startTime': DateTime.fromISO(menu.StartTime), 
-            'endTime': DateTime.fromISO(menu.EndTime), 
-            'status': menu.Status
-        });
-    }, [menu]);
-
-    useEffect(() => {
-        let string = '';
-        if (dateOfWeek.t2 === true) {
-            string = string.concat('2');
+        if (checkValid()) {
+            const notification = toast.loading("Đang xử lí yêu cầu...");
+            const url = "menus?id=" + id;
+            const addData = async () => {
+                api.put(url, {
+                    menuName: input.name,
+                    menuDescription: input.description,
+                    timeStart: DateTime.fromISO(input.startTime).toFormat('TT'),
+                    timeEnd: DateTime.fromISO(input.endTime).toFormat('TT'),
+                    repeatDate: (repeatDay.t2 ? '2' : '') 
+                                + (repeatDay.t3 ? '3' : '') 
+                                + (repeatDay.t4 ? '4' : '') 
+                                + (repeatDay.t5 ? '5' : '') 
+                                + (repeatDay.t6 ? '6' : '') 
+                                + (repeatDay.t7 ? '7' : '') 
+                                + (repeatDay.cn ? '8' : '')
+                })
+                .then(function (res) {
+                    if (res.data.ResultMessage === "SUCCESS") {
+                        toast.update(notification, { render: "Cập nhật bảng giá thành công!", type: "success", autoClose: 5000, isLoading: false });
+                        setChange(!change);
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                    toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
+                });
+            };
+            addData();
+            toggleConfirmModal();
         }
-        if (dateOfWeek.t3 === true) {
-            string = string.concat('3');
-        }
-        if (dateOfWeek.t4 === true) {
-            string = string.concat('4');
-        }
-        if (dateOfWeek.t5 === true) {
-            string = string.concat('5');
-        }
-        if (dateOfWeek.t6 === true) {
-            string = string.concat('6');
-        }
-        if (dateOfWeek.t7 === true) {
-            string = string.concat('7');
-        }
-        if (dateOfWeek.cn === true) {
-            string = string.concat('8');
-        }
-        console.log(string);
-    }, [dateOfWeek]);
-
-    const handleEditMenu = (event) => {
-        //
     }
 
     const checkValid = () => {
         let check = false;
+        setError(error => ({ ...error, name: '', timeError: '' }));
+
         if (input.title === null || input.title === '') {
-            setError(error => ({ ...error, titleError: 'Vui lòng nhập tiêu đề' }));
+            setError(error => ({ ...error, name: 'Vui lòng nhập tiêu đề' }));
             check = true;
         }
         if (input.startTime >= input.endTime) {
@@ -368,15 +414,31 @@ const EditMenu = () => {
         if (check) {
             return false;
         }
-        setError(error => ({ ...error, titleError: '', timeError: '' }));
+        
         return true;
     }
 
+    const checkValidBeforeConfirm = () => {
+        if (checkValid()) {
+            toggleConfirmModal();
+        }
+    }
+
+    const handleGetNewProducts = (products) => {
+        setProducts(products);
+    }
+
+    const handleDeleteItem = (deleteItem) => {
+        setMenuItems(menuItems.filter(item => item.ProductId !== deleteItem.ProductId));
+        setProducts(products.filter(item => item.ProductId !== deleteItem.ProductId));
+        stockItems.push(deleteItem);
+    }
+
     return (
-        <PageWrapper onSubmit={handleEditMenu} id="form">
+        <PageWrapper>
             <Row>
                 <Link to="/menus"><StyledBackIcon /></Link>
-                <Title><TitleGrey>Bảng giá </TitleGrey>/ Thịt cá các loại</Title>
+                <Title><TitleGrey>Bảng giá </TitleGrey>/ {menu.MenuName}</Title>
             </Row>
 
             <FlexWrapper>
@@ -384,8 +446,8 @@ const EditMenu = () => {
                     <SpaceBetween>
                         <FormLabel>Sản phẩm</FormLabel>
                         {
-                            products && products.length ?
-                            <AddButton> 
+                            (products && products.length) ?
+                            <AddButton type="button" onClick={toggleAddItemModal}> 
                                 <StyledAddIcon />
                                 Thêm sản phẩm 
                             </AddButton>
@@ -413,11 +475,14 @@ const EditMenu = () => {
                     <ProductListWrapper>
                         {
                             products && products.length ?
-                            <ProductList currentItems={products} />
+                            <ProductList 
+                                currentItems={products} 
+                                handleDeleteItem={handleDeleteItem}
+                            />
                             : 
                             <NoProductWrapper>
                                 <NoProductTitle> Bảng giá chưa có sản phẩm</NoProductTitle>
-                                <NoProductButton type="button" onClick={toggleCreateModal}> Thêm sản phẩm </NoProductButton>
+                                <NoProductButton type="button" onClick={toggleAddItemModal}> Thêm sản phẩm </NoProductButton>
                             </NoProductWrapper>
                         }
                     </ProductListWrapper>
@@ -428,67 +493,71 @@ const EditMenu = () => {
                     <TextField
                         fullWidth size="small" placeholder="Ví dụ: Thịt cá các loại, đồ gia dụng, etc" 
                         inputProps={{style: {fontSize: 14}}}
-                        value={input.title ? input.title : ''} name='title'
+                        value={loading ? 'Loading ...' : input.name} name='name'
                         onChange={handleChange}
-                        error={error.titleError !== ''}
-                        helperText={error.titleError}
+                        error={error.name !== ''}
+                        helperText={error.name}
                     />
 
                     <FormLabel>Mô tả</FormLabel>
                     <TextField
                         fullWidth size="small" multiline rows={3}
                         inputProps={{style: {fontSize: 14}}}
-                        value={input.description ? input.description : ''} name='description'
+                        value={loading ? 'Loading ...' : input.description} name='description'
                         onChange={handleChange}
                     />
 
-                    <FormLabel>Loại bảng giá</FormLabel>
-
-                    <RadioGroup value={input.type ? input.type : 'Tươi sống'} name='type' onChange={handleChange}>
-                        <FormControlLabel value='Tươi sống' control={<Radio />} label={<RadioLabel>Tươi sống</RadioLabel>} />
-                        <FormControlLabel value='Khác' control={<Radio />} label={<RadioLabel>Khác</RadioLabel>} />
-                    </RadioGroup>
-
                     <FormLabel>Ngày hoạt động</FormLabel>
                     <DatePickerWrapper>
-                        <WeekDayCheckbox type="button" checked={dateOfWeek.t2} name='t2' onClick={handleToggleDate}>T2</WeekDayCheckbox>
-                        <WeekDayCheckbox type="button" checked={dateOfWeek.t3} name='t3' onClick={handleToggleDate}>T3</WeekDayCheckbox>
-                        <WeekDayCheckbox type="button" checked={dateOfWeek.t4} name='t4' onClick={handleToggleDate}>T4</WeekDayCheckbox>
-                        <WeekDayCheckbox type="button" checked={dateOfWeek.t5} name='t5' onClick={handleToggleDate}>T5</WeekDayCheckbox>
-                        <WeekDayCheckbox type="button" checked={dateOfWeek.t6} name='t6' onClick={handleToggleDate}>T6</WeekDayCheckbox>
-                        <WeekDayCheckbox type="button" checked={dateOfWeek.t7} name='t7' onClick={handleToggleDate}>T7</WeekDayCheckbox>
-                        <WeekDayCheckbox type="button" checked={dateOfWeek.cn} name='cn' onClick={handleToggleDate}>CN</WeekDayCheckbox>
+                        <WeekDayCheckbox type="button" checked={repeatDay.t2} name='t2' onClick={handleToggleDate}>T2</WeekDayCheckbox>
+                        <WeekDayCheckbox type="button" checked={repeatDay.t3} name='t3' onClick={handleToggleDate}>T3</WeekDayCheckbox>
+                        <WeekDayCheckbox type="button" checked={repeatDay.t4} name='t4' onClick={handleToggleDate}>T4</WeekDayCheckbox>
+                        <WeekDayCheckbox type="button" checked={repeatDay.t5} name='t5' onClick={handleToggleDate}>T5</WeekDayCheckbox>
+                        <WeekDayCheckbox type="button" checked={repeatDay.t6} name='t6' onClick={handleToggleDate}>T6</WeekDayCheckbox>
+                        <WeekDayCheckbox type="button" checked={repeatDay.t7} name='t7' onClick={handleToggleDate}>T7</WeekDayCheckbox>
+                        <WeekDayCheckbox type="button" checked={repeatDay.cn} name='cn' onClick={handleToggleDate}>CN</WeekDayCheckbox>
                     </DatePickerWrapper>
 
                     <FormLabel>Thời gian hoạt động</FormLabel>
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <TimePickerWrapper>
                             <TimePicker 
-                                value={input.startTime}
-                                onChange={time => handleChange({ target: { value: time, name: 'startTime' } })} 
+                                value={input.startTime} ampm={false}
+                                onChange={time => handleChange({ target: { value: time.toISOString(), name: 'startTime' } })} 
                                 renderInput={(params) => <TextField {...params} size="small" error={error.timeError !== ''} helperText={error.timeError} />} />
 
                             <StyledArrowIcon />
 
                             <TimePicker 
-                                value={input.endTime}
-                                onChange={time => handleChange({ target: { value: time, name: 'endTime' } })} 
+                                value={input.endTime} ampm={false}
+                                onChange={time => handleChange({ target: { value: time.toISOString(), name: 'endTime' } })} 
                                 renderInput={(params) => <TextField {...params} size="small" error={error.timeError !== ''} helperText={error.timeError} />} />
                         </TimePickerWrapper>
                     </LocalizationProvider>
                 </MenuWrapper>
             </FlexWrapper>
-
             
             <FooterWrapper>
                 <FloatRight>
-                    <Button>Lưu</Button>
+                    <Button type="button" onClick={checkValidBeforeConfirm}>Cập nhật</Button>
                 </FloatRight>
             </FooterWrapper>
 
-            <CreateModal 
-                display={createModal} 
-                toggle={toggleCreateModal}
+            <AddItemModal 
+                display={addItemModal} 
+                toggle={toggleAddItemModal}
+                stockItems={stockItems}
+                menuItems={menuItems}
+                setStockItems={setStockItems}
+                setMenuItems={setMenuItems}
+                getNewProducts={handleGetNewProducts}
+            />
+
+            <ConfirmModal
+                display={confirmModal} 
+                toggle={toggleConfirmModal}
+                name={menu.MenuName}
+                handleEditItem={handleEditItem}
             />
         </PageWrapper>
     )

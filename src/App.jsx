@@ -39,7 +39,11 @@ const ContentWrapper = styled.div`
 
 const SidebarLayout = () => (
 	<>
-        <ToastContainer />
+        <ToastContainer 
+			style={{ width: "320px" }}
+			autoClose={5000}
+			position="top-center"
+		/>
 
 		<ContentWrapper>
 			<Outlet />

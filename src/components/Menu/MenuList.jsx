@@ -1,7 +1,7 @@
 import React from 'react';
 import MenuItem from './MenuItem';
 
-const MenuList = ({ currentItems, handleGetDeleteItem }) => {
+const MenuList = ({ currentItems, handleGetToggleStatusItem, handleGetDeleteItem }) => {
 
     if (currentItems.length === 0) {
         return <MenuItem item={0} />
@@ -10,8 +10,9 @@ const MenuList = ({ currentItems, handleGetDeleteItem }) => {
     return currentItems && currentItems.map((item, index) => {
         return (
             <MenuItem
-                item={item}
-                handleGetDeleteItem={handleGetDeleteItem} key={index}
+                item={item} index={index} key={index}
+                handleGetToggleStatusItem={handleGetToggleStatusItem}
+                handleGetDeleteItem={handleGetDeleteItem}
             />
         )
     });

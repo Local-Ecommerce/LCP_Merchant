@@ -30,15 +30,20 @@ const CenterWrapper = styled.div`
 const Title = styled.h1`
     font-size: 32px;
     color: #383838;
-    margin: 0px 0px 10px 0px;
+    margin: 0px;
+    text-align: center;
 `;
 
 const BlueSpan = styled.span`
     color: #3075BA;
+    font-size: 40px;
 `;
 
-const SmallText = styled.span`
+const SmallText = styled.h4`
     color: rgba(23,31,35,.64);
+    font-weight: 600;
+    margin: 5px 0px 20px 0px;
+    text-align: center;
 `;
 
 const ErrorText = styled.div`
@@ -62,10 +67,10 @@ const BottomText = styled.a`
 const TextFieldWrapper = styled.div`
     display: flex;
     align-items: center;
-    margin-top: 30px;
+    margin-top: ${props => props.mt ? "30px" : "10px"};
 `;
 
-const StyledButton = styled.button`
+const Button = styled.button`
     border-radius: 5px;
     border: none;
     padding: 15px;
@@ -75,6 +80,7 @@ const StyledButton = styled.button`
     font-weight: 600;
     width: 100%;
     margin-top: 30px;
+    border-radius: 35px;
 
     &:active {
     box-shadow: 0 2px #666;
@@ -108,7 +114,7 @@ const Login = () => {
             setLoading(true);
             await login(input.username, input.password);
         } catch {
-            setError("Đăng nhập thất bại. Vui lòng thử lại.");
+            setError("Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản hoặc mật khẩu.");
             setLoading(false);
         }
     }
@@ -116,7 +122,7 @@ const Login = () => {
     return (
         <LoginFormContainer>
             <Title>Welcome to <BlueSpan>LCP</BlueSpan> </Title>
-            <SmallText>Trang quản lí dành cho người bán hàng của LCP</SmallText>
+            <SmallText>Trang quản lí dành cho Người bán hàng</SmallText>
 
             {error !== '' ? <ErrorText>{error}</ErrorText> : null}
 
@@ -128,7 +134,7 @@ const Login = () => {
                 </CenterWrapper>
                 :
                 <>
-                    <TextFieldWrapper>
+                    <TextFieldWrapper mt>
                         <TextField
                             fullWidth
                             value={input.username ? input.username : ''} name="username"
@@ -147,7 +153,7 @@ const Login = () => {
                         />
                     </TextFieldWrapper>
 
-                    <StyledButton>Đăng nhập</StyledButton>
+                    <Button>Đăng nhập</Button>
                     <BottomText>Quên mật khẩu?</BottomText>
                 </>
                 }

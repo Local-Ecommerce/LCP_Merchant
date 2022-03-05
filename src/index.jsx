@@ -15,10 +15,12 @@ const theme = {
 	white: "#fff",
 	dark: "#555",
 	grey: "#808080",
-	greyBorder: "#c4c4c4",
-	disabled: "#d8d8d8",
 	orange: "#ff9800",
 
+	greyBorder: "#c4c4c4",
+	danger: "#f8d7da",
+	safe: "#5aa25d",
+	disabled: "#d8d8d8",
 	hover: "rgba(246, 246, 247, 1)",
 };
 

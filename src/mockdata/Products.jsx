@@ -15,7 +15,7 @@ const Products = [
     },
     {
         ProductId: 3,
-        ProductName: 'Bánh mì 4 trứng dài trung bình',
+        ProductName: 'Bánh mì 4 trứng dài',
         Type: 'Tươi sống',
         Image: '../../images/product1.png',
         Status: 1005,
@@ -57,7 +57,7 @@ const Products = [
     },
     {
         ProductId: 9,
-        ProductName: 'Bánh mì 10 trứng hơi dài',
+        ProductName: 'Bánh mì 10 trứng',
         Type: 'Tươi sống',
         Image: '../../images/product1.png',
         Status: 1005,

@@ -3,7 +3,7 @@ import styled, { ThemeProvider } from 'styled-components';
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../RequestMethod";
 import { KeyboardBackspace, AddPhotoAlternate, Warning } from '@mui/icons-material';
-import { TextField, InputAdornment, FormControlLabel } from '@mui/material';
+import { TextField, InputAdornment, FormControlLabel, Radio, RadioGroup } from '@mui/material';
 
 import Lv1Category from '../../mockdata/Lv1Category';
 import Lv2Category from '../../mockdata/Lv2Category';
@@ -56,9 +56,18 @@ const StyledTextFieldMb = styled(TextField)`
     }
 `;
 
-const StyledFormLabel = styled.div`
+const FormLabel = styled.div`
     font-weight: 700;
     margin-bottom: 10px;
+`;
+
+const RadioLabel = styled.span`
+    font-size: 14px;
+`;
+
+const StyledLink = styled.a`
+    color: #007bff;
+    cursor: pointer;
 `;
 
 const FooterWrapper = styled.div`
@@ -81,7 +90,15 @@ const StyledWarningIcon = styled(Warning)`
     }
 `;
 
-const HelperText = styled.span`
+const HelperText = styled.div`
+    margin-left: 30px;
+    align-items: center;
+    text-decoration: none;
+    font-size: ${props => props.error ? "13px" : "14px"};
+    margin-top: ${props => props.error ? "10px" : "0px"};
+    color: ${props => props.error ? props.theme.red : "#727272"};
+`;
+const WarningText = styled.span`
     font-size: 14px;
     padding: 5px;
     font-weight: 600;
@@ -237,7 +254,7 @@ const AddMenu = () => {
             
             <form onSubmit={handleAddMenu} id="form">
                 <ContainerWrapper>
-                    <StyledFormLabel>Tên sản phẩm</StyledFormLabel>
+                    <FormLabel>Tên sản phẩm</FormLabel>
                     <StyledTextFieldMb
                         fullWidth placeholder="Ví dụ: Bánh mì 2 trứng" 
                         inputProps={{style: {fontSize: 14}}}
@@ -247,7 +264,7 @@ const AddMenu = () => {
                         helperText={error.name}
                     />
 
-                    <StyledFormLabel>Mô tả chi tiết</StyledFormLabel>
+                    <FormLabel>Mô tả chi tiết</FormLabel>
                     <StyledTextFieldMb
                         fullWidth multiline rows={4}
                         placeholder="Khách hàng sẽ thấy mô tả này khi họ vào xem chi tiết sản phẩm." 
@@ -256,7 +273,7 @@ const AddMenu = () => {
                         onChange={handleChange}
                     />
 
-                    <StyledFormLabel>Mô tả ngắn gọn</StyledFormLabel>
+                    <FormLabel>Mô tả ngắn gọn</FormLabel>
                     <StyledTextFieldMb
                         fullWidth multiline rows={2}
                         placeholder="Khách hàng sẽ thấy mô tả này khi họ nhấn xem sản phẩm." 
@@ -265,7 +282,7 @@ const AddMenu = () => {
                         onChange={handleChange}
                     />
 
-                    <StyledFormLabel>Danh mục</StyledFormLabel>
+                    <FormLabel>Danh mục</FormLabel>
                     <Row spacebetween>
                         <CategoryList currentItems={lv1Category} selected={input.category.lv1} handleGetCategory={handleGetCategoryLv1} />
                         <CategoryList currentItems={lv2Category} selected={input.category.lv2} handleGetCategory={handleGetCategoryLv2} />
@@ -273,9 +290,37 @@ const AddMenu = () => {
                     </Row>
                 </ContainerWrapper>
 
+                <ContainerWrapper>
+                    <FormLabel>Loại sản phẩm</FormLabel>
+
+                    <RadioGroup value={input.type} name='type' onChange={handleChange}>
+                        <FormControlLabel 
+                            value="Tươi sống" 
+                            control={<Radio />} 
+                            label={<RadioLabel>Tươi sống</RadioLabel>} 
+                        />
+                        <HelperText>
+                            Bảng giá thuộc lại tươi sống sẽ nằm bên mục&nbsp;<b>Tươi sống</b>. 
+                            Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/Th%E1%BB%B1c_ph%E1%BA%A9m_t%C6%B0%C6%A1i_s%E1%BB%91ng"
+                                                              target="_blank">danh mục tươi sống</StyledLink>
+                        </HelperText>
+
+                        <FormControlLabel 
+                            value="Khác" 
+                            control={<Radio />} 
+                            label={<RadioLabel>Khác</RadioLabel>} 
+                        />
+                        <HelperText>
+                            Bảng giá thuộc lại khác sẽ nằm bên mục&nbsp;<b>Khác</b>. 
+                            Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/S%E1%BA%A3n_ph%E1%BA%A9m"
+                                                              target="_blank">danh mục khác</StyledLink>
+                        </HelperText>
+                    </RadioGroup>
+                </ContainerWrapper>
+
 
                 <ContainerWrapper p0>
-                    <StyledFormLabel>Giá mặc định</StyledFormLabel>
+                    <FormLabel>Giá mặc định</FormLabel>
                     <StyledTextFieldMb
                         fullWidth type="number"
                         InputProps={{ inputMode: 'numeric', pattern: '[0-9]*', startAdornment: <InputAdornment position="start">vnđ</InputAdornment> }}
@@ -283,7 +328,7 @@ const AddMenu = () => {
                         onChange={handleChange}
                     />
 
-                    <StyledFormLabel>Hình ảnh</StyledFormLabel>
+                    <FormLabel>Hình ảnh</FormLabel>
                     <ImageListWrapper>
                         <ImageWrapper><StyledPhotoIcon /> Ảnh bìa<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
                         <ImageWrapper><StyledPhotoIcon /> Hình ảnh 1<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
@@ -299,13 +344,12 @@ const AddMenu = () => {
 
 
                 <ContainerWrapper>
-                    <StyledFormLabel>Tùy chọn</StyledFormLabel>
+                    <FormLabel>Tùy chọn</FormLabel>
                     <OptionLabel>Thêm các tùy chọn của sản phẩm, như màu sắc, kích thước hay trọng lượng</OptionLabel>
                     
                     <ProductOption savedData={input.color} type='color' saveOption={saveOption} editOption={editOption} />
                     <ProductOption savedData={input.size} type='size' saveOption={saveOption} editOption={editOption} />
                     <ProductOption savedData={input.weight} type='weight' saveOption={saveOption} editOption={editOption} />
-
                 </ContainerWrapper>
 
 
@@ -316,7 +360,7 @@ const AddMenu = () => {
                             (error.color !== '' || error.size !== '' || error.weight !== '') ?
                             <>
                                 <StyledWarningIcon />
-                                <HelperText>Bạn có tùy chọn chưa lưu!</HelperText>
+                                <WarningText>Bạn có tùy chọn chưa lưu!</WarningText>
                             </>
                             : null
                         }

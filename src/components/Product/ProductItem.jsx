@@ -72,8 +72,8 @@ const Status = styled.span`
 
 const Image = styled.img`
     vertical-align: middle;
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
 `;
 
@@ -105,33 +105,33 @@ const StyledCloseIcon = styled(Close)`
     }
 `;
 
-const ProductItem = ({ item, index, handleGetDeleteItem }) =>  {
+const ProductItem = ({ item, index, handleDeleteItem }) =>  {
     let activeCheck = '';
     let activeLabel = '';
     switch (item.Status) {
         case 1004:
             activeCheck = 'deleted';
-            activeLabel = 'Deleted';
+            activeLabel = 'Xóa';
             break;
         case 1005:
             activeCheck = 'active';
-            activeLabel = 'Active';
+            activeLabel = 'Hoạt động';
             break;
         case 1006:
-            activeCheck = 'rejected';
-            activeLabel = 'Rejected';
+            activeCheck = 'deleted';
+            activeLabel = 'Từ chối';
             break;
         case 1007:
             activeCheck = 'unverified';
-            activeLabel = 'Unverified';
+            activeLabel = 'Chưa xác thực';
             break;
         case 1008:
             activeCheck = 'unverified';
-            activeLabel = 'Unverified';
+            activeLabel = 'Chưa xác thực';
             break;
         default:
             activeCheck = 'inactive';
-            activeLabel = 'WRONG STATUS NUMBER';
+            activeLabel = 'WRONG STATUS';
             break;
     }
     
@@ -155,7 +155,7 @@ const ProductItem = ({ item, index, handleGetDeleteItem }) =>  {
             </StatusWrapper>
 
             <ButtonWrapper>
-                <Button>
+                <Button type="button" onClick={() => handleDeleteItem(item)}>
                     <StyledCloseIcon />
                 </Button>
             </ButtonWrapper>

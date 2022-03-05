@@ -1,7 +1,7 @@
 import React from 'react';
 import ProductItem from './ProductItem';
 
-const ProductList = ({ currentItems, handleGetDeleteItem }) => {
+const ProductList = ({ currentItems, handleDeleteItem }) => {
 
     if (currentItems.length === 0) {
         return <ProductItem item={0} />
@@ -11,7 +11,7 @@ const ProductList = ({ currentItems, handleGetDeleteItem }) => {
         return (
             <ProductItem
                 item={item}
-                handleGetDeleteItem={handleGetDeleteItem} index={index + 1} key={index}
+                handleDeleteItem={handleDeleteItem} index={index + 1} key={index}
             />
         )
     });

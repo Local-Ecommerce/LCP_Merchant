@@ -259,8 +259,9 @@ const StyledLinkIcon = styled(Logout)`
     }
 `;
 
-const StyledLink = styled(Link)`
+const StyledLink = styled.a`
     color: #007bff;
+    cursor: pointer;
 `;
 
 const customStyles = {
@@ -384,7 +385,8 @@ const Product = () =>  {
 
             <TipText>
                 <StyledExclamationIcon />
-                Tìm hiểu thêm về&nbsp;<StyledLink to="/products">sản phẩm</StyledLink>
+                Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/S%E1%BA%A3n_ph%E1%BA%A9m"
+                                                  target="_blank">sản phẩm</StyledLink>
                 <StyledLinkIcon />
             </TipText>
 

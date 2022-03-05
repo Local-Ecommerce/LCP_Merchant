@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Delete } from '@mui/icons-material';
+import { Delete, ToggleOff, ToggleOn } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
 
 const Button = styled.button`
@@ -30,84 +30,109 @@ const TableData = styled.td`
     border-bottom: 1px solid #dee2e6;
     vertical-align: middle;
     text-align: ${props => props.center ? "center" : "left"};
-    overflow: hidden;
-    white-space: nowrap;
     font-size: 15px;
+    color: ${props => props.grey ? props.theme.grey : null};
+
+    height: 50px;
 `;
 
-const Status = styled.span`
+const DaySpan = styled.span`
     display: inline-block;
-    padding: 4px 6px;
+    padding: 4px;
     font-size: 0.8em;
     font-weight: 700;
     text-align: center;
     white-space: nowrap;
     vertical-align: baseline;
     border-radius: 20px;
-    color: ${props => props.active === "inactive" ? "grey" : "#fff"};
-    background-color: ${props => props.active === "active" ? "#28a745"
-    :
-    props.active === "inactive" ? "#E0E0E0"
-        :
-        "#dc3545"};
+    color: ${props => props.green ? props.theme.green : props.theme.disabled};
 `;
 
-const StyledDeleteIcon = styled(Delete)`
-    &:hover {
-    color: ${props => props.disabled === true ? "#E0E0E0" : "#dc3545"};
+const StyledToggleOnIcon = styled(ToggleOn)`
+    && {
+        font-size: 40px;
+        color: ${props => props.theme.green};
+
+        
+        &:hover {
+            opacity: 0.8;
+        }
     }
 `;
 
-const MenuItem = ({ item, handleGetDeleteItem }) =>  {
+const StyledToggleOffIcon = styled(ToggleOff)`
+    && {
+        font-size: 40px;
+        color: ${props => props.theme.red};
+
+        
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+`;
+
+const StyledDeleteIcon = styled(Delete)`
+    padding: 8px;
+    border-radius: 20px;
+
+    &:hover {
+    background-color: ${props => props.disabled === true ? null : props.theme.disabled};
+    }
+`;
+
+const MenuItem = ({ item, handleGetToggleStatusItem, handleGetDeleteItem, index }) =>  {
     const navigate = useNavigate();
 
     if (item === 0) {
         return (
             <TableRow>
-                <TableData colSpan={4} center>
+                <TableData colSpan={100} center>
                     <h4>Không tìm thấy dữ liệu.</h4>
                 </TableData>
             </TableRow>
         )
     }
-    let activeCheck = '';
-    let activeLabel = '';
-    let disabledCheck = false;
-    switch (item.Status) {
-        case 14001:
-            activeCheck = 'active';
-            activeLabel = 'Active';
-            break;
-        case 14002:
-            activeCheck = 'inactive';
-            activeLabel = 'Inactive';
-            break;
-        case 14004:
-            activeCheck = 'deleted';
-            activeLabel = 'Deleted';
-            disabledCheck = true;
-            break;
-        default:
-            activeCheck = 'inactive';
-            activeLabel = 'WRONG STATUS NUMBER';
-            break;
+
+    const handleSetToggleStatusItem = (e) => {
+        e.stopPropagation();
+        handleGetToggleStatusItem(item.MenuId, item.MenuName, (item.Status === 9001 ? true : false))
     }
 
-    const handleRowClick = (id) => {
-        navigate("/menu/" + id);
-    }  
+    const handleSetDeleteItem = (e) => {
+        e.stopPropagation();
+        handleGetDeleteItem(item.MenuId, item.MenuName);
+    }
 
     return (
-        <TableRow onClick={()=> handleRowClick(item.MenuId)}>
+        <TableRow onClick={() => navigate("/menu/" + item.MenuId)}>
+            <TableData grey>{index + 1}</TableData>
             <TableData>{item.MenuName}</TableData>
-            <TableData center>{item.Type}</TableData>
+            <TableData center>{item.TimeStart}</TableData>
+            <TableData center>{item.TimeEnd}</TableData>
             <TableData center>
-                <Status active={activeCheck}>{activeLabel}</Status>
+                {item.RepeatDate.includes('2') ? <DaySpan green>2</DaySpan> : <DaySpan>2</DaySpan>}
+                {item.RepeatDate.includes('3') ? <DaySpan green>3</DaySpan> : <DaySpan>3</DaySpan>}
+                {item.RepeatDate.includes('4') ? <DaySpan green>4</DaySpan> : <DaySpan>4</DaySpan>}
+                {item.RepeatDate.includes('5') ? <DaySpan green>5</DaySpan> : <DaySpan>5</DaySpan>}
+                {item.RepeatDate.includes('6') ? <DaySpan green>6</DaySpan> : <DaySpan>6</DaySpan>}
+                {item.RepeatDate.includes('7') ? <DaySpan green>7</DaySpan> : <DaySpan>7</DaySpan>}
+                {item.RepeatDate.includes('8') ? <DaySpan green>CN</DaySpan> : <DaySpan>CN</DaySpan>}
             </TableData>
 
             <TableData center>
-                <Button disabled={disabledCheck} onClick={() => handleGetDeleteItem(item.MenuId, item.MenuName)}>
-                    <StyledDeleteIcon disabled={disabledCheck} />
+                {
+                    item.Status === 9001 ?
+                    <StyledToggleOnIcon onClick={handleSetToggleStatusItem} />
+                    : item.Status === 9005 ?
+                    <StyledToggleOffIcon onClick={handleSetToggleStatusItem} />
+                    : null
+                }
+            </TableData>
+
+            <TableData center>
+                <Button disabled={item.Status === 14004 ? true : false} onClick={handleSetDeleteItem}>
+                    <StyledDeleteIcon disabled={item.Status === 14004 ? true : false} />
                 </Button>
             </TableData>
         </TableRow>

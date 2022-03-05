@@ -79,10 +79,10 @@ const Button = styled.button`
     display: block;
     border-radius: 5px;
     border: none;
-    padding: 10px 15px;
+    padding: 8px 15px;
     cursor: pointer;
-    border: 1px solid ${props => props.white ? props.theme.greyBorder : props.theme.blue};
-    background: ${props => props.white ? "white" : props.theme.blue};
+    border: 1px solid ${props => props.white ? props.theme.greyBorder : props.green ? props.theme.green : props.theme.blue};
+    background: ${props => props.white ? props.theme.white : props.green ? props.theme.green : props.theme.blue};
     color: ${props => props.white ? props.theme.dark : "white"};
     font-weight: 600;
     margin-right: ${props => props.mr ? "10px" : "0x"};
@@ -265,7 +265,7 @@ const ProductOption = ({ savedData, type, saveOption, editOption }) =>  {
                         <Button mr white type="button" onClick={() => addValue({name: count, value: '', error: ''})}> 
                             Thêm giá trị mới 
                         </Button>
-                        <Button white type="button" onClick={handleSaveOption}> 
+                        <Button green type="button" onClick={handleSaveOption}> 
                             Lưu
                         </Button>
                     </Row>

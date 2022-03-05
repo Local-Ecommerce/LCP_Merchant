@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, ArrowRight } from '@mui/icons-material';
-import { TextField, Checkbox, Radio, RadioGroup, FormControlLabel } from '@mui/material';
+import { TextField, Checkbox, FormControlLabel } from '@mui/material';
 import { TimePicker, LocalizationProvider } from '@mui/lab';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import { DateTime } from 'luxon';
@@ -53,14 +53,15 @@ const DatePickerWrapper = styled.div`
 `;
 
 const TimePickerWrapper = styled.div`
-    margin: 30px 20px 0px 20px;
+    margin: 10px 20px 0px 20px;
     display: flex;
+    align-items: center;
     justify-content: center;
 `;
 
 const StyledArrowIcon = styled(ArrowRight)`
     && {
-    margin: 16px 20px;
+    margin: 20px;
     }
 `;
 
@@ -70,13 +71,9 @@ const StyledTextFieldMb = styled(TextField)`
     }
 `;
 
-const StyledFormLabel = styled.div`
+const FormLabel = styled.div`
     font-weight: 700;
     margin-bottom: 10px;
-`;
-
-const RadioLabel = styled.span`
-    font-size: 14px;
 `;
 
 const HelperText = styled.div`
@@ -86,10 +83,6 @@ const HelperText = styled.div`
     font-size: ${props => props.error ? "13px" : "14px"};
     margin-top: ${props => props.error ? "10px" : "0px"};
     color: ${props => props.error ? props.theme.red : "#727272"};
-`;
-
-const StyledLink = styled(Link)`
-    color: #007bff;
 `;
 
 const FooterWrapper = styled.div`
@@ -120,14 +113,25 @@ const Button = styled.button`
     }
 `;
 
+const StyledFormControlLabel = styled(FormControlLabel)`
+    && {
+        margin-left: 40px;
+    }
+`;
+
 const AddMenu = () => {
     let navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('USER'));
     const [storeId, setStoreId] = useState('');
-    const [menuId, setMenuId] = useState('');
 
-    const [input, setInput] = useState({ name: '', description: '', type: 'Khác', startTime: DateTime.now().toUTC().toISO(), endTime: DateTime.now().toUTC().toISO(), status: 9001 });
+    const [input, setInput] = useState({ 
+        name: '', 
+        description: '', 
+        startTime: DateTime.fromFormat('00:00:00', 'TT').toUTC().toISO(), 
+        endTime: DateTime.fromFormat('00:00:00', 'TT').toUTC().toISO(), 
+        status: 9001 
+    });
     const [repeatDay, setRepeatDay] = useState({ t2:false, t3:false, t4:false, t5:false, t6:false, t7:false, cn:false });
+    const [twentyfour, setTwentyfour] = useState(false);
     const [error, setError] = useState({ 'name': '', 'time': '' });
 
     useEffect(() => {   //get store id
@@ -160,59 +164,40 @@ const AddMenu = () => {
         setRepeatDay({ t2:checked, t3:checked, t4:checked, t5:checked, t6:checked, t7:checked, cn:checked });
     }
 
+    const handleSetTime = () => {
+        setTwentyfour(!twentyfour);
+        setError(error => ({ ...error, time: '' }));
+    }
+
     const handleAddMenu = (event) => {
         event.preventDefault();
 
         if (checkValid()) {
+            const notification = toast.loading("Đang xử lí yêu cầu...");
             const addData = async () => {
                 api.post("menus", {
                     menuName: input.name,
                     menuDescription: input.description,
-                    residentId: user.Residents[0].ResidentId
+                    timeStart: twentyfour ? '00:00:00' : DateTime.fromISO(input.startTime).toFormat('TT'),
+                    timeEnd: twentyfour ? '23:59:59': DateTime.fromISO(input.endTime).toFormat('TT'),
+                    repeatDate: (repeatDay.t2 ? '2' : '') 
+                              + (repeatDay.t3 ? '3' : '') 
+                              + (repeatDay.t4 ? '4' : '') 
+                              + (repeatDay.t5 ? '5' : '') 
+                              + (repeatDay.t6 ? '6' : '') 
+                              + (repeatDay.t7 ? '7' : '') 
+                              + (repeatDay.cn ? '8' : ''),
+                    merchantStoreId: storeId
                 })
                 .then(function (res) {
                     if (res.data.ResultMessage === "SUCCESS") {
-                        setMenuId(res.data.Data.MenuId);
-                        return api.post("store-menus", [{
-                            timeStart: {
-                                "ticks": 0,
-                                "days": 0,
-                                "hours": 0,
-                                "milliseconds": 0,
-                                "minutes": 0,
-                                "seconds": 0
-                            },
-                            timeEnd: {
-                                "ticks": 0,
-                                "days": 0,
-                                "hours": 0,
-                                "milliseconds": 0,
-                                "minutes": 0,
-                                "seconds": 0
-                            },
-                            repeatDate: (repeatDay.t2 ? '2' : '') 
-                                        + (repeatDay.t3 ? '3' : '') 
-                                        + (repeatDay.t4 ? '4' : '') 
-                                        + (repeatDay.t5 ? '5' : '') 
-                                        + (repeatDay.t6 ? '6' : '') 
-                                        + (repeatDay.t7 ? '7' : '') 
-                                        + (repeatDay.cn ? '8' : ''),
-                            menuId: menuId,
-                            merchantStoreId: storeId
-                        }])
-                    }
-                })
-                .then(function (res) {
-                    if (res.data.ResultMessage === "SUCCESS") {
-                        const notify = () => toast.success("Tạo thành công bảng giá mới!", {
-                            position: toast.POSITION.TOP_CENTER
-                        });
-                        notify();
                         navigate("/menus");
+                        toast.update(notification, { render: "Tạo bảng giá thành công!", type: "success", autoClose: 5000, isLoading: false });
                     }
                 })
                 .catch(function (error) {
                     console.log(error);
+                    toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
                 });
             };
             addData();
@@ -232,7 +217,7 @@ const AddMenu = () => {
             setError(error => ({ ...error, repeatDay: 'Không được để trống ngày hoạt động' }));
             check = true;
         }
-        if (input.startTime >= input.endTime) {
+        if (!twentyfour && input.startTime >= input.endTime) {
             setError(error => ({ ...error, time: 'Giờ bắt đầu không được lớn hơn giờ kết thúc' }));
             check = true;
         }
@@ -252,7 +237,7 @@ const AddMenu = () => {
             
             <form onSubmit={handleAddMenu} id="form">
                 <ContainerWrapper>
-                    <StyledFormLabel>Tiêu đề</StyledFormLabel>
+                    <FormLabel>Tiêu đề</FormLabel>
                     <StyledTextFieldMb
                         fullWidth placeholder="Ví dụ: Thịt cá các loại, đồ gia dụng, etc" 
                         inputProps={{style: {fontSize: 14}}}
@@ -262,7 +247,7 @@ const AddMenu = () => {
                         helperText={error.name}
                     />
 
-                    <StyledFormLabel>Mô tả</StyledFormLabel>
+                    <FormLabel>Mô tả</FormLabel>
                     <TextField
                         fullWidth multiline rows={4}
                         inputProps={{style: {fontSize: 14}}}
@@ -272,33 +257,7 @@ const AddMenu = () => {
                 </ContainerWrapper>
 
                 <ContainerWrapper>
-                    <StyledFormLabel>Loại bảng giá</StyledFormLabel>
-
-                    <RadioGroup value={input.type} name='type' onChange={handleChange}>
-                        <FormControlLabel 
-                            value="Tươi sống" 
-                            control={<Radio />} 
-                            label={<RadioLabel>Tươi sống</RadioLabel>} 
-                        />
-                        <HelperText>
-                            Bảng giá thuộc lại tươi sống sẽ nằm bên mục&nbsp;<b>Tươi sống</b>. 
-                            Tìm hiểu thêm về&nbsp;<StyledLink to="/menus">danh mục tươi sống</StyledLink>
-                        </HelperText>
-
-                        <FormControlLabel 
-                            value="Khác" 
-                            control={<Radio />} 
-                            label={<RadioLabel>Khác</RadioLabel>} 
-                        />
-                        <HelperText>
-                            Bảng giá thuộc lại khác sẽ nằm bên mục&nbsp;<b>Khác</b>. 
-                            Tìm hiểu thêm về&nbsp;<StyledLink to="/menus">danh mục khác</StyledLink>
-                        </HelperText>
-                    </RadioGroup>
-                </ContainerWrapper>
-
-                <ContainerWrapper>
-                    <StyledFormLabel>Ngày hoạt động</StyledFormLabel>
+                    <FormLabel>Ngày hoạt động</FormLabel>
                     
                     <DatePickerWrapper>
                         <FormControlLabel checked={repeatDay.t2 && repeatDay.t3 && repeatDay.t4 && repeatDay.t5 && repeatDay.t6 && repeatDay.t7 && repeatDay.cn} onClick={handleToggleAllDate} control={<Checkbox />} label={<span style={{ fontSize: '14px' }}>Chọn toàn bộ</span>} labelPlacement="top" />
@@ -315,21 +274,33 @@ const AddMenu = () => {
                 </ContainerWrapper>
 
                 <ContainerWrapper>
-                    <StyledFormLabel>Thời gian hoạt động</StyledFormLabel>
+                    <FormLabel>Thời gian hoạt động</FormLabel>
+                    <StyledFormControlLabel 
+                        onClick={handleSetTime}
+                        control={<Checkbox />}
+                        label={<span style={{ fontSize: '14px' }}>Hoạt động 24h</span>} 
+                    />
+
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <TimePickerWrapper>
                             <TimePicker 
-                                    value={input.startTime}
-                                    onChange={time => handleChange({ target: { value: time.toISOString(), name: 'startTime' } })} 
-                                    renderInput={(params) => <TextField {...params} error={error.time !== ''} helperText={error.time} />} />
+                                disabled={twentyfour ? true : false} ampm={false}
+                                label={twentyfour ? "00:00:00" : "Thời gian bắt đầu"}
+                                value={twentyfour ? null :input.startTime}
+                                onChange={time => handleChange({ target: { value: time.toISOString(), name: 'startTime' } })} 
+                                renderInput={(params) => <TextField disabled {...params} error={error.time !== ''} helperText={error.time} />} 
+                            />
 
-                                <StyledArrowIcon />
+                            <StyledArrowIcon />
 
-                                <TimePicker 
-                                    value={input.endTime}
-                                    onChange={time => handleChange({ target: { value: time.toISOString(), name: 'endTime' } })} 
-                                    renderInput={(params) => <TextField {...params} error={error.time !== ''} helperText={error.time} />} />
-                            </TimePickerWrapper>
+                            <TimePicker 
+                                disabled={twentyfour ? true : false} ampm={false}
+                                label={twentyfour ? "23:59:59" : "Thời gian kết thúc"}
+                                value={twentyfour ? null :input.endTime}
+                                onChange={time => handleChange({ target: { value: time.toISOString(), name: 'endTime' } })} 
+                                renderInput={(params) => <TextField disabled {...params} error={error.time !== ''} helperText={error.time} />} 
+                            />
+                        </TimePickerWrapper>
                     </LocalizationProvider>
                 </ContainerWrapper>
 

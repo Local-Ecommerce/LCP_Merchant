@@ -1,13 +1,11 @@
 import ReactDOM from "react-dom";
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import styled from "styled-components";
 import Modal from 'react-modal';
-import { Search, ArrowRight, ArrowLeft, CircleNotificationsTwoTone } from '@mui/icons-material';
+import { Search, ArrowRight, ArrowLeft } from '@mui/icons-material';
 import { arrayMoveImmutable as arrayMove } from "array-move";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
 import _ from "lodash";
-
-import Products from '../../mockdata/Products';
 
 const Row = styled.div`
     display: flex;
@@ -87,11 +85,11 @@ const ModalTitle = styled.h4`
     color: #212529;
     border-bottom: 1px solid #cfd2d4;
     margin: 0px;
-    padding: 25px 20px;
+    padding: 20px;
 `;
 
 const ModalContentWrapper = styled.div`
-    padding: 25px 20px;
+    padding: 20px;
     display: flex;
     align-items: center;
     height: 60vh;
@@ -155,7 +153,7 @@ const ListWrapper = styled.div`
 
 const ModalButtonWrapper = styled.div`
     border-top: 1px solid #cfd2d4;
-    padding: 25px 20px;
+    padding: 20px;
 `;
 
 const ModalButton = styled.button`
@@ -169,6 +167,8 @@ const ModalButton = styled.button`
     text-align: center;
     font-size: 1rem;
     float: right;
+    font-size: 14px;
+    font-weight: 600;
 
     &:hover {
     opacity: 0.8;
@@ -249,7 +249,7 @@ const SortableItem = SortableElement(({ item, area }) => (
     )
 ));
 
-  const SortableList = SortableContainer(({ area, items, isDragging, search }) => (
+const SortableList = SortableContainer(({ area, items, isDragging, search }) => (
     <Grid container>
         {!_.isEmpty(items) &&
             items.map((item, index) => (
@@ -267,25 +267,11 @@ const SortableItem = SortableElement(({ item, area }) => (
             ))
         }
     </Grid>
-  ));
+));
 
-const CreateModal = ({ display, toggle, input, error, setInput, handleAddItem }) => {
-    const [APIdata, setAPIdata] = useState([]);
-    const [stockItems, setStockItems] = useState([]);
-    const [menuItems, setMenuItems] = useState([]);
-
+const AddItemModal = ({ display, toggle, stockItems, menuItems, setStockItems, setMenuItems, getNewProducts }) => {
     const [searchStock, setSearchStock] = useState('');
     const [searchMenu, setSearchMenu] = useState('');
-
-    useEffect(() => {
-        setAPIdata(Products);
-        setStockItems(Products);
-    }, []);
-
-    useEffect(() => {
-        console.log(stockItems);
-        console.log(menuItems);
-    }, [stockItems, menuItems]);
 
     const [draggingItem, setDraggingItem] = useState(null);
     const [draggingItemIndex, setDraggingItemIndex] = useState(null);
@@ -331,7 +317,7 @@ const CreateModal = ({ display, toggle, input, error, setInput, handleAddItem })
             }
             setDraggingItem(menuItems[e.index]);
         }
-      };
+    };
     
       const handleDragging = (e) => {
         if (
@@ -449,6 +435,11 @@ const CreateModal = ({ display, toggle, input, error, setInput, handleAddItem })
         document.getElementById('searchMenu').value = '';
     }
 
+    const handleGetNewProducts = () => {
+        getNewProducts(menuItems);
+        toggle();
+    }
+
     return (
         <Modal isOpen={display} onRequestClose={toggle} style={customStyles} ariaHideApp={false}>
             <ModalWrapper>
@@ -522,7 +513,7 @@ const CreateModal = ({ display, toggle, input, error, setInput, handleAddItem })
                 </ModalContentWrapper>
 
                 <ModalButtonWrapper>
-                    <ModalButton blue onClick={handleAddItem}>Lưu</ModalButton>
+                    <ModalButton blue onClick={handleGetNewProducts}>Lưu</ModalButton>
                     <ModalButton onClick={toggle}>Hủy</ModalButton>
                 </ModalButtonWrapper>
             </ModalWrapper>
@@ -530,4 +521,4 @@ const CreateModal = ({ display, toggle, input, error, setInput, handleAddItem })
     )
 };
 
-export default CreateModal;
+export default AddItemModal;
