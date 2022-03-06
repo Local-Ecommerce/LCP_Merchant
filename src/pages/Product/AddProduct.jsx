@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import styled, { ThemeProvider } from 'styled-components';
+import styled from 'styled-components';
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../RequestMethod";
+import { toast } from 'react-toastify';
 import { KeyboardBackspace, AddPhotoAlternate, Warning } from '@mui/icons-material';
-import { TextField, InputAdornment, FormControlLabel, Radio, RadioGroup } from '@mui/material';
-
-import Lv1Category from '../../mockdata/Lv1Category';
-import Lv2Category from '../../mockdata/Lv2Category';
-import Lv3Category from '../../mockdata/Lv3Category';
+import { TextField, InputAdornment, FormControlLabel, Radio, RadioGroup, Checkbox } from '@mui/material';
 import ProductOption from '../../components/Product/ProductOption';
 import CategoryList from '../../components/Product/CategoryList';
 
@@ -91,13 +88,14 @@ const StyledWarningIcon = styled(Warning)`
 `;
 
 const HelperText = styled.div`
-    margin-left: 30px;
+    margin-left: ${props => props.m0 ? "0px" : "30px"};
     align-items: center;
     text-decoration: none;
     font-size: ${props => props.error ? "13px" : "14px"};
     margin-top: ${props => props.error ? "10px" : "0px"};
     color: ${props => props.error ? props.theme.red : "#727272"};
 `;
+
 const WarningText = styled.span`
     font-size: 14px;
     padding: 5px;
@@ -173,29 +171,56 @@ const OptionLabel = styled.div`
     font-size: 14px;
 `;
 
-
 const AddMenu = () => {    
     let navigate = useNavigate();
 
-    const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: 0, images: [], color: [], size: [],  weight: [] });
-    const [error, setError] = useState({ name: '', color: '', size: '', weight: '' });
+    const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, type: 'Khác', price: 0, images: [], colors: [], sizes: [],  weights: [], code: 'AP-001' });
+    const [error, setError] = useState({ name: '', category: '', price: '', colors: '', sizes: '', weights: '', code: '' });
+
+    const [loading, setLoading] = useState(false);
+    const [manual, setManual] = useState(false);
+    const sort = '+syscategoryname';
 
     const [lv1Category, setLv1Category] = useState([]);
     const [lv2Category, setLv2Category] = useState([]);
     const [lv3Category, setLv3Category] = useState([]);
-    const option = [{id: 1, name: 'Màu sắc'}, {id: 2, name: 'Kích thước'}, {id: 3, name: 'Trọng lượng'}];
 
     useEffect(() => {   //set systemCategory level 1
-        setLv1Category(Lv1Category);
+        setLoading(true);
+        let url = "categories"
+                + "?limit=" + 100
+                + "&status=" + 3001
+                + "&sort=" + sort;
+        const fetchData = () => {
+            api.get(url)
+            .then(function (res) {
+                if (res.data.ResultMessage === "SUCCESS") {
+                    setLv1Category(res.data.Data.List.filter((item) => {
+                        return item.CategoryLevel === 1;
+                    }));
+                    setLoading(false);
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+                setLoading(false);
+            });
+        }
+        fetchData();
     }, []);
-
-    useEffect(() => {   //console log input test
-        console.log(input);
-    }, [input]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setInput(input => ({ ...input, [name]: value }));
+    };
+
+    const handleSetManual = () => {
+        if (manual) {
+            setInput(input => ({ ...input, code: 'AP-001' }));
+        } else {
+            setInput(input => ({ ...input, code: '' }));
+        }
+        setManual(!manual);
     };
 
     const saveOption = (option, data) => {
@@ -210,12 +235,20 @@ const AddMenu = () => {
 
     const handleGetCategoryLv1 = (id) => {
         setInput(input => ({ ...input, category: {lv1: id, lv2: '', lv3: ''} }));
-        setLv2Category(Lv2Category);
+        setLv2Category(lv1Category.filter((item) => {
+            return item.SystemCategoryId === id;
+        })[0].InverseBelongToNavigation);
+        setLv3Category([]);
     }
 
     const handleGetCategoryLv2 = (id) => {
         setInput(input => ({ ...input, category: {lv1: input.category.lv1, lv2: id, lv3: ''} }));
-        setLv3Category(Lv3Category);
+        setLv3Category(lv2Category.filter((item) => {
+            return item.SystemCategoryId === id;
+        })[0].InverseBelongToNavigation);
+        console.log(lv2Category.filter((item) => {
+            return item.SystemCategoryId === id;
+        })[0].InverseBelongToNavigation);
     }
 
     const handleGetCategoryLv3 = (id) => {
@@ -226,16 +259,81 @@ const AddMenu = () => {
         event.preventDefault();
 
         if (checkValid()) {
-
+            const notification = toast.loading("Đang xử lí yêu cầu...");
+            const addData = async () => {
+                api.post("products", {
+                    productCode: input.code,
+                    productName: input.name,
+                    briefDescription: input.shortDescription,
+                    description: input.description,
+                    defaultPrice: input.price,
+                    image: [
+                        // "string"
+                    ],
+                    inverseBelongToNavigation: 
+                        (
+                            input.sizes.map(size => { 
+                                return input.colors.map(color => {
+                                    return input.weights.map(weight => {
+                                        return {
+                                            productCode: input.code,
+                                            productName: input.name,
+                                            briefDescription: input.shortDescription,
+                                            description: input.description,
+                                            defaultPrice: input.price,
+                                            size: size.value,
+                                            color: color.value,
+                                            weight: weight.value,
+                                            image: [
+                                                // "string"
+                                            ]
+                                        }
+                                    })
+                                }).reduce((total, value) => {
+                                    return total.concat(value);
+                                }, [])
+                            }).reduce((total, value) => {
+                                return total.concat(value);
+                            }, [])
+                        )
+                    ,
+                    productCategories: [{
+                        systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1
+                    }]
+                })
+                .then(function (res) {
+                    if (res.data.ResultMessage === "SUCCESS") {
+                        navigate("/products");
+                        toast.update(notification, { render: "Tạo sản phẩm thành công!", type: "success", autoClose: 5000, isLoading: false });
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                    toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
+                });
+            };
+            addData();
         }
     }
 
     const checkValid = () => {
         let check = false;
-        setError(error => ({ ...error, name: '', color: '', size: '', weight: '' }));
+        setError(error => ({ ...error, name: '', colors: '', sizes: '', weights: '', category: '', price: '', code: '' }));
 
         if (input.name === null || input.name === '') {
             setError(error => ({ ...error, name: 'Vui lòng nhập tiêu đề' }));
+            check = true;
+        }
+        if (input.category.lv1 === null || input.category.lv1 === '') {
+            setError(error => ({ ...error, category: 'Vui lòng chọn danh mục sản phẩm' }));
+            check = true;
+        }
+        if (input.price === null || input.price === 0) {
+            setError(error => ({ ...error, price: 'Vui lòng nhập giá' }));
+            check = true;
+        }
+        if (input.code === null || input.code === '') {
+            setError(error => ({ ...error, code: 'Vui lòng nhập mã sản phẩm' }));
             check = true;
         }
         if (check) {
@@ -288,6 +386,9 @@ const AddMenu = () => {
                         <CategoryList currentItems={lv2Category} selected={input.category.lv2} handleGetCategory={handleGetCategoryLv2} />
                         <CategoryList currentItems={lv3Category} selected={input.category.lv3} handleGetCategory={handleGetCategoryLv3} />
                     </Row>
+                    <HelperText error>
+                        {error.category}
+                    </HelperText>
                 </ContainerWrapper>
 
                 <ContainerWrapper>
@@ -326,6 +427,8 @@ const AddMenu = () => {
                         InputProps={{ inputMode: 'numeric', pattern: '[0-9]*', startAdornment: <InputAdornment position="start">vnđ</InputAdornment> }}
                         value={input.price ? input.price : 0} name='price'
                         onChange={handleChange}
+                        error={error.price !== ''}
+                        helperText={error.price}
                     />
 
                     <FormLabel>Hình ảnh</FormLabel>
@@ -347,17 +450,46 @@ const AddMenu = () => {
                     <FormLabel>Tùy chọn</FormLabel>
                     <OptionLabel>Thêm các tùy chọn của sản phẩm, như màu sắc, kích thước hay trọng lượng</OptionLabel>
                     
-                    <ProductOption savedData={input.color} type='color' saveOption={saveOption} editOption={editOption} />
-                    <ProductOption savedData={input.size} type='size' saveOption={saveOption} editOption={editOption} />
-                    <ProductOption savedData={input.weight} type='weight' saveOption={saveOption} editOption={editOption} />
+                    <ProductOption savedData={input.colors} type='colors' saveOption={saveOption} editOption={editOption} />
+                    <ProductOption savedData={input.sizes} type='sizes' saveOption={saveOption} editOption={editOption} />
+                    <ProductOption savedData={input.weights} type='weights' saveOption={saveOption} editOption={editOption} />
                 </ContainerWrapper>
 
+                <ContainerWrapper>
+                    <FormLabel>Mã sản phẩm</FormLabel>
+                    <FormControlLabel
+                        style={{ pointerEvents: "none" }}
+                        control={
+                            <Checkbox
+                                onClick={handleSetManual}
+                                style={{ pointerEvents: "auto" }}
+                            />
+                        }
+                        label={<span style={{ fontSize: '14px' }}>Đặt thủ công</span>} 
+                    />
+                    {
+                        manual ?
+                        <TextField
+                            fullWidth size="small" placeholder="Ví dụ: Bánh mì 2 trứng" 
+                            inputProps={{style: {fontSize: 14}}}
+                            value={input.code ? input.code : ''} name='code'
+                            onChange={handleChange}
+                            error={error.code !== ''}
+                            helperText={error.code}
+                        />
+                        :
+                        <HelperText m0>
+                            Dựa trên tiền tố hiện tại, mã của sản phẩm này sẽ là AP-001. 
+                            Cửa hàng có thể điều chỉnh tiền tố của mình trong cài đặt.
+                        </HelperText>
+                    }
+                    
+                </ContainerWrapper>
 
                 <FooterWrapper>
-
                     <FloatRight>
                         {
-                            (error.color !== '' || error.size !== '' || error.weight !== '') ?
+                            (error.colors !== '' || error.sizes !== '' || error.weights !== '') ?
                             <>
                                 <StyledWarningIcon />
                                 <WarningText>Bạn có tùy chọn chưa lưu!</WarningText>

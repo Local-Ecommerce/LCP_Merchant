@@ -41,7 +41,7 @@ const BlueSpan = styled.span`
 
 const SmallText = styled.h4`
     color: rgba(23,31,35,.64);
-    font-weight: 600;
+    font-weight: 400;
     margin: 5px 0px 20px 0px;
     text-align: center;
 `;

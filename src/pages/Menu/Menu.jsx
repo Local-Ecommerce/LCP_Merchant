@@ -191,7 +191,7 @@ const TableData = styled.td`
 
 const TableRow = styled.tr``;
 
-const NoMenuWrapper = styled.div`
+const NoItemWrapper = styled.div`
     width: 40%;
     height: auto;
     margin: 0 auto;
@@ -202,10 +202,11 @@ const StyledMenuIcon = styled(Summarize)`
     && {
         font-size: 144px;
         color: #D8D8D8;
+        margin-top: 30px;
     }
 `;
 
-const NoMenuTitle = styled.div`
+const NoItemTitle = styled.div`
     margin: 15px;
     display: flex;
     justify-content: center;
@@ -216,7 +217,7 @@ const NoMenuTitle = styled.div`
     color: #383838;
 `;
 
-const NoMenuText = styled.div`
+const NoItemText = styled.div`
     margin: 15px;
     display: flex;
     justify-content: center;
@@ -227,7 +228,7 @@ const NoMenuText = styled.div`
     line-height: 1.8;
 `;
 
-const NoMenuButton = styled.button`
+const NoItemButton = styled.button`
     border-radius: 5px;
     border: none;
     padding: 10px 15px;
@@ -236,6 +237,7 @@ const NoMenuButton = styled.button`
     color: white;
     font-weight: 600;
     margin-top: 20px;
+    margin-bottom: 30px;
 
     &:active {
     transform: translateY(1px);
@@ -374,7 +376,6 @@ const Menu = () =>  {
     const [page, setPage] = useState(0);
     const [total, setTotal] = useState(0);
     const [lastPage, setLastPage] = useState(0);
-
     const sort = '-createddate';
     const [typing, setTyping] = useState('');
     const [search, setSearch] = useState('');
@@ -554,23 +555,23 @@ const Menu = () =>  {
                         </Table>
                     </div>
                     : 
-                    <NoMenuWrapper>
+                    <NoItemWrapper>
                         <StyledMenuIcon />
 
-                        <NoMenuTitle>
+                        <NoItemTitle>
                             Bạn hiện chưa có bảng giá
-                        </NoMenuTitle>
+                        </NoItemTitle>
 
-                        <NoMenuText>
+                        <NoItemText>
                             Tạo bảng giá và đưa các sản phẩm vào giúp khách hàng có thể thấy được sản phẩm của cửa hàng.
-                        </NoMenuText>
+                        </NoItemText>
 
                         <Link to="/addMenu">
-                            <NoMenuButton>
+                            <NoItemButton>
                                 Tạo bảng giá
-                            </NoMenuButton>
+                            </NoItemButton>
                         </Link>
-                    </NoMenuWrapper>
+                    </NoItemWrapper>
                 }
 
                 {

@@ -276,8 +276,13 @@ const AddMenu = () => {
                 <ContainerWrapper>
                     <FormLabel>Thời gian hoạt động</FormLabel>
                     <StyledFormControlLabel 
-                        onClick={handleSetTime}
-                        control={<Checkbox />}
+                        style={{ pointerEvents: "none" }}
+                        control={
+                            <Checkbox
+                                onClick={handleSetTime}
+                                style={{ pointerEvents: "auto" }}
+                            />
+                        }
                         label={<span style={{ fontSize: '14px' }}>Hoạt động 24h</span>} 
                     />
 

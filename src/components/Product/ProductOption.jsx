@@ -11,7 +11,6 @@ const Row = styled.div`
 `;
 
 const OptionWrapper = styled.div`
-    border-top: 1px solid #d6d6d6;
     border-bottom: 1px solid #d6d6d6;
     margin: -1px -30px;
     padding: 20px 30px;
@@ -164,16 +163,39 @@ const ProductOption = ({ savedData, type, saveOption, editOption }) =>  {
     }
 
     const handleSaveOption = () => {
-        let valid = true;
+        if(checkValid()) {
+            let valid = true;
+
+            values.forEach((item) => {
+                if (item.error !== '') {
+                    valid = false;
+                }
+            });
+            
+            if (valid) {
+                saveOption(type, values);
+            }
+        }
+    }
+
+    const checkValid = () => {
+        let check = false;
+
         values.forEach((item) => {
-            if (item.error !== '') {
-                valid = false;
+            if (item.value === '') {
+                let newValues = [...values];
+                let index = newValues.findIndex(obj => parseInt(obj.name) === parseInt(item.name));
+                let error = "Vui lòng không để trống tùy chọn";
+                newValues[index] = { name: item.name, value: item.value, error };
+                setValues(newValues);
+                check = true;
             }
         });
-
-        if (valid) {
-            saveOption(type, values);
+        if (check) {
+            return false;
         }
+
+        return true;
     }
 
     const handleEditOption = () => {
@@ -183,15 +205,15 @@ const ProductOption = ({ savedData, type, saveOption, editOption }) =>  {
     let typeLabel = '';
     let typeIcon = '';
     switch (type) {
-        case 'color':
+        case 'colors':
             typeLabel = 'Màu sắc';
             typeIcon = <StyledColorIcon />
             break;
-        case 'size':
+        case 'sizes':
             typeLabel = 'Kích thước';
             typeIcon = <StyledSizeIcon />
             break;
-        case 'weight':
+        case 'weights':
             typeLabel = 'Trọng lượng';
             typeIcon = <StyledWeightIcon />
             break;
@@ -228,7 +250,7 @@ const ProductOption = ({ savedData, type, saveOption, editOption }) =>  {
                     <SavedDataWrapper>
                         {savedData.map((item, index) => {
                             return (
-                                <ValueTag> {item.value} </ValueTag>
+                                <ValueTag key={index}> {item.value} </ValueTag>
                             );
                         })}
                     </SavedDataWrapper>
@@ -246,15 +268,32 @@ const ProductOption = ({ savedData, type, saveOption, editOption }) =>  {
                         {values.map((item, index) => {
                             return (
                                 <Row>
-                                    <StyledOptionTextField
-                                        size="small"
-                                        inputProps={{style: {fontSize: 14}}}
-                                        value={item.value} name={item.name}
-                                        onChange={changeValue}
-                                        error={item.error !== ''}
-                                        helperText={item.error}
-                                    /> 
-                                    <StyledDeleteIcon mb={true} onClick={() => removeValue(item.name)} />
+                                    {
+                                        type === 'weights' ?
+                                        <StyledOptionTextField key={index}
+                                            size="small" type="number"
+                                            InputProps={{ 
+                                                style: {fontSize: 14}, 
+                                                inputMode: 'numeric', 
+                                                pattern: '[0-9]*', 
+                                                startAdornment: <InputAdornment position="start">kg</InputAdornment> 
+                                            }}
+                                            value={item.value} name={item.name.toString()}
+                                            onChange={changeValue}
+                                            error={item.error !== ''}
+                                            helperText={item.error}
+                                        />
+                                        :
+                                        <StyledOptionTextField key={index}
+                                            size="small"
+                                            InputProps={{ style: {fontSize: 14} }}
+                                            value={item.value} name={item.name.toString()}
+                                            onChange={changeValue}
+                                            error={item.error !== ''}
+                                            helperText={item.error}
+                                        /> 
+                                    }
+                                    <StyledDeleteIcon mb onClick={() => removeValue(item.name)} />
                                 </Row>
                             )
                         })}
@@ -265,9 +304,13 @@ const ProductOption = ({ savedData, type, saveOption, editOption }) =>  {
                         <Button mr white type="button" onClick={() => addValue({name: count, value: '', error: ''})}> 
                             Thêm giá trị mới 
                         </Button>
-                        <Button green type="button" onClick={handleSaveOption}> 
-                            Lưu
-                        </Button>
+                        {
+                            values && values.length ?
+                            <Button green type="button" onClick={handleSaveOption}> 
+                                Lưu
+                            </Button>
+                            : null
+                        }
                     </Row>
                 </>
                 }

@@ -24,9 +24,11 @@ const CategoryList = ({ currentItems, selected, handleGetCategory }) => {
         {
             currentItems && currentItems.map((item, index) => {
                 return (
-                    <ListItem selected={item.SystemCategoryId === selected} key={index} secondaryAction={item.level !== 3 ? <StyledArrowRight /> : null} disablePadding>
+                    <ListItem selected={item.SystemCategoryId === selected} key={index} secondaryAction={item.CategoryLevel !== 3 ? <StyledArrowRight /> : null} disablePadding>
                         <ListItemButton onClick={() => handleGetCategory(item.SystemCategoryId)}>
-                            <ListItemText disableTypography primary={<Typography style={{ color: '#44474a' }}>{item.CategoryName}</Typography>} />
+                            <ListItemText disableTypography primary={
+                                <Typography style={{ color: '#44474a' }}>{item.SysCategoryName}</Typography>
+                            }/>
                         </ListItemButton>
                     </ListItem>
                 );
