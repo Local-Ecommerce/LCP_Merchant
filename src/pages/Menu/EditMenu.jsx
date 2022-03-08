@@ -4,16 +4,15 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, ArrowRight, Search, AddBox } from '@mui/icons-material';
-import { TextField, Radio, RadioGroup, FormControlLabel, CircularProgress } from '@mui/material';
+import { TextField } from '@mui/material';
 import { TimePicker, LocalizationProvider } from '@mui/lab';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import { DateTime } from 'luxon';
 
 import Products from '../../mockdata/Products';
-import Menus from '../../mockdata/Menus';
 import AddItemModal from './AddItemModal';
 import ConfirmModal from './ConfirmModal';
-import ProductList from '../../components/Product/ProductList';
+import ProductInMenuList from '../../components/Menu/ProductInMenuList';
 
 const PageWrapper = styled.form`
     min-width: 720px;
@@ -475,7 +474,7 @@ const EditMenu = () => {
                     <ProductListWrapper>
                         {
                             products && products.length ?
-                            <ProductList 
+                            <ProductInMenuList 
                                 currentItems={products} 
                                 handleDeleteItem={handleDeleteItem}
                             />

@@ -19,7 +19,7 @@ const PageWrapper = styled.div`
 const Title = styled.h1`
     font-size: 16px;
     color: #383838;
-    margin: 15px 15px -5px 15px;
+    margin: 15px 15px ${props => props.mb ? "-5px" : "15px"} 15px;
 `;
 
 const AddButton = styled(Link)`
@@ -157,7 +157,7 @@ const TableWrapper = styled.div`
 
 const Table = styled.table`
     table-layout: fixed;
-    border-collapse: collapse;
+    border-spacing: 0px;
     width: 100%;
     max-width: 100%;
     background-color: #fff;
@@ -176,6 +176,7 @@ const TableHeader = styled.th`
     padding: 16px;
     font-size: 15px;
     color: ${props => props.grey ? props.theme.grey : null};
+    border-bottom: 1px solid #dee2e6;
 `;
 
 const TableBody = styled.tbody`
@@ -479,8 +480,8 @@ const Menu = () =>  {
             api.delete(url)
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
-                    setChange(!change);
                     setMenuExist({ checked: false, exist: false });
+                    setChange(!change);
                     toast.update(notification, { render: "Xóa thành công!", type: "success", autoClose: 5000, isLoading: false });
                 }
             })
@@ -495,18 +496,18 @@ const Menu = () =>  {
 
     return (
         <PageWrapper>
-            <Row mb>
-                <Title>Bảng giá</Title>
+            {
+                loading || menuExist.exist ?
+                <>
+                    <Row mb>
+                        <Title mb>Bảng giá</Title>
 
-                <AddButton to={"/addMenu"}>
-                    <AddIcon /> Tạo bảng giá mới
-                </AddButton>
-            </Row>
+                        <AddButton to={"/addMenu"}>
+                            <AddIcon /> Tạo bảng giá mới
+                        </AddButton>
+                    </Row>
 
-            <TableWrapper>
-                {
-                    loading || menuExist.exist ? 
-                    <div>
+                    <TableWrapper>
                         <Row mb>
                             <SearchBar>
                                 <StyledSearchIcon />
@@ -553,59 +554,67 @@ const Menu = () =>  {
                                 }
                             </TableBody>
                         </Table>
-                    </div>
-                    : 
-                    <NoItemWrapper>
-                        <StyledMenuIcon />
 
-                        <NoItemTitle>
-                            Bạn hiện chưa có bảng giá
-                        </NoItemTitle>
+                        {
+                            loading || APIdata.length === 0 || total <= 10 ?
+                            null :
+                            <Row mt>
+                                <small>Hiển thị {page * limit + 1} - {page * limit + APIdata.length} trong tổng số {total} bảng giá.</small>
 
-                        <NoItemText>
-                            Tạo bảng giá và đưa các sản phẩm vào giúp khách hàng có thể thấy được sản phẩm của cửa hàng.
-                        </NoItemText>
+                                <StyledPaginateContainer>
+                                    <ReactPaginate
+                                        nextLabel="Next >"
+                                        onPageChange={handlePageClick}
+                                        pageRangeDisplayed={3}
+                                        marginPagesDisplayed={2}
+                                        pageCount={lastPage}
+                                        previousLabel="< Prev"
+                                        pageClassName="page-item"
+                                        pageLinkClassName="page-link"
+                                        previousClassName="page-item"
+                                        previousLinkClassName="page-link"
+                                        nextClassName="page-item"
+                                        nextLinkClassName="page-link"
+                                        breakLabel="..."
+                                        breakClassName="page-item"
+                                        breakLinkClassName="page-link"
+                                        containerClassName="pagination"
+                                        activeClassName="active"
+                                        forcePage={page}
+                                        renderOnZeroPageCount={null}
+                                    />
+                                </StyledPaginateContainer>
+                            </Row>
+                        }
+                    </TableWrapper>
+                </>
 
-                        <Link to="/addMenu">
-                            <NoItemButton>
-                                Tạo bảng giá
-                            </NoItemButton>
-                        </Link>
-                    </NoItemWrapper>
-                }
+                :
 
-                {
-                    loading || APIdata.length === 0 || total < 10 ?
-                    null :
-                    <Row mt>
-                        <small>Hiển thị {page * limit + 1} - {page * limit + APIdata.length} trong tổng số {total} bảng giá.</small>
+                <>
+                    <Title>Bảng giá</Title>
 
-                        <StyledPaginateContainer>
-                            <ReactPaginate
-                                nextLabel="Next >"
-                                onPageChange={handlePageClick}
-                                pageRangeDisplayed={3}
-                                marginPagesDisplayed={2}
-                                pageCount={lastPage}
-                                previousLabel="< Prev"
-                                pageClassName="page-item"
-                                pageLinkClassName="page-link"
-                                previousClassName="page-item"
-                                previousLinkClassName="page-link"
-                                nextClassName="page-item"
-                                nextLinkClassName="page-link"
-                                breakLabel="..."
-                                breakClassName="page-item"
-                                breakLinkClassName="page-link"
-                                containerClassName="pagination"
-                                activeClassName="active"
-                                forcePage={page}
-                                renderOnZeroPageCount={null}
-                            />
-                        </StyledPaginateContainer>
-                    </Row>
-                }
-            </TableWrapper>
+                    <TableWrapper>
+                        <NoItemWrapper>
+                            <StyledMenuIcon />
+
+                            <NoItemTitle>
+                                Bạn hiện chưa có bảng giá
+                            </NoItemTitle>
+
+                            <NoItemText>
+                                Tạo bảng giá và đưa các sản phẩm vào giúp khách hàng có thể thấy được sản phẩm của cửa hàng.
+                            </NoItemText>
+
+                            <Link to="/addMenu">
+                                <NoItemButton>
+                                    Tạo bảng giá
+                                </NoItemButton>
+                            </Link>
+                        </NoItemWrapper>
+                    </TableWrapper>
+                </>
+            }
 
             <TipText>
                 <StyledExclamationIcon />

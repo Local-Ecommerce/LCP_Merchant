@@ -37,7 +37,7 @@ const ValueTag = styled.span`
     vertical-align: baseline;
     border-radius: 20px;
     color: ${props => props.theme.white};
-    background-color: ${props => props.theme.green};
+    background-color: ${props => props.old ? props.theme.blue : props.theme.green};
     margin: 0px 5px 5px 0px;
 `;
 
@@ -125,14 +125,22 @@ const StyledAddIcon = styled(AddCircleOutline)`
     }
 `;
 
-const ProductOption = ({ savedData, type, saveOption, editOption }) =>  {
+const ProductOption = ({ passedData, savedData, type, saveOption, editOption }) =>  {
     const [display, setDisplay] = useState(false);
     const [values, setValues] = useState([]);
     const [count, setCount] = useState(0);
 
     useEffect(() => {
-        console.log(values);
-    }, [values]);
+        if (passedData && passedData.length) {
+            setValues(passedData)
+            setCount(passedData.length + 1)
+            setDisplay(true);
+        }
+    }, [passedData]);
+
+    useEffect(() => {
+        console.log(values)
+    },[values])
 
     const toggleDisplay = () => {
         setDisplay(!display);
@@ -144,7 +152,8 @@ const ProductOption = ({ savedData, type, saveOption, editOption }) =>  {
         let newValues = [...values];
         let index = newValues.findIndex(obj => parseInt(obj.name) === parseInt(name));
         let error = (newValues.find(obj => obj.value === value) ? "Tùy chọn đã tồn tại" : "");
-        newValues[index] = { name, value, error };
+        let old = false;
+        newValues[index] = { name, value, error, old };
         setValues(newValues);
     }
 
@@ -250,7 +259,7 @@ const ProductOption = ({ savedData, type, saveOption, editOption }) =>  {
                     <SavedDataWrapper>
                         {savedData.map((item, index) => {
                             return (
-                                <ValueTag key={index}> {item.value} </ValueTag>
+                                <ValueTag old={item.old} key={index}> {item.value} </ValueTag>
                             );
                         })}
                     </SavedDataWrapper>
@@ -301,7 +310,7 @@ const ProductOption = ({ savedData, type, saveOption, editOption }) =>  {
                     : null 
                     }
                     <Row>
-                        <Button mr white type="button" onClick={() => addValue({name: count, value: '', error: ''})}> 
+                        <Button mr white type="button" onClick={() => addValue({name: count, value: '', error: '', old: false})}> 
                             Thêm giá trị mới 
                         </Button>
                         {

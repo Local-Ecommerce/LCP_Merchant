@@ -13,6 +13,7 @@ import PageNotFound from './pages/PageNotFound';
 
 import Product from './pages/Product/Product';
 import AddProduct from './pages/Product/AddProduct';
+import EditProduct from './pages/Product/EditProduct';
 
 import Menu from './pages/Menu/Menu';
 import AddMenu from './pages/Menu/AddMenu';
@@ -92,8 +93,14 @@ const App = () => {
 					element={<RequireLoggedIn> <Product /> </RequireLoggedIn>} 
 				/>
 
-				<Route path="/addProduct" 
-				element={<RequireLoggedIn> <AddProduct /> </RequireLoggedIn>} 
+				<Route 
+					path="/addProduct" 
+					element={<RequireLoggedIn> <AddProduct /> </RequireLoggedIn>} 
+				/>
+
+				<Route 
+					path="/product/:id" 
+					element={<RequireLoggedIn> <EditProduct /> </RequireLoggedIn>} 
 				/>
 
 				<Route 

@@ -9,7 +9,6 @@ import { Search, Error, Logout, ProductionQuantityLimits, AddCircle } from '@mui
 import { CircularProgress } from '@mui/material';
 import { Link } from 'react-router-dom';
 
-import ToggleStatusModal from './ToggleStatusModal';
 import DeleteModal from './DeleteModal';
 
 const PageWrapper = styled.div`
@@ -19,7 +18,7 @@ const PageWrapper = styled.div`
 const Title = styled.h1`
     font-size: 16px;
     color: #383838;
-    margin: 15px 15px -5px 15px;
+    margin: 15px 15px ${props => props.mb ? "-5px" : "15px"} 15px;
 `;
 
 const AddButton = styled(Link)`
@@ -124,69 +123,70 @@ const Button = styled.button`
 `;
 
 const DropdownWrapper = styled.div`
-display: flex;
-justify-content: center;
-align-items: center;
-border-radius: 5px;
-border-color: #D8D8D8;
-border-style: solid;
-border-width: thin;
-height: 44px;
-padding: 0px 3px 0px 8px;
-background-color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    border-color: #D8D8D8;
+    border-style: solid;
+    border-width: thin;
+    height: 44px;
+    padding: 0px 3px 0px 8px;
+    background-color: #ffffff;
 `;
 
 const Select = styled.select`
-padding: 4px;
-flex-grow: 1;
-background-color: transparent;
-outline: none;
-border: none;
+    padding: 4px;
+    flex-grow: 1;
+    background-color: transparent;
+    outline: none;
+    border: none;
 
-&:focus {
-outline: 0;
-}
+    &:focus {
+    outline: 0;
+    }
 `;
 
 const TableWrapper = styled.div`
-background-color: #fff;
-padding: 20px;
-border-radius: 6px;
-box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 6px;
+    box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
 `;
 
 const Table = styled.table`
-table-layout: fixed;
-border-collapse: collapse;
-width: 100%;
-max-width: 100%;
-background-color: #fff;
-overflow: hidden;
-border-radius: 5px;
+    table-layout: fixed;
+    border-spacing: 0px;
+    width: 100%;
+    max-width: 100%;
+    background-color: #fff;
+    overflow: hidden;
+    border-radius: 5px;
 `;
 
 const TableHead = styled.thead`
-display: table-header-group;
-vertical-align: bottom;
+    display: table-header-group;
+    vertical-align: bottom;
 `;
 
 const TableHeader = styled.th`
-width: ${props => props.width};
-text-align: ${props => props.center ? "center" : "left"};
-padding: 16px;
-font-size: 15px;
-color: ${props => props.grey ? props.theme.grey : null};
+    width: ${props => props.width};
+    text-align: ${props => props.center ? "center" : "left"};
+    padding: 16px;
+    font-size: 15px;
+    color: ${props => props.grey ? props.theme.grey : null};
+    border-bottom: 1px solid #dee2e6;
 `;
 
 const TableBody = styled.tbody`
-border-top: 1px solid #dee2e6;
+    border-top: 1px solid #dee2e6;
 `;
 
 const TableData = styled.td`
-border-bottom: 1px solid #dee2e6;
-vertical-align: middle;
-text-align: ${props => props.center ? "center" : "left"};
-height: 100px;
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: middle;
+    text-align: ${props => props.center ? "center" : "left"};
+    height: 100px;
 `;
 
 const TableRow = styled.tr``;
@@ -368,6 +368,7 @@ const Product = () =>  {
     const [toggleStatusItem, setToggleStatusItem] = useState({ id: '', name: '', status: true });
 
     const [APIdata, setAPIdata] = useState([]);
+    const [productExist, setProductExist] = useState({ checked: false, exist: false });
     const [loading, setLoading] = useState(false);
     const [change, setChange] = useState(false);
 
@@ -378,7 +379,7 @@ const Product = () =>  {
     const sort = '-createddate';
     const [typing, setTyping] = useState('');
     const [search, setSearch] = useState('');
-    const [status, setStatus] = useState('9001&status=9005');
+    const [status, setStatus] = useState('1001&status=1003&status=1004');
 
     useEffect( () => {  //fetch api data
         setLoading(true);
@@ -394,6 +395,9 @@ const Product = () =>  {
                 setAPIdata(res.data.Data.List);
                 setTotal(res.data.Data.Total);
                 setLastPage(res.data.Data.LastPage);
+                if (productExist.checked === false) {
+                    setProductExist({ checked: true, exist: (res.data.Data.Total > 0 ? true : false) })
+                }
                 setLoading(false);
             })
             .catch(function (error) {
@@ -431,35 +435,6 @@ const Product = () =>  {
         setPage(event.selected);
     };
 
-    const handleGetToggleStatusItem = (id, name, status) => {
-        setToggleStatusItem({ id: id, name: name, status: status });
-        toggleToggleStatusModal();
-    }
-
-    const handleToggleStatus = (event) => {
-        event.preventDefault();
-        const notification = toast.loading("Đang xử lí yêu cầu...");
-
-        const url = "menus?id=" + toggleStatusItem.id;
-        const editData = async () => {
-            api.put(url, {
-                status: toggleStatusItem.status === true ? 9005 : 9001
-            })
-            .then(function (res) {
-                if (res.data.ResultMessage === "SUCCESS") {
-                    setChange(!change);
-                    toggleToggleStatusModal();
-                    toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
-                }
-            })
-            .catch(function (error) {
-                console.log(error);
-                toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
-            });
-        }
-        editData();
-    }
-
     const handleGetDeleteItem = (id, name) => {
         setDeleteItem({id: id, name: name});
         toggleDeleteModal();
@@ -469,11 +444,12 @@ const Product = () =>  {
         event.preventDefault();
         const notification = toast.loading("Đang xử lí yêu cầu...");
 
-        const url = "menus?id=" + deleteItem.id;
+        const url = "products?id=" + deleteItem.id;
         const deleteData = async () => {
             api.delete(url)
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
+                    setProductExist({ checked: false, exist: false });
                     setChange(!change);
                     toast.update(notification, { render: "Xóa thành công!", type: "success", autoClose: 5000, isLoading: false });
                 }
@@ -489,22 +465,22 @@ const Product = () =>  {
 
     return (
         <PageWrapper>
-            <Row mb>
-                <Title>Sản phẩm</Title>
+            {
+                loading || productExist.exist ?
+                <>
+                    <Row mb>
+                        <Title mb>Sản phẩm</Title>
 
-                <AddButton to={"/addMenu"}>
-                    <AddIcon /> Tạo sản phẩm mới
-                </AddButton>
-            </Row>
+                        <AddButton to={"/addProduct"}>
+                            <AddIcon /> Tạo sản phẩm mới
+                        </AddButton>
+                    </Row>
 
-            <TableWrapper>
-                {
-                    APIdata.length !== 0 ? 
-                    <div>
+                    <TableWrapper>
                         <Row mb>
                             <SearchBar>
                                 <StyledSearchIcon />
-                                <Input id="search" placeholder="Tìm kiếm bảng giá" onChange={handleSetSearch} />
+                                <Input id="search" placeholder="Tìm kiếm sản phẩm" onChange={handleSetSearch} />
                                 <Button type="button" onClick={clearSearch}>Xóa</Button>
                             </SearchBar>
 
@@ -512,9 +488,10 @@ const Product = () =>  {
                                 <small>Trạng thái:&nbsp;</small>
                                 <DropdownWrapper width="16%">
                                     <Select value={status} onChange={handleSetStatus}>
-                                    <option value='9001&status=9005'>Toàn bộ</option>
-                                        <option value={9001}>Hoạt động</option>
-                                        <option value={9005}>Ngừng hoạt động</option>
+                                    <option value='1001&status=1003&status=1004'>Toàn bộ</option>
+                                        <option value={1001}>Hoạt động</option>
+                                        <option value={1003}>Từ chối</option>
+                                        <option value={1004}>Chờ xác thực</option>
                                     </Select>
                                 </DropdownWrapper>
                             </Align>
@@ -523,9 +500,9 @@ const Product = () =>  {
                         <Table>
                             <TableHead>
                                 <TableRow>
-                                    <TableHeader width="3%" grey>#</TableHeader>
-                                    <TableHeader width="47%">Tên sản phẩm</TableHeader>
-                                    <TableHeader width="20%" center>Loại</TableHeader>
+                                    <TableHeader width="7%" center>Ảnh</TableHeader>
+                                    <TableHeader width="48%">Tên sản phẩm</TableHeader>
+                                    <TableHeader width="15%" center>Giá</TableHeader>
                                     <TableHeader width="15%" center>Trạng thái</TableHeader>
                                     <TableHeader width="15%" center>Hành động</TableHeader>
                                 </TableRow>
@@ -539,68 +516,75 @@ const Product = () =>  {
                                     : 
                                     <ProductList 
                                         currentItems={APIdata} 
-                                        handleGetToggleStatusItem={handleGetToggleStatusItem}
                                         handleGetDeleteItem={handleGetDeleteItem} 
                                     />
                                 }
                             </TableBody>
                         </Table>
-                    </div> 
-                    : 
-                    <NoItemWrapper>
-                        <StyledProductIcon />
 
-                        <NoItemTitle>
-                            Bạn hiện chưa có sản phẩm
-                        </NoItemTitle>
+                        {
+                            loading || APIdata.length === 0 || total <= 10 ?
+                            null :
+                            <Row mt>
+                                <small>Hiển thị {page * limit + 1} - {page * limit + APIdata.length} trong tổng số {total} sản phẩm.</small>
 
-                        <NoItemText>
-                            Tạo sản phẩm và đưa các sản phẩm vào bảng giá giúp khách hàng có thể thấy được sản phẩm của cửa hàng bạn.
-                        </NoItemText>
+                                <StyledPaginateContainer>
+                                    <ReactPaginate
+                                        nextLabel="Next >"
+                                        onPageChange={handlePageClick}
+                                        pageRangeDisplayed={3}
+                                        marginPagesDisplayed={2}
+                                        pageCount={lastPage}
+                                        previousLabel="< Prev"
+                                        pageClassName="page-item"
+                                        pageLinkClassName="page-link"
+                                        previousClassName="page-item"
+                                        previousLinkClassName="page-link"
+                                        nextClassName="page-item"
+                                        nextLinkClassName="page-link"
+                                        breakLabel="..."
+                                        breakClassName="page-item"
+                                        breakLinkClassName="page-link"
+                                        containerClassName="pagination"
+                                        activeClassName="active"
+                                        forcePage={page}
+                                        renderOnZeroPageCount={null}
+                                    />
+                                </StyledPaginateContainer>
+                            </Row>
+                        }
+                    </TableWrapper>
+                </>
 
-                        <Link to="/addProduct">
-                            <NoItemButton>
-                                Tạo sản phẩm
-                            </NoItemButton>
-                        </Link>
-                    </NoItemWrapper>
-                }
+                :
 
-                {
-                    loading || APIdata.length === 0 ?
-                    null :
-                    <Row mt>
-                        <small>Hiển thị {page * limit + 1} - {page * limit + APIdata.length} trong tổng số {total} bảng giá.</small>
+                <>
+                    <Title>Sản phẩm</Title>
 
-                        <StyledPaginateContainer>
-                            <ReactPaginate
-                                nextLabel="Next >"
-                                onPageChange={handlePageClick}
-                                pageRangeDisplayed={3}
-                                marginPagesDisplayed={2}
-                                pageCount={lastPage}
-                                previousLabel="< Prev"
-                                pageClassName="page-item"
-                                pageLinkClassName="page-link"
-                                previousClassName="page-item"
-                                previousLinkClassName="page-link"
-                                nextClassName="page-item"
-                                nextLinkClassName="page-link"
-                                breakLabel="..."
-                                breakClassName="page-item"
-                                breakLinkClassName="page-link"
-                                containerClassName="pagination"
-                                activeClassName="active"
-                                forcePage={page}
-                                renderOnZeroPageCount={null}
-                            />
-                        </StyledPaginateContainer>
-                    </Row>
-                }
-            </TableWrapper>
+                    <TableWrapper>
+                        <NoItemWrapper>
+                            <StyledProductIcon />
+
+                            <NoItemTitle>
+                                Bạn hiện chưa có sản phẩm
+                            </NoItemTitle>
+
+                            <NoItemText>
+                                Tạo sản phẩm và đưa vào bảng giá giúp khách hàng có thể thấy được sản phẩm của cửa hàng bạn.
+                            </NoItemText>
+
+                            <Link to="/addProduct">
+                                <NoItemButton>
+                                    Tạo sản phẩm
+                                </NoItemButton>
+                            </Link>
+                        </NoItemWrapper>
+                    </TableWrapper>
+                </>
+            }
 
             <TipText>
-                <StyledExclamationIcon />
+            <StyledExclamationIcon />
                 Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/S%E1%BA%A3n_ph%E1%BA%A9m"
                                                   target="_blank">sản phẩm</StyledLink>
                 <StyledLinkIcon />
@@ -611,13 +595,6 @@ const Product = () =>  {
                 toggle={toggleDeleteModal}
                 deleteItem={deleteItem}
                 handleDeleteItem={handleDeleteItem}
-            />
-        
-            <ToggleStatusModal
-                display={toggleStatusModal}
-                toggle={toggleToggleStatusModal}
-                toggleStatusItem={toggleStatusItem}
-                handleToggleStatus={handleToggleStatus}
             />
         </PageWrapper>
     )

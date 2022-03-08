@@ -78,7 +78,7 @@ const DeleteModal = ({ display, toggle, deleteItem, handleDeleteItem }) => {
         <Modal isOpen={display} onRequestClose={toggle} style={customStyles} ariaHideApp={false}>
             <ModalTitle>Xác Nhận Xóa</ModalTitle>
             <ModalContentWrapper>
-                <DangerModalContent>Bạn có chắc chắn muốn xóa bảng giá【<b>{deleteItem.name ? deleteItem.name : null}</b>】?</DangerModalContent>
+                <DangerModalContent>Bạn có chắc chắn muốn xóa sản phẩm【<b>{deleteItem.name ? deleteItem.name : null}</b>】?</DangerModalContent>
             </ModalContentWrapper>
             <ModalButtonWrapper>
                 <SmallText>Hành động này sẽ không thể được khôi phục.</SmallText>

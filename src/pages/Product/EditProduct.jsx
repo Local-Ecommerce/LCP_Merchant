@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { api } from "../../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, AddPhotoAlternate, Warning } from '@mui/icons-material';
@@ -172,20 +172,200 @@ const OptionLabel = styled.div`
     font-size: 14px;
 `;
 
-const AddProduct = () => {    
-    let navigate = useNavigate();
+const EditProduct = () => {
+    const { id } = useParams();
 
+    const [item, setItem] = useState({});
     const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: 0, images: [], colors: [], sizes: [],  weights: [], code: 'AP-001' });
     const [error, setError] = useState({ name: '', category: '', price: '', colors: '', sizes: '', weights: '', code: '' });
 
+    const [colors, setColors] = useState([]);
+    const [sizes, setSizes] = useState([]);
+    const [weights, setWeights] = useState([]);
+
     const [manual, setManual] = useState(false);
     const [type, setType] = useState('Khác');
+    const [loading, setLoading] = useState(false);
+    const [change, setChange] = useState(false);
     const sort = '+syscategoryname';
 
     const [lv1Category, setLv1Category] = useState([]);
     const [filteredLv1Category, setFilteredLv1Category] = useState([]);
     const [lv2Category, setLv2Category] = useState([]);
     const [lv3Category, setLv3Category] = useState([]);
+
+    useEffect(() => {
+        setLoading(true);
+        let url = "products?id=" + id + "&include=related";
+        const fetchData = () => {
+            api.get(url)
+            .then(function (res) {
+                if (res.data.ResultMessage === "SUCCESS") {
+                    setItem(res.data.Data.List[0]);
+                    setInput(input => ({
+                        ...input,
+                        code: res.data.Data.List[0].ProductCode,
+                        name: res.data.Data.List[0].ProductName,
+                        description: res.data.Data.List[0].Description,
+                        shortDescription: res.data.Data.List[0].BriefDescription,
+                        price: res.data.Data.List[0].DefaultPrice,
+                        image: res.data.Data.List[0].Image,
+                        status: res.data.Data.List[0].Status,
+                        colors: [...new Map(res.data.Data.List[0].InverseBelongToNavigation.map(({ Color }, index) => ({ 
+                            name: index, value: Color, error: '', old: true
+                        })).map(item => [item['value'], item])).values()].filter(item => (item.value)),
+                        sizes: [...new Map(res.data.Data.List[0].InverseBelongToNavigation.map(({ Size }, index) => ({ 
+                            name: index, value: Size, error: '', old: true
+                        })).map(item => [item['value'], item])).values()].filter(item => (item.value)),
+                        weights: [...new Map(res.data.Data.List[0].InverseBelongToNavigation.map(({ Weight }, index) => ({ 
+                            name: index, value: Weight, error: '', old: true
+                        })).map(item => [item['value'], item])).values()].filter(item => (item.value)),
+                    }));
+                    setColors([...new Map(res.data.Data.List[0].InverseBelongToNavigation.map(({ Color }, index) => ({ 
+                        name: index, value: Color, error: '', old: true
+                    })).map(item => [item['value'], item])).values()].filter(item => (item.value)));
+                    setSizes([...new Map(res.data.Data.List[0].InverseBelongToNavigation.map(({ Size }, index) => ({ 
+                        name: index, value: Size, error: '', old: true
+                    })).map(item => [item['value'], item])).values()].filter(item => (item.value)));
+                    setWeights([...new Map(res.data.Data.List[0].InverseBelongToNavigation.map(({ Weight }, index) => ({ 
+                        name: index, value: Weight, error: '', old: true
+                    })).map(item => [item['value'], item])).values()].filter(item => (item.value)));
+                    setLoading(false);
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+                setLoading(false);
+            });
+        }
+        fetchData();
+    }, [change]);
+
+    useEffect(() => {
+        let differenceColors = input.colors.filter(
+            o1 => !colors.some(o2 => o1.name === o2.name)).concat(colors.filter(
+                o1 => !input.colors.some(o2 => o1.name === o2.name)
+            )
+        );
+        let differenceSizes = input.sizes.filter(
+            o1 => !sizes.some(o2 => o1.name === o2.name)).concat(sizes.filter(
+                o1 => !input.sizes.some(o2 => o1.name === o2.name)
+            )
+        );
+        let differenceWeights = input.weights.filter(
+            o1 => !weights.some(o2 => o1.name === o2.name)).concat(weights.filter(
+                o1 => !input.weights.some(o2 => o1.name === o2.name)
+            )
+        );
+
+        let deleteArray = [];
+        let insertArray = [];
+
+        differenceColors.forEach((color) => {
+            if (color.old) {
+                item.InverseBelongToNavigation.forEach((item) => {
+                    if (item.Color === color.value) {
+                        if (!deleteArray.some(e => e.ProductId === item.ProductId)) {
+                            deleteArray.push(item);
+                        }
+                    }
+                })
+            }
+        });
+        differenceSizes.forEach((size) => {
+            if (size.old) {
+                item.InverseBelongToNavigation.forEach((item) => {
+                    if (item.Size === size.value) {
+                        if (!deleteArray.some(e => e.ProductId === item.ProductId)) {
+                            deleteArray.push(item);
+                        }
+                    }
+                })
+            }
+        });
+        differenceWeights.forEach((weight) => {
+            if (weight.old) {
+                item.InverseBelongToNavigation.forEach((item) => {
+                    if (item.Weight === weight.value) {
+                        if (!deleteArray.some(e => e.ProductId === item.ProductId)) {
+                            deleteArray.push(item);
+                        }
+                    }
+                })
+            }
+        });
+
+
+        differenceColors.forEach((color) => {
+            if (!color.old) {
+                input.sizes.forEach((size) => {
+                    input.weights.forEach((weight) => {
+                        insertArray.push({
+                            productCode: input.code,
+                            productName: input.name,
+                            briefDescription: input.shortDescription,
+                            description: input.description,
+                            defaultPrice: input.price,
+                            size: size.value,
+                            color: color.value,
+                            weight: weight.value,
+                            image: [
+                                // "string"
+                            ]
+                        })
+                    })
+                })
+            }
+        });
+        differenceSizes.forEach((size) => {
+            if (!size.old) {
+                input.colors.forEach((color) => {
+                    input.weights.forEach((weight) => {
+                        insertArray.push({
+                            productCode: input.code,
+                            productName: input.name,
+                            briefDescription: input.shortDescription,
+                            description: input.description,
+                            defaultPrice: input.price,
+                            size: size.value,
+                            color: color.value,
+                            weight: weight.value,
+                            image: [
+                                // "string"
+                            ]
+                        })
+                    })
+                })
+            }
+        });
+        differenceWeights.forEach((weight) => {
+            if (!weight.old) {
+                input.sizes.forEach((size) => {
+                    input.colors.forEach((color) => {
+                        insertArray.push({
+                            productCode: input.code,
+                            productName: input.name,
+                            briefDescription: input.shortDescription,
+                            description: input.description,
+                            defaultPrice: input.price,
+                            size: size.value,
+                            color: color.value,
+                            weight: weight.value,
+                            image: [
+                                // "string"
+                            ]
+                        })
+                    })
+                })
+            }
+        });
+
+        console.log(insertArray);
+        console.log(deleteArray);
+        // console.log(differenceColors)
+        // console.log(differenceSizes)
+        // console.log(differenceWeights)
+    }, [input])
 
     useEffect(() => {   //set systemCategory level 1
         let url = "categories"
@@ -270,16 +450,12 @@ const AddProduct = () => {
         setInput(input => ({ ...input, category: {lv1: input.category.lv1, lv2: input.category.lv2, lv3: id} }));
     }
 
-    const handleAddProduct = (event) => {
+    const handleAddMenu = (event) => {
         event.preventDefault();
 
         if (checkValid()) {
             const notification = toast.loading("Đang xử lí yêu cầu...");
             const addData = async () => {
-                const colors = input.colors.length ? input.colors : [{ value: null }];
-                const sizes = input.sizes.length ? input.sizes : [{ value: null }];
-                const weights = input.weights.length ? input.weights : [{ value: 0 }];
-
                 api.post("products", {
                     productCode: input.code,
                     productName: input.name,
@@ -291,9 +467,9 @@ const AddProduct = () => {
                     ],
                     inverseBelongToNavigation: 
                         (
-                            sizes.map(size => { 
-                                return colors.map(color => {
-                                    return weights.map(weight => {
+                            input.sizes.map(size => { 
+                                return input.colors.map(color => {
+                                    return input.weights.map(weight => {
                                         return {
                                             productCode: input.code,
                                             productName: input.name,
@@ -322,7 +498,6 @@ const AddProduct = () => {
                 })
                 .then(function (res) {
                     if (res.data.ResultMessage === "SUCCESS") {
-                        navigate("/products");
                         toast.update(notification, { render: "Tạo sản phẩm thành công!", type: "success", autoClose: 5000, isLoading: false });
                     }
                 })
@@ -366,10 +541,10 @@ const AddProduct = () => {
         <PageWrapper>
             <Row>
                 <Link to="/products"><StyledBackIcon /></Link>
-                <Title><TitleGrey>Danh sách sản phẩm </TitleGrey>/ Tạo mới sản phẩm</Title>
+                <Title><TitleGrey>Danh sách sản phẩm </TitleGrey>/ {item.ProductName}</Title>
             </Row>
             
-            <form onSubmit={handleAddProduct} id="form">
+            <form onSubmit={handleAddMenu} id="form">
                 <ContainerWrapper>
                     <FormLabel>Tên sản phẩm</FormLabel>
                     <StyledTextFieldMb
@@ -391,7 +566,7 @@ const AddProduct = () => {
                     />
 
                     <FormLabel>Mô tả ngắn gọn</FormLabel>
-                    <TextField
+                    <StyledTextFieldMb
                         fullWidth multiline rows={2}
                         placeholder="Khách hàng sẽ thấy mô tả này khi họ nhấn xem sản phẩm." 
                         inputProps={{style: {fontSize: 14}}}
@@ -437,7 +612,6 @@ const AddProduct = () => {
                     </HelperText>
                 </ContainerWrapper>
 
-
                 <ContainerWrapper p0>
                     <FormLabel>Giá mặc định</FormLabel>
                     <StyledTextFieldMb
@@ -468,9 +642,9 @@ const AddProduct = () => {
                     <FormLabel>Tùy chọn</FormLabel>
                     <OptionLabel>Thêm các tùy chọn của sản phẩm, như màu sắc, kích thước hay trọng lượng</OptionLabel>
                     
-                    <ProductOption savedData={input.colors} type='colors' saveOption={saveOption} editOption={editOption} />
-                    <ProductOption savedData={input.sizes} type='sizes' saveOption={saveOption} editOption={editOption} />
-                    <ProductOption savedData={input.weights} type='weights' saveOption={saveOption} editOption={editOption} />
+                    <ProductOption passedData={colors} savedData={input.colors} type='colors' saveOption={saveOption} editOption={editOption} />
+                    <ProductOption passedData={sizes} savedData={input.sizes} type='sizes' saveOption={saveOption} editOption={editOption} />
+                    <ProductOption passedData={weights} savedData={input.weights} type='weights' saveOption={saveOption} editOption={editOption} />
                 </ContainerWrapper>
 
                 <ContainerWrapper>
@@ -527,4 +701,4 @@ const AddProduct = () => {
     )
 }
 
-export default AddProduct;
+export default EditProduct;
