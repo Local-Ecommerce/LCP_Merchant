@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Close } from '@mui/icons-material';
 
 const ContainerWrapper = styled.div`
     font-size: 14px;
-    padding: 10px 20px;
+    padding: 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -28,7 +28,7 @@ const ContainerWrapper = styled.div`
 `;
 
 const Index = styled.span`
-    width: 25px;
+    width: 15px;
     margin-right: 10px;
 `;
 
@@ -45,7 +45,7 @@ const Name = styled.span`
 `;
 
 const StatusWrapper = styled.div`
-    flex: 2;
+    flex: 1;
     display: flex;
     justify-content: center;
     margin: 0px 25px;
@@ -105,7 +105,41 @@ const StyledCloseIcon = styled(Close)`
     }
 `;
 
+const TextFIeldWrapper = styled.div`
+    flex: 3;
+    display: flex;
+    align-items: flex-end;
+`;
+
+const Currency = styled.span`
+    font-size: 14px;
+    padding: 5px;
+    color: #999;
+    border: 1px solid #ccc;
+    border-radius: 0 3px 3px 0;
+    background: rgba(0,0,0,0.01);
+`;
+
+const TextField = styled.input`
+    width: 100%;
+    padding: 5px;
+    outline: none;
+    border: 1px solid ${props => props.error ? props.theme.red : props.theme.greyBorder};
+    border-right: 0;
+    border-radius: 3px 0 0 3px;
+    font-size: 14px;
+    background-color: ${props => props.theme.white};
+`;
+
 const ProductInMenuItem = ({ item, index, handleDeleteItem }) =>  {
+    const [input, setInput] = useState({ price: '' });
+    const [error, setError] = useState({ price: '' });
+
+    function handleChange(e) {
+        const { name, value } = e.target;
+        setInput(input => ({ ...input, [name]: value }));
+    }
+    
     let activeCheck = '';
     let activeLabel = '';
     switch (item.Status) {
@@ -119,7 +153,7 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem }) =>  {
             break;
         case 1004:
             activeCheck = 'unverified';
-            activeLabel = 'Chờ xác thực';
+            activeLabel = 'Chờ duyệt';
             break;
         default:
             activeCheck = 'inactive';
@@ -141,6 +175,16 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem }) =>  {
                     {item.ProductName}                  
                 </Name>
             </TextWrapper>
+
+            <TextFIeldWrapper>
+                <TextField
+                    type="text" 
+                    value={input.price ? input.price : 0} name='price'
+                    onChange={handleChange}
+                    error={error.price !== ''}
+                />
+                <Currency>vnd</Currency>
+            </TextFIeldWrapper>
 
             <StatusWrapper>
                 <Status active={activeCheck}>{activeLabel}</Status>

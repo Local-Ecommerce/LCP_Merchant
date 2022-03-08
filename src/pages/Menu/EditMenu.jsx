@@ -305,11 +305,11 @@ const EditMenu = () => {
 
     const [input, setInput] = useState({ id: '', name: '', description: '', startTime: '', endTime: '' });
     const [repeatDay, setRepeatDay] = useState({ t2:true, t3:true, t4:true, t5:true, t6:true, t7:true, cn:true });
-    const [error, setError] = useState({ 'name': '', 'timeError': '' });
+    const [error, setError] = useState({ 'name': '', 'time': '' });
 
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState('');
-    const [sort, setSort] = useState(0);
+    const [sort, setSort] = useState('+productname');
     const [change, setChange] = useState(false);
 
     useEffect(() => {
@@ -349,8 +349,23 @@ const EditMenu = () => {
     }, [change]);
 
     useEffect(() => {
-        setStockItems(Products);
-    }, []);
+        setLoading(true);
+        let url = "products?"
+                + "sort=" + sort 
+                + (search !== '' ? ("&search=" + search) : '') 
+        const fetchData = () => {
+            api.get(url)
+            .then(function (res) {
+                setStockItems(res.data.Data.List);
+                setLoading(false);
+            })
+            .catch(function (error) {
+                console.log(error);
+                setLoading(false);
+            });
+        }
+        fetchData();
+    }, [change]);
     
     function handleChange(e) {
         const { name, value } = e.target;
@@ -400,14 +415,14 @@ const EditMenu = () => {
 
     const checkValid = () => {
         let check = false;
-        setError(error => ({ ...error, name: '', timeError: '' }));
+        setError(error => ({ ...error, name: '', time: '' }));
 
         if (input.title === null || input.title === '') {
             setError(error => ({ ...error, name: 'Vui lòng nhập tiêu đề' }));
             check = true;
         }
         if (input.startTime >= input.endTime) {
-            setError(error => ({ ...error, timeError: 'Giờ bắt đầu không được lớn hơn giờ kết thúc' }));
+            setError(error => ({ ...error, time: 'Giờ bắt đầu không được lớn hơn giờ kết thúc' }));
             check = true;
         }
         if (check) {
@@ -523,14 +538,14 @@ const EditMenu = () => {
                             <TimePicker 
                                 value={input.startTime} ampm={false}
                                 onChange={time => handleChange({ target: { value: time.toISOString(), name: 'startTime' } })} 
-                                renderInput={(params) => <TextField {...params} size="small" error={error.timeError !== ''} helperText={error.timeError} />} />
+                                renderInput={(params) => <TextField {...params} size="small" error={error.time !== ''} helperText={error.time} />} />
 
                             <StyledArrowIcon />
 
                             <TimePicker 
                                 value={input.endTime} ampm={false}
                                 onChange={time => handleChange({ target: { value: time.toISOString(), name: 'endTime' } })} 
-                                renderInput={(params) => <TextField {...params} size="small" error={error.timeError !== ''} helperText={error.timeError} />} />
+                                renderInput={(params) => <TextField {...params} size="small" error={error.time !== ''} helperText={error.time} />} />
                         </TimePickerWrapper>
                     </LocalizationProvider>
                 </MenuWrapper>

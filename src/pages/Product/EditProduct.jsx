@@ -266,7 +266,7 @@ const EditProduct = () => {
                 item.InverseBelongToNavigation.forEach((item) => {
                     if (item.Color === color.value) {
                         if (!deleteArray.some(e => e.ProductId === item.ProductId)) {
-                            deleteArray.push(item);
+                            deleteArray.push(item.ProductId);
                         }
                     }
                 })
@@ -277,7 +277,7 @@ const EditProduct = () => {
                 item.InverseBelongToNavigation.forEach((item) => {
                     if (item.Size === size.value) {
                         if (!deleteArray.some(e => e.ProductId === item.ProductId)) {
-                            deleteArray.push(item);
+                            deleteArray.push(item.ProductId);
                         }
                     }
                 })
@@ -288,7 +288,7 @@ const EditProduct = () => {
                 item.InverseBelongToNavigation.forEach((item) => {
                     if (item.Weight === weight.value) {
                         if (!deleteArray.some(e => e.ProductId === item.ProductId)) {
-                            deleteArray.push(item);
+                            deleteArray.push(item.ProductId);
                         }
                     }
                 })

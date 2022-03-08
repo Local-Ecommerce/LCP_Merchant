@@ -361,11 +361,7 @@ const StyledPaginateContainer = styled.div`
 const Product = () =>  {
     const [deleteModal, setDeleteModal] = useState(false);
     const toggleDeleteModal = () => { setDeleteModal(!deleteModal) };
-    const [toggleStatusModal, setToggleStatusModal] = useState(false);
-    const toggleToggleStatusModal = () => { setToggleStatusModal(!toggleStatusModal) };
-
     const [deleteItem, setDeleteItem] = useState({id: '', name: ''});
-    const [toggleStatusItem, setToggleStatusItem] = useState({ id: '', name: '', status: true });
 
     const [APIdata, setAPIdata] = useState([]);
     const [productExist, setProductExist] = useState({ checked: false, exist: false });

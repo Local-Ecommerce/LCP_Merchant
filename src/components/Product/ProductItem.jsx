@@ -98,7 +98,7 @@ const ProductItem = ({ item, handleGetDeleteItem }) =>  {
             break;
         case 1004:
             activeCheck = 'unverified';
-            activeLabel = 'Chờ xác thực';
+            activeLabel = 'Chờ duyệt';
             break;
         default:
             activeCheck = 'inactive';
