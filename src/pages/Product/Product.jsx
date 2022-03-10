@@ -440,9 +440,12 @@ const Product = () =>  {
         event.preventDefault();
         const notification = toast.loading("Đang xử lí yêu cầu...");
 
-        const url = "products?id=" + deleteItem.id;
         const deleteData = async () => {
-            api.delete(url)
+            api.delete("products", {
+                data: {
+                    productIds: [ deleteItem.id ]
+                }, 
+            })
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
                     setProductExist({ checked: false, exist: false });

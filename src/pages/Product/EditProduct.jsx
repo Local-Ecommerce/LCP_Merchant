@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Link, useParams } from "react-router-dom";
@@ -5,7 +6,7 @@ import { api } from "../../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, AddPhotoAlternate, Warning } from '@mui/icons-material';
 import { TextField, InputAdornment, FormControlLabel, Radio, RadioGroup, Checkbox } from '@mui/material';
-import ProductOption from '../../components/Product/ProductOption';
+import ProductOption from './ProductOption';
 import CategoryList from '../../components/Product/CategoryList';
 
 const PageWrapper = styled.div`
@@ -112,8 +113,8 @@ const Button = styled.button`
     border: none;
     padding: 10px 15px;
     cursor: pointer;
-    border: 1px solid ${props => props.white ? props.theme.greyBorder : props.theme.blue};
-    background: ${props => props.white ? "white" : props.theme.blue};
+    border: 1px solid ${props => props.disabled ? props.theme.disabled : props.white ? props.theme.greyBorder : props.theme.blue};
+    background-color: ${props => props.disabled ? props.theme.disabled : props.white ? "white" : props.theme.blue};
     color: ${props => props.white ? props.theme.grey : "white"};
     font-weight: 600;
 
@@ -183,7 +184,7 @@ const EditProduct = () => {
     const [sizes, setSizes] = useState([]);
     const [weights, setWeights] = useState([]);
 
-    const [manual, setManual] = useState(false);
+    const [manual, setManual] = useState(true);
     const [type, setType] = useState('Khác');
     const [loading, setLoading] = useState(false);
     const [change, setChange] = useState(false);
@@ -208,28 +209,38 @@ const EditProduct = () => {
                         name: res.data.Data.List[0].ProductName,
                         description: res.data.Data.List[0].Description,
                         shortDescription: res.data.Data.List[0].BriefDescription,
-                        price: res.data.Data.List[0].DefaultPrice,
+                        price: res.data.Data.List[0].DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                         image: res.data.Data.List[0].Image,
                         status: res.data.Data.List[0].Status,
-                        colors: [...new Map(res.data.Data.List[0].InverseBelongToNavigation.map(({ Color }, index) => ({ 
-                            name: index, value: Color, error: '', old: true
-                        })).map(item => [item['value'], item])).values()].filter(item => (item.value)),
-                        sizes: [...new Map(res.data.Data.List[0].InverseBelongToNavigation.map(({ Size }, index) => ({ 
-                            name: index, value: Size, error: '', old: true
-                        })).map(item => [item['value'], item])).values()].filter(item => (item.value)),
-                        weights: [...new Map(res.data.Data.List[0].InverseBelongToNavigation.map(({ Weight }, index) => ({ 
-                            name: index, value: Weight, error: '', old: true
-                        })).map(item => [item['value'], item])).values()].filter(item => (item.value)),
+                        colors: [...new Map(res.data.Data.List[0].RelatedProducts.map(({ Color }) => ({ 
+                            value: Color, error: '', old: true
+                        })).map(item => [item['value'], item])).values()].filter(item => (item.value))
+                        .map((item, index) => ({ name: index, ...item })),
+
+                        sizes: [...new Map(res.data.Data.List[0].RelatedProducts.map(({ Size }) => ({ 
+                            value: Size, error: '', old: true
+                        })).map(item => [item['value'], item])).values()].filter(item => (item.value))
+                        .map((item, index) => ({ name: index, ...item })),
+
+                        weights: [...new Map(res.data.Data.List[0].RelatedProducts.map(({ Weight }) => ({ 
+                            value: Weight, error: '', old: true
+                        })).map(item => [item['value'], item])).values()].filter(item => (item.value))
+                        .map((item, index) => ({ name: index, ...item })),
                     }));
-                    setColors([...new Map(res.data.Data.List[0].InverseBelongToNavigation.map(({ Color }, index) => ({ 
-                        name: index, value: Color, error: '', old: true
-                    })).map(item => [item['value'], item])).values()].filter(item => (item.value)));
-                    setSizes([...new Map(res.data.Data.List[0].InverseBelongToNavigation.map(({ Size }, index) => ({ 
-                        name: index, value: Size, error: '', old: true
-                    })).map(item => [item['value'], item])).values()].filter(item => (item.value)));
-                    setWeights([...new Map(res.data.Data.List[0].InverseBelongToNavigation.map(({ Weight }, index) => ({ 
-                        name: index, value: Weight, error: '', old: true
-                    })).map(item => [item['value'], item])).values()].filter(item => (item.value)));
+                    setColors([...new Map(res.data.Data.List[0].RelatedProducts.map(({ Color }) => ({ 
+                        value: Color, error: '', old: true
+                    })).map(item => [item['value'], item])).values()].filter(item => (item.value))
+                    .map((item, index) => ({ name: index, ...item })));
+
+                    setSizes([...new Map(res.data.Data.List[0].RelatedProducts.map(({ Size }) => ({ 
+                        value: Size, error: '', old: true
+                    })).map(item => [item['value'], item])).values()].filter(item => (item.value))
+                    .map((item, index) => ({ name: index, ...item })));
+
+                    setWeights([...new Map(res.data.Data.List[0].RelatedProducts.map(({ Weight }) => ({ 
+                        value: Weight, error: '', old: true
+                    })).map(item => [item['value'], item])).values()].filter(item => (item.value))
+                    .map((item, index) => ({ name: index, ...item })));
                     setLoading(false);
                 }
             })
@@ -240,132 +251,6 @@ const EditProduct = () => {
         }
         fetchData();
     }, [change]);
-
-    useEffect(() => {
-        let differenceColors = input.colors.filter(
-            o1 => !colors.some(o2 => o1.name === o2.name)).concat(colors.filter(
-                o1 => !input.colors.some(o2 => o1.name === o2.name)
-            )
-        );
-        let differenceSizes = input.sizes.filter(
-            o1 => !sizes.some(o2 => o1.name === o2.name)).concat(sizes.filter(
-                o1 => !input.sizes.some(o2 => o1.name === o2.name)
-            )
-        );
-        let differenceWeights = input.weights.filter(
-            o1 => !weights.some(o2 => o1.name === o2.name)).concat(weights.filter(
-                o1 => !input.weights.some(o2 => o1.name === o2.name)
-            )
-        );
-
-        let deleteArray = [];
-        let insertArray = [];
-
-        differenceColors.forEach((color) => {
-            if (color.old) {
-                item.InverseBelongToNavigation.forEach((item) => {
-                    if (item.Color === color.value) {
-                        if (!deleteArray.some(e => e.ProductId === item.ProductId)) {
-                            deleteArray.push(item.ProductId);
-                        }
-                    }
-                })
-            }
-        });
-        differenceSizes.forEach((size) => {
-            if (size.old) {
-                item.InverseBelongToNavigation.forEach((item) => {
-                    if (item.Size === size.value) {
-                        if (!deleteArray.some(e => e.ProductId === item.ProductId)) {
-                            deleteArray.push(item.ProductId);
-                        }
-                    }
-                })
-            }
-        });
-        differenceWeights.forEach((weight) => {
-            if (weight.old) {
-                item.InverseBelongToNavigation.forEach((item) => {
-                    if (item.Weight === weight.value) {
-                        if (!deleteArray.some(e => e.ProductId === item.ProductId)) {
-                            deleteArray.push(item.ProductId);
-                        }
-                    }
-                })
-            }
-        });
-
-
-        differenceColors.forEach((color) => {
-            if (!color.old) {
-                input.sizes.forEach((size) => {
-                    input.weights.forEach((weight) => {
-                        insertArray.push({
-                            productCode: input.code,
-                            productName: input.name,
-                            briefDescription: input.shortDescription,
-                            description: input.description,
-                            defaultPrice: input.price,
-                            size: size.value,
-                            color: color.value,
-                            weight: weight.value,
-                            image: [
-                                // "string"
-                            ]
-                        })
-                    })
-                })
-            }
-        });
-        differenceSizes.forEach((size) => {
-            if (!size.old) {
-                input.colors.forEach((color) => {
-                    input.weights.forEach((weight) => {
-                        insertArray.push({
-                            productCode: input.code,
-                            productName: input.name,
-                            briefDescription: input.shortDescription,
-                            description: input.description,
-                            defaultPrice: input.price,
-                            size: size.value,
-                            color: color.value,
-                            weight: weight.value,
-                            image: [
-                                // "string"
-                            ]
-                        })
-                    })
-                })
-            }
-        });
-        differenceWeights.forEach((weight) => {
-            if (!weight.old) {
-                input.sizes.forEach((size) => {
-                    input.colors.forEach((color) => {
-                        insertArray.push({
-                            productCode: input.code,
-                            productName: input.name,
-                            briefDescription: input.shortDescription,
-                            description: input.description,
-                            defaultPrice: input.price,
-                            size: size.value,
-                            color: color.value,
-                            weight: weight.value,
-                            image: [
-                                // "string"
-                            ]
-                        })
-                    })
-                })
-            }
-        });
-
-        console.log(insertArray);
-        console.log(deleteArray);
-        // console.log(differenceColors)
-        // console.log(differenceSizes)
-        // console.log(differenceWeights)
-    }, [input])
 
     useEffect(() => {   //set systemCategory level 1
         let url = "categories"
@@ -401,6 +286,14 @@ const EditProduct = () => {
         setError(error => ({ ...error, [name]: '' }));
     };
 
+    const handleSetPrice = (e) => {
+        const { value } = e.target;
+        if (value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",").length + 1 <= 12) {
+            setInput(input => ({ ...input, price: value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }));
+        }
+        setError(error => ({ ...error, price: '' }));
+    }
+
     const handleSetType = (e) => {
         const { value } = e.target;
         setType(value);
@@ -412,7 +305,7 @@ const EditProduct = () => {
         if (manual) {
             setInput(input => ({ ...input, code: 'AP-001' }));
         } else {
-            setInput(input => ({ ...input, code: '' }));
+            setInput(input => ({ ...input, code: item.ProductCode }));
         }
         setManual(!manual);
     };
@@ -422,8 +315,12 @@ const EditProduct = () => {
         setInput(input => ({ ...input, [option]: data }));
     }
 
-    const editOption = (option) => {
-        setError(error => ({ ...error, [option]: 'Bạn có tùy chọn chưa lưu!' }));
+    const editOption = (option, display) => {
+        if (display) {
+            setError(error => ({ ...error, [option]: '' }));
+        } else {
+            setError(error => ({ ...error, [option]: 'Bạn có tùy chọn chưa lưu!' }));
+        }
         setInput(input => ({ ...input, [option]: [] }));
     }
 
@@ -431,7 +328,7 @@ const EditProduct = () => {
         setInput(input => ({ ...input, category: {lv1: id, lv2: '', lv3: ''} }));
         setLv2Category(lv1Category.filter((item) => {
             return item.SystemCategoryId === id;
-        })[0].InverseBelongToNavigation);
+        })[0].Children);
         setLv3Category([]);
         setError(error => ({ ...error, category: '' }));
     }
@@ -440,73 +337,180 @@ const EditProduct = () => {
         setInput(input => ({ ...input, category: {lv1: input.category.lv1, lv2: id, lv3: ''} }));
         setLv3Category(lv2Category.filter((item) => {
             return item.SystemCategoryId === id;
-        })[0].InverseBelongToNavigation);
-        console.log(lv2Category.filter((item) => {
-            return item.SystemCategoryId === id;
-        })[0].InverseBelongToNavigation);
+        })[0].Children);
     }
 
     const handleGetCategoryLv3 = (id) => {
         setInput(input => ({ ...input, category: {lv1: input.category.lv1, lv2: input.category.lv2, lv3: id} }));
     }
 
-    const handleAddMenu = (event) => {
+    const handleEditItem = (event) => {
         event.preventDefault();
 
         if (checkValid()) {
-            const notification = toast.loading("Đang xử lí yêu cầu...");
-            const addData = async () => {
-                api.post("products", {
-                    productCode: input.code,
-                    productName: input.name,
-                    briefDescription: input.shortDescription,
-                    description: input.description,
-                    defaultPrice: input.price,
-                    image: [
-                        // "string"
-                    ],
-                    inverseBelongToNavigation: 
-                        (
-                            input.sizes.map(size => { 
-                                return input.colors.map(color => {
-                                    return input.weights.map(weight => {
-                                        return {
-                                            productCode: input.code,
-                                            productName: input.name,
-                                            briefDescription: input.shortDescription,
-                                            description: input.description,
-                                            defaultPrice: input.price,
-                                            size: size.value,
-                                            color: color.value,
-                                            weight: weight.value,
-                                            image: [
-                                                // "string"
-                                            ]
-                                        }
-                                    })
-                                }).reduce((total, value) => {
-                                    return total.concat(value);
-                                }, [])
-                            }).reduce((total, value) => {
-                                return total.concat(value);
-                            }, [])
-                        )
-                    ,
-                    productCategories: [{
-                        systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1
-                    }]
-                })
-                .then(function (res) {
-                    if (res.data.ResultMessage === "SUCCESS") {
-                        toast.update(notification, { render: "Tạo sản phẩm thành công!", type: "success", autoClose: 5000, isLoading: false });
-                    }
+            let deleteArray = [];
+            let insertArray = [];
+            let differenceColors = input.colors.filter(
+                o1 => !colors.some(o2 => o1.name === o2.name)).concat(colors.filter(
+                    o1 => !input.colors.some(o2 => o1.name === o2.name)
+                )
+            );
+            let differenceSizes = input.sizes.filter(
+                o1 => !sizes.some(o2 => o1.name === o2.name)).concat(sizes.filter(
+                    o1 => !input.sizes.some(o2 => o1.name === o2.name)
+                )
+            );
+            let differenceWeights = input.weights.filter(
+                o1 => !weights.some(o2 => o1.name === o2.name)).concat(weights.filter(
+                    o1 => !input.weights.some(o2 => o1.name === o2.name)
+                )
+            );
+            differenceColors.forEach((color) => {
+                if (color.old) {
+                    item.RelatedProducts.forEach((item) => {
+                        if (item.Color === color.value) {
+                            if (!deleteArray.some(e => e.ProductId === item.ProductId)) {
+                                deleteArray.push(item.ProductId);
+                            }
+                        }
+                    })
+                }
+            });
+            differenceSizes.forEach((size) => {
+                if (size.old) {
+                    item.RelatedProducts.forEach((item) => {
+                        if (item.Size === size.value) {
+                            if (!deleteArray.some(e => e.ProductId === item.ProductId)) {
+                                deleteArray.push(item.ProductId);
+                            }
+                        }
+                    })
+                }
+            });
+            differenceWeights.forEach((weight) => {
+                if (weight.old) {
+                    item.RelatedProducts.forEach((item) => {
+                        if (item.Weight === weight.value) {
+                            if (!deleteArray.some(e => e.ProductId === item.ProductId)) {
+                                deleteArray.push(item.ProductId);
+                            }
+                        }
+                    })
+                }
+            });
+            const arrayColors = input.colors.length ? input.colors : [{ value: null }];
+            const arraySizes = input.sizes.length ? input.sizes : [{ value: null }];
+            const arrayWeights = input.weights.length ? input.weights : [{ value: 0 }];
+            differenceColors.forEach((color) => {
+                if (!color.old) {
+                    arraySizes.forEach((size) => {
+                        arrayWeights.forEach((weight) => {
+                            insertArray.push({
+                                productCode: input.code,
+                                productName: input.name,
+                                briefDescription: input.shortDescription,
+                                description: input.description,
+                                defaultPrice: input.price.replace(/\D/g, ""),
+                                size: size.value,
+                                color: color.value,
+                                weight: weight.value,
+                                image: [
+                                    // "string"
+                                ]
+                            })
+                        })
+                    })
+                }
+            });
+            differenceSizes.forEach((size) => {
+                if (!size.old) {
+                    arrayColors.forEach((color) => {
+                        arrayWeights.forEach((weight) => {
+                            insertArray.push({
+                                productCode: input.code,
+                                productName: input.name,
+                                briefDescription: input.shortDescription,
+                                description: input.description,
+                                defaultPrice: input.price.replace(/\D/g, ""),
+                                size: size.value,
+                                color: color.value,
+                                weight: weight.value,
+                                image: [
+                                    // "string"
+                                ]
+                            })
+                        })
+                    })
+                }
+            });
+            differenceWeights.forEach((weight) => {
+                if (!weight.old) {
+                    arraySizes.forEach((size) => {
+                        arrayColors.forEach((color) => {
+                            insertArray.push({
+                                productCode: input.code,
+                                productName: input.name,
+                                briefDescription: input.shortDescription,
+                                description: input.description,
+                                defaultPrice: input.price.replace(/\D/g, ""),
+                                size: size.value,
+                                color: color.value,
+                                weight: weight.value,
+                                image: [
+                                    // "string"
+                                ]
+                            })
+                        })
+                    })
+                }
+            });
+
+            let APIarray = [];
+            if (item.ProductCode !== input.code 
+                || item.ProductName !== input.name 
+                || item.Description !== input.description
+                || item.BriefDescription !== input.shortDescription
+                || item.DefaultPrice.toString().replace(/\D/g, "") !== input.price.replace(/\D/g, "")
+            ) {
+                APIarray.push(api.put("products", {
+                    products: [
+                        {
+                            productCode: input.code,
+                            productName: input.name,
+                            briefDescription: input.shortDescription,
+                            description: input.description,
+                            defaultPrice: input.price.replace(/\D/g, ""),
+                            image: [
+                                // "string"
+                            ],
+                            productId: id
+                        }
+                    ]
+                }));
+            }
+            if (deleteArray.length) {
+                APIarray.push(api.delete("products", {
+                    data: { productIds: [...new Set(deleteArray.map(item => item))] }
+                }));
+            }
+            if (insertArray.length) {
+                APIarray.push(api.post("products/" + item.ProductId + "/related", {
+                    products: insertArray
+                }));
+            }
+
+            if (APIarray.length) {
+                const notification = toast.loading("Đang xử lí yêu cầu...");
+                Promise.all(APIarray)
+                .then(function (results) {
+                    setChange(!change);
+                    toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
                 })
                 .catch(function (error) {
                     console.log(error);
                     toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
                 });
-            };
-            addData();
+            }
         }
     }
 
@@ -544,33 +548,45 @@ const EditProduct = () => {
                 <Title><TitleGrey>Danh sách sản phẩm </TitleGrey>/ {item.ProductName}</Title>
             </Row>
             
-            <form onSubmit={handleAddMenu} id="form">
+            <form onSubmit={handleEditItem} id="form">
                 <ContainerWrapper>
-                    <FormLabel>Tên sản phẩm</FormLabel>
+                    <Row spacebetween>
+                        <FormLabel>Tên sản phẩm</FormLabel>
+                        <HelperText ml0>{input.name.length}/250 kí tự</HelperText>
+                    </Row>
+                    
                     <StyledTextFieldMb
                         fullWidth placeholder="Ví dụ: Bánh mì 2 trứng" 
-                        inputProps={{style: {fontSize: 14}}}
-                        value={input.name ? input.name : ''} name='name'
+                        inputProps={{ maxLength: 250, style: {fontSize: 14} }} 
+                        value={loading ? "Đang tải..." : input.name} name='name'
                         onChange={handleChange}
                         error={error.name !== ''}
                         helperText={error.name}
                     />
 
-                    <FormLabel>Mô tả chi tiết</FormLabel>
+                    <Row spacebetween>
+                        <FormLabel>Mô tả chi tiết</FormLabel>
+                        <HelperText ml0>{input.description.length}/500 kí tự</HelperText>
+                    </Row>
+
                     <StyledTextFieldMb
                         fullWidth multiline rows={4}
                         placeholder="Khách hàng sẽ thấy mô tả này khi họ vào xem chi tiết sản phẩm." 
-                        inputProps={{style: {fontSize: 14}}}
-                        value={input.description} name='description'
+                        inputProps={{ maxLength: 250, style: {fontSize: 14} }}
+                        value={loading ? "Đang tải..." : input.description} name='description'
                         onChange={handleChange}
                     />
 
-                    <FormLabel>Mô tả ngắn gọn</FormLabel>
-                    <StyledTextFieldMb
+                    <Row spacebetween>
+                        <FormLabel>Mô tả ngắn gọn</FormLabel>
+                        <HelperText ml0>{input.shortDescription.length}/500 kí tự</HelperText>
+                    </Row>
+
+                    <TextField
                         fullWidth multiline rows={2}
                         placeholder="Khách hàng sẽ thấy mô tả này khi họ nhấn xem sản phẩm." 
-                        inputProps={{style: {fontSize: 14}}}
-                        value={input.shortDescription} name='shortDescription'
+                        inputProps={{ maxLength: 250, style: {fontSize: 14} }}
+                        value={loading ? "Đang tải..." : input.shortDescription} name='shortDescription'
                         onChange={handleChange}
                     />
                 </ContainerWrapper>
@@ -615,12 +631,12 @@ const EditProduct = () => {
                 <ContainerWrapper p0>
                     <FormLabel>Giá mặc định</FormLabel>
                     <StyledTextFieldMb
-                        fullWidth type="number"
+                        fullWidth
                         InputProps={{ inputMode: 'numeric', pattern: '[0-9]*', startAdornment: <InputAdornment position="start">vnđ</InputAdornment> }}
-                        value={input.price ? input.price : 0} name='price'
-                        onChange={handleChange}
-                        error={error.price !== ''}
-                        helperText={error.price}
+                        value={input.price} name='price'
+                        onChange={handleSetPrice}
+                        error={error.name !== ''}
+                        helperText={error.name}
                     />
 
                     <FormLabel>Hình ảnh</FormLabel>
@@ -649,22 +665,31 @@ const EditProduct = () => {
 
                 <ContainerWrapper>
                     <FormLabel>Mã sản phẩm</FormLabel>
-                    <FormControlLabel
-                        style={{ pointerEvents: "none" }}
-                        control={
-                            <Checkbox
-                                onClick={handleSetManual}
-                                style={{ pointerEvents: "auto" }}
-                            />
+                    <Row spacebetween>
+                        <FormControlLabel
+                            style={{ pointerEvents: "none" }}
+                            control={
+                                <Checkbox
+                                    checked={manual}
+                                    onClick={handleSetManual}
+                                    style={{ pointerEvents: "auto" }}
+                                />
+                            }
+                            label={<span style={{ fontSize: '14px' }}>Đặt thủ công</span>} 
+                        />
+
+                        {
+                            manual ?
+                            <HelperText ml0>{input.code.length}/200 kí tự</HelperText>
+                            : null
                         }
-                        label={<span style={{ fontSize: '14px' }}>Đặt thủ công</span>} 
-                    />
+                    </Row>
                     {
                         manual ?
                         <TextField
                             fullWidth size="small" placeholder="Ví dụ: Bánh mì 2 trứng" 
-                            inputProps={{style: {fontSize: 14}}}
-                            value={input.code ? input.code : ''} name='code'
+                            inputProps={{ maxLength: 200, style: {fontSize: 14} }}
+                            value={loading ? "Đang tải..." : input.code} name='code'
                             onChange={handleChange}
                             error={error.code !== ''}
                             helperText={error.code}
@@ -685,15 +710,17 @@ const EditProduct = () => {
                             <>
                                 <StyledWarningIcon />
                                 <WarningText>Bạn có tùy chọn chưa lưu!</WarningText>
+                                <Button disabled>Cập nhật</Button>
                             </>
                             : (error.name !== '' || error.category !== '' || error.price !== '' || error.code !== '') ?
                             <>
-                                <StyledWarningIcon />
-                                <WarningText>Bạn có thông tin chưa điền!</WarningText>
+                                <StyledWarningIcon error />
+                                <WarningText error>Bạn có thông tin chưa điền!</WarningText>
+                                <Button disabled>Cập nhật</Button>
                             </>
-                            : null
+                            :
+                            <Button>Cập nhật</Button>
                         }
-                        <Button>Tạo mới</Button>
                     </FloatRight>
                 </FooterWrapper>
             </form>

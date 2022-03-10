@@ -5,7 +5,7 @@ import { api } from "../../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, AddPhotoAlternate, Warning } from '@mui/icons-material';
 import { TextField, InputAdornment, FormControlLabel, Radio, RadioGroup, Checkbox } from '@mui/material';
-import ProductOption from '../../components/Product/ProductOption';
+import ProductOption from './ProductOption';
 import CategoryList from '../../components/Product/CategoryList';
 
 const PageWrapper = styled.div`
@@ -83,13 +83,13 @@ const FloatRight = styled.div`
 const StyledWarningIcon = styled(Warning)`
     && {
         font-size: 22px;
-        color: ${props => props.theme.orange};
+        color: ${props => props.error ? props.theme.red : props.theme.orange};
         opacity: 0.9;
     }
 `;
 
 const HelperText = styled.div`
-    margin-left: ${props => props.m0 ? "0px" : "30px"};
+    margin-left: ${props => props.ml0 ? "0px" : "30px"};
     align-items: center;
     text-decoration: none;
     font-size: ${props => props.error ? "13px" : "14px"};
@@ -101,7 +101,7 @@ const WarningText = styled.span`
     font-size: 14px;
     padding: 5px;
     font-weight: 600;
-    color: ${props => props.theme.orange};
+    color: ${props => props.error ? props.theme.red : props.theme.orange};
     opacity: 0.9;
     margin-right: 20px;
 `;
@@ -112,8 +112,8 @@ const Button = styled.button`
     border: none;
     padding: 10px 15px;
     cursor: pointer;
-    border: 1px solid ${props => props.white ? props.theme.greyBorder : props.theme.blue};
-    background: ${props => props.white ? "white" : props.theme.blue};
+    border: 1px solid ${props => props.disabled ? props.theme.disabled : props.white ? props.theme.greyBorder : props.theme.blue};
+    background-color: ${props => props.disabled ? props.theme.disabled : props.white ? "white" : props.theme.blue};
     color: ${props => props.white ? props.theme.grey : "white"};
     font-weight: 600;
 
@@ -175,7 +175,7 @@ const OptionLabel = styled.div`
 const AddProduct = () => {    
     let navigate = useNavigate();
 
-    const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: 0, images: [], colors: [], sizes: [],  weights: [], code: 'AP-001' });
+    const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: '', images: [], colors: [], sizes: [],  weights: [], code: 'AP-001' });
     const [error, setError] = useState({ name: '', category: '', price: '', colors: '', sizes: '', weights: '', code: '' });
 
     const [manual, setManual] = useState(false);
@@ -215,11 +215,23 @@ const AddProduct = () => {
         setFilteredLv1Category(result);
     }, [type, lv1Category]);
 
+    useEffect(() => {
+        console.log(input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1)
+    }, [input])
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setInput(input => ({ ...input, [name]: value }));
         setError(error => ({ ...error, [name]: '' }));
     };
+
+    const handleSetPrice = (e) => {
+        const { value } = e.target;
+        if (value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",").length + 1 <= 12) {
+            setInput(input => ({ ...input, price: value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }));
+        }
+        setError(error => ({ ...error, price: '' }));
+    }
 
     const handleSetType = (e) => {
         const { value } = e.target;
@@ -242,8 +254,12 @@ const AddProduct = () => {
         setInput(input => ({ ...input, [option]: data }));
     }
 
-    const editOption = (option) => {
-        setError(error => ({ ...error, [option]: 'Bạn có tùy chọn chưa lưu!' }));
+    const editOption = (option, display) => {
+        if (display) {
+            setError(error => ({ ...error, [option]: '' }));
+        } else {
+            setError(error => ({ ...error, [option]: 'Bạn có tùy chọn chưa lưu!' }));
+        }
         setInput(input => ({ ...input, [option]: [] }));
     }
 
@@ -251,7 +267,7 @@ const AddProduct = () => {
         setInput(input => ({ ...input, category: {lv1: id, lv2: '', lv3: ''} }));
         setLv2Category(lv1Category.filter((item) => {
             return item.SystemCategoryId === id;
-        })[0].InverseBelongToNavigation);
+        })[0].Children);
         setLv3Category([]);
         setError(error => ({ ...error, category: '' }));
     }
@@ -260,17 +276,14 @@ const AddProduct = () => {
         setInput(input => ({ ...input, category: {lv1: input.category.lv1, lv2: id, lv3: ''} }));
         setLv3Category(lv2Category.filter((item) => {
             return item.SystemCategoryId === id;
-        })[0].InverseBelongToNavigation);
-        console.log(lv2Category.filter((item) => {
-            return item.SystemCategoryId === id;
-        })[0].InverseBelongToNavigation);
+        })[0].Children);
     }
 
     const handleGetCategoryLv3 = (id) => {
         setInput(input => ({ ...input, category: {lv1: input.category.lv1, lv2: input.category.lv2, lv3: id} }));
     }
 
-    const handleAddProduct = (event) => {
+    const handleAddItem = (event) => {
         event.preventDefault();
 
         if (checkValid()) {
@@ -285,11 +298,11 @@ const AddProduct = () => {
                     productName: input.name,
                     briefDescription: input.shortDescription,
                     description: input.description,
-                    defaultPrice: input.price,
+                    defaultPrice: input.price.replace(/\D/g, ""),
                     image: [
                         // "string"
                     ],
-                    inverseBelongToNavigation: 
+                    relatedProducts: 
                         (
                             sizes.map(size => { 
                                 return colors.map(color => {
@@ -299,7 +312,7 @@ const AddProduct = () => {
                                             productName: input.name,
                                             briefDescription: input.shortDescription,
                                             description: input.description,
-                                            defaultPrice: input.price,
+                                            defaultPrice: input.price.replace(/\D/g, ""),
                                             size: size.value,
                                             color: color.value,
                                             weight: weight.value,
@@ -316,9 +329,9 @@ const AddProduct = () => {
                             }, [])
                         )
                     ,
-                    productCategories: [{
-                        systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1
-                    }]
+                    systemCategoryIds: [
+                        input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1
+                    ]
                 })
                 .then(function (res) {
                     if (res.data.ResultMessage === "SUCCESS") {
@@ -347,7 +360,7 @@ const AddProduct = () => {
             setError(error => ({ ...error, category: 'Vui lòng chọn danh mục sản phẩm' }));
             check = true;
         }
-        if (input.price === null || input.price === 0) {
+        if (input.price === null || input.price === '' || input.price === 0) {
             setError(error => ({ ...error, price: 'Vui lòng nhập giá' }));
             check = true;
         }
@@ -369,32 +382,44 @@ const AddProduct = () => {
                 <Title><TitleGrey>Danh sách sản phẩm </TitleGrey>/ Tạo mới sản phẩm</Title>
             </Row>
             
-            <form onSubmit={handleAddProduct} id="form">
+            <form onSubmit={handleAddItem} id="form">
                 <ContainerWrapper>
-                    <FormLabel>Tên sản phẩm</FormLabel>
+                    <Row spacebetween>
+                        <FormLabel>Tên sản phẩm</FormLabel>
+                        <HelperText ml0>{input.name.length}/250 kí tự</HelperText>
+                    </Row>
+                    
                     <StyledTextFieldMb
                         fullWidth placeholder="Ví dụ: Bánh mì 2 trứng" 
-                        inputProps={{style: {fontSize: 14}}}
+                        inputProps={{ maxLength: 250, style: {fontSize: 14} }} 
                         value={input.name ? input.name : ''} name='name'
                         onChange={handleChange}
                         error={error.name !== ''}
                         helperText={error.name}
                     />
 
-                    <FormLabel>Mô tả chi tiết</FormLabel>
+                    <Row spacebetween>
+                        <FormLabel>Mô tả chi tiết</FormLabel>
+                        <HelperText ml0>{input.description.length}/500 kí tự</HelperText>
+                    </Row>
+
                     <StyledTextFieldMb
                         fullWidth multiline rows={4}
                         placeholder="Khách hàng sẽ thấy mô tả này khi họ vào xem chi tiết sản phẩm." 
-                        inputProps={{style: {fontSize: 14}}}
+                        inputProps={{ maxLength: 250, style: {fontSize: 14} }}
                         value={input.description} name='description'
                         onChange={handleChange}
                     />
 
-                    <FormLabel>Mô tả ngắn gọn</FormLabel>
+                    <Row spacebetween>
+                        <FormLabel>Mô tả ngắn gọn</FormLabel>
+                        <HelperText ml0>{input.shortDescription.length}/500 kí tự</HelperText>
+                    </Row>
+
                     <TextField
                         fullWidth multiline rows={2}
                         placeholder="Khách hàng sẽ thấy mô tả này khi họ nhấn xem sản phẩm." 
-                        inputProps={{style: {fontSize: 14}}}
+                        inputProps={{ maxLength: 250, style: {fontSize: 14} }}
                         value={input.shortDescription} name='shortDescription'
                         onChange={handleChange}
                     />
@@ -432,21 +457,20 @@ const AddProduct = () => {
                         <CategoryList currentItems={lv2Category} selected={input.category.lv2} handleGetCategory={handleGetCategoryLv2} />
                         <CategoryList currentItems={lv3Category} selected={input.category.lv3} handleGetCategory={handleGetCategoryLv3} />
                     </Row>
-                    <HelperText error>
-                        {error.category}
-                    </HelperText>
+                    <HelperText error> {error.category} </HelperText>
                 </ContainerWrapper>
 
 
                 <ContainerWrapper p0>
                     <FormLabel>Giá mặc định</FormLabel>
+
                     <StyledTextFieldMb
-                        fullWidth type="number"
+                        fullWidth
                         InputProps={{ inputMode: 'numeric', pattern: '[0-9]*', startAdornment: <InputAdornment position="start">vnđ</InputAdornment> }}
-                        value={input.price ? input.price : 0} name='price'
-                        onChange={handleChange}
-                        error={error.price !== ''}
-                        helperText={error.price}
+                        value={input.price} name='price'
+                        onChange={handleSetPrice}
+                        error={error.name !== ''}
+                        helperText={error.name}
                     />
 
                     <FormLabel>Hình ảnh</FormLabel>
@@ -475,28 +499,37 @@ const AddProduct = () => {
 
                 <ContainerWrapper>
                     <FormLabel>Mã sản phẩm</FormLabel>
-                    <FormControlLabel
-                        style={{ pointerEvents: "none" }}
-                        control={
-                            <Checkbox
-                                onClick={handleSetManual}
-                                style={{ pointerEvents: "auto" }}
-                            />
+                    <Row spacebetween>
+                        <FormControlLabel
+                            style={{ pointerEvents: "none" }}
+                            control={
+                                <Checkbox
+                                    onClick={handleSetManual}
+                                    style={{ pointerEvents: "auto" }}
+                                />
+                            }
+                            label={<span style={{ fontSize: '14px' }}>Đặt thủ công</span>} 
+                        />
+
+                        {
+                            manual ?
+                            <HelperText ml0>{input.code.length}/200 kí tự</HelperText>
+                            : null
                         }
-                        label={<span style={{ fontSize: '14px' }}>Đặt thủ công</span>} 
-                    />
+                    </Row>
+                    
                     {
                         manual ?
                         <TextField
                             fullWidth size="small" placeholder="Ví dụ: Bánh mì 2 trứng" 
-                            inputProps={{style: {fontSize: 14}}}
+                            inputProps={{ maxLength: 200, style: {fontSize: 14} }}
                             value={input.code ? input.code : ''} name='code'
                             onChange={handleChange}
                             error={error.code !== ''}
                             helperText={error.code}
                         />
                         :
-                        <HelperText m0>
+                        <HelperText ml0>
                             Dựa trên tiền tố hiện tại, mã của sản phẩm này sẽ là AP-001. 
                             Cửa hàng có thể điều chỉnh tiền tố của mình trong cài đặt.
                         </HelperText>
@@ -511,15 +544,17 @@ const AddProduct = () => {
                             <>
                                 <StyledWarningIcon />
                                 <WarningText>Bạn có tùy chọn chưa lưu!</WarningText>
+                                <Button disabled>Tạo mới</Button>
                             </>
                             : (error.name !== '' || error.category !== '' || error.price !== '' || error.code !== '') ?
                             <>
-                                <StyledWarningIcon />
-                                <WarningText>Bạn có thông tin chưa điền!</WarningText>
+                                <StyledWarningIcon error />
+                                <WarningText error>Bạn có thông tin chưa điền!</WarningText>
+                                <Button disabled>Tạo mới</Button>
                             </>
-                            : null
+                            :
+                            <Button>Tạo mới</Button>
                         }
-                        <Button>Tạo mới</Button>
                     </FloatRight>
                 </FooterWrapper>
             </form>

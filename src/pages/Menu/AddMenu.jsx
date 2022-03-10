@@ -17,6 +17,8 @@ const PageWrapper = styled.div`
 const Row = styled.div`
     display: flex;
     align-items: center;
+    justify-content: ${props => props.spacebetween ? "space-between" : null};
+    margin-top: ${props => props.mt ? "20px" : null};
 `;
 
 const StyledBackIcon = styled(KeyboardBackspace)`
@@ -77,7 +79,7 @@ const FormLabel = styled.div`
 `;
 
 const HelperText = styled.div`
-    margin-left: 30px;
+    margin-left: ${props => props.ml0 ? "0px" : "30px"};
     align-items: center;
     text-decoration: none;
     font-size: ${props => props.error ? "13px" : "14px"};
@@ -237,20 +239,28 @@ const AddMenu = () => {
             
             <form onSubmit={handleAddMenu} id="form">
                 <ContainerWrapper>
-                    <FormLabel>Tiêu đề</FormLabel>
+                    <Row spacebetween>
+                        <FormLabel>Tiêu đề</FormLabel>
+                        <HelperText ml0>{input.name.length}/250 kí tự</HelperText>
+                    </Row>
+                    
                     <StyledTextFieldMb
                         fullWidth placeholder="Ví dụ: Thịt cá các loại, đồ gia dụng, etc" 
-                        inputProps={{style: {fontSize: 14}}}
+                        inputProps={{ maxLength: 250, style: {fontSize: 14} }}
                         value={input.name ? input.name : ''} name='name'
                         onChange={handleChange}
                         error={error.name !== ''}
                         helperText={error.name}
                     />
 
-                    <FormLabel>Mô tả</FormLabel>
+                    <Row spacebetween>
+                        <FormLabel>Mô tả</FormLabel>
+                        <HelperText ml0>{input.description.length}/500 kí tự</HelperText>
+                    </Row>
+
                     <TextField
-                        fullWidth multiline rows={4}
-                        inputProps={{style: {fontSize: 14}}}
+                        fullWidth multiline rows={4} placeholder="Mô tả giúp khách hàng hình dung và hiểu rõ hơn sản phẩm thuộc bảng giá."
+                        inputProps={{ maxLength: 500, style: {fontSize: 14}}}
                         value={input.description ? input.description : ''} name='description'
                         onChange={handleChange}
                     />

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Close } from '@mui/icons-material';
+import { FormControlLabel, Checkbox } from '@mui/material';
 
 const ContainerWrapper = styled.div`
     font-size: 14px;
-    padding: 10px;
+    padding: 15px 0px 15px 15px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -25,11 +25,6 @@ const ContainerWrapper = styled.div`
     &:active {
     transform: translateY(1px);
     }
-`;
-
-const Index = styled.span`
-    width: 15px;
-    margin-right: 10px;
 `;
 
 const TextWrapper = styled.div`
@@ -77,61 +72,7 @@ const Image = styled.img`
     border-radius: 50%;
 `;
 
-const ButtonWrapper = styled.div`
-    display: flex;
-`;
-
-const Button = styled.button`
-    padding: 3px;
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    color: grey;
-
-    &:focus {
-    outline: none;
-    }
-`;
-
-const StyledCloseIcon = styled(Close)`
-    && {
-        font-size: 22px;
-        color: grey;
-        opacity: 0.5;
-    }
-
-    &:hover {
-    opacity: 1;
-    }
-`;
-
-const TextFIeldWrapper = styled.div`
-    flex: 3;
-    display: flex;
-    align-items: flex-end;
-`;
-
-const Currency = styled.span`
-    font-size: 14px;
-    padding: 5px;
-    color: #999;
-    border: 1px solid #ccc;
-    border-radius: 0 3px 3px 0;
-    background: rgba(0,0,0,0.01);
-`;
-
-const TextField = styled.input`
-    width: 100%;
-    padding: 5px;
-    outline: none;
-    border: 1px solid ${props => props.error ? props.theme.red : props.theme.greyBorder};
-    border-right: 0;
-    border-radius: 3px 0 0 3px;
-    font-size: 14px;
-    background-color: ${props => props.theme.white};
-`;
-
-const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice }) =>  {
+const ProductInAddModalItem = ({ item, handleToggle }) =>  {
     let activeCheck = '';
     let activeLabel = '';
     switch (item.Product.Status) {
@@ -157,9 +98,24 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice }) =>
         return null;
     }
 
+    const handleToggleChecked = () => {
+        handleToggle(item.Product.ProductId, item.checked);
+    }
+
     return (
         <ContainerWrapper>
-            <Index>{index}.</Index>
+            <FormControlLabel
+                style={{ pointerEvents: "none" }}
+                control={
+                    <Checkbox
+                        checked={item.checked}
+                        onClick={handleToggleChecked}
+                        style={{ pointerEvents: "auto" }}
+                    />
+                }
+                label={<span></span>} 
+            />
+
             <Image src={"../images/product1.png"} />
 
             <TextWrapper>
@@ -168,26 +124,11 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice }) =>
                 </Name>
             </TextWrapper>
 
-            <TextFIeldWrapper>
-                <TextField
-                    type="text" 
-                    value={item.Price} name='price'
-                    onChange={(event) => handleSetPrice(item.Product.ProductId, event.target.value)}
-                />
-                <Currency>vnd</Currency>
-            </TextFIeldWrapper>
-
             <StatusWrapper>
                 <Status active={activeCheck}>{activeLabel}</Status>
             </StatusWrapper>
-
-            <ButtonWrapper>
-                <Button type="button" onClick={() => handleDeleteItem(item.Product.ProductId)}>
-                    <StyledCloseIcon />
-                </Button>
-            </ButtonWrapper>
         </ContainerWrapper>
     )
 }
 
-export default ProductInMenuItem;
+export default ProductInAddModalItem;

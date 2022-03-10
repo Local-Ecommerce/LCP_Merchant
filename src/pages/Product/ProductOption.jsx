@@ -125,6 +125,14 @@ const StyledAddIcon = styled(AddCircleOutline)`
     }
 `;
 
+const WarningText = styled.div`
+    margin-left: 10px;
+    align-items: center;
+    text-decoration: none;
+    font-size: 13px;
+    color: ${props => props.theme.red};
+`;
+
 const ProductOption = ({ passedData, savedData, type, saveOption, editOption }) =>  {
     const [display, setDisplay] = useState(false);
     const [values, setValues] = useState([]);
@@ -132,19 +140,15 @@ const ProductOption = ({ passedData, savedData, type, saveOption, editOption }) 
 
     useEffect(() => {
         if (passedData && passedData.length) {
-            setValues(passedData)
-            setCount(passedData.length + 1)
+            setValues(passedData);
+            setCount(passedData.length);
             setDisplay(true);
         }
     }, [passedData]);
 
-    useEffect(() => {
-        console.log(values)
-    },[values])
-
     const toggleDisplay = () => {
         setDisplay(!display);
-        editOption(type);
+        editOption(type, display);
     }
 
     const changeValue = (e) => {
@@ -158,9 +162,11 @@ const ProductOption = ({ passedData, savedData, type, saveOption, editOption }) 
     }
 
     const addValue = (newValue) => {
-        setCount(count + 1);
-        editOption(type);
-        setValues(values => [...values, newValue]);
+        if (values.length < 10) {
+            setCount(count + 1);
+            editOption(type);
+            setValues(values => [...values, newValue]);
+        }
     }
 
     const removeValue = (name) => {
@@ -320,6 +326,11 @@ const ProductOption = ({ passedData, savedData, type, saveOption, editOption }) 
                             </Button>
                             : null
                         }
+                        {
+                            values && values.length >= 10 ?
+                            <WarningText>Tối đa 10 tùy chọn mỗi mục.</WarningText>
+                            : null
+                        }
                     </Row>
                 </>
                 }
@@ -327,7 +338,7 @@ const ProductOption = ({ passedData, savedData, type, saveOption, editOption }) 
 
             :
 
-            <AddOptionButton onClick={() => toggleDisplay(!display)}>
+            <AddOptionButton onClick={toggleDisplay}>
                 <StyledAddIcon/> 
                 Thêm tùy chọn {typeLabel.toLowerCase()}
             </AddOptionButton>

@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight } from '@mui/icons-material';
+import { useNavigate } from "react-router-dom";
+import { api } from "../../RequestMethod";
+import { toast } from 'react-toastify';
 
 const PageWrapper = styled.div`
     width: 720px;
     margin: 40px auto;
+`;
+
+const Title = styled.h1`
+    font-size: 16px;
+    color: #383838;
+    margin: 15px 15px ${props => props.mb ? "-5px" : "15px"} 15px;
 `;
 
 const Row = styled.div`
@@ -23,7 +30,7 @@ const ContainerWrapper = styled.div`
 `;
 
 const HeaderWrapper = styled.div`
-    padding: 20px;
+    padding-left: 20px;
     border-bottom: 1px solid #D8D8D8;
 `;
 
@@ -35,10 +42,23 @@ const StyledHyperlink = styled.a`
     font-size: 14px;
     color: #007bff;
     cursor: pointer;
+    padding: 10px;
+    margin: 10px 20px 10px 10px;
+    border-radius: 50px;
+    font-weight: 600;
+
+    &:active {
+        transform: translateY(1px);
+    }
+
+    &:hover {
+        opacity: 0.8;
+        background-color: ${props => props.theme.hover};
+    }
 `;
 
-const ContentWrapper = styled.div`
-    padding: 20px;
+const TextFieldWrapper = styled.div`
+    padding: ${props => props.mb ? "20px 20px 0px 20px" : "20px"};
 `;
 
 const FooterWrapper = styled.div`
@@ -56,7 +76,7 @@ const Button = styled.button`
     border: none;
     padding: 10px 15px;
     cursor: pointer;
-    background-color: #17a2b8;
+    background-color: ${props => props.disabled ? props.theme.disabled : props.theme.blue};
     color: white;
     font-weight: 600;
 
@@ -85,51 +105,148 @@ const TextField = styled.input`
     border: 1px solid ${props => props.error ? props.theme.red : props.theme.greyBorder};
     border-radius: 3px;
     font-size: 14px;
+
+    &:disabled {
+        color: ${props => props.theme.black};
+    }
 `;
 
 const HelperText = styled.span`
-    color: ${props => props.theme.grey};
     font-size: 13px;
     padding: 5px;
-    color: ${props => props.theme.red};
+    color: ${props => props.error ? props.theme.red : props.theme.grey};
 `;
 
 const Detail = () => {
     let navigate = useNavigate();
+    const [editable, setEditable] = useState(true);
+    const [loading, setLoading] = useState(false);
 
-    const [input, setInput] = useState({ name: '' });
-    const [error, setError] = useState({ nameError: '' });
+    const [item, setItem] = useState('');
+    const [input, setInput] = useState({ name: '', prefix: '' });
+    const [error, setError] = useState({ name: '', prefix: '' });
+
+    useEffect(() => {   //get APIdata store
+        setLoading(true);
+        const fetchData = () => {
+            api.get("stores")
+            .then(function (res) {
+                if (res.data.ResultMessage === "SUCCESS") {
+                    setItem(res.data.Data.List[0]);
+                    setInput({
+                        name: res.data.Data.List[0].StoreName,
+                        prefix: 'AP-001'
+                    });
+                    setLoading(false);
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+                setLoading(false);
+            });
+        }
+        fetchData();
+    }, []);
 
     function handleChange(e) {
         const { name, value } = e.target;
         setInput(input => ({ ...input, [name]: value }));
+        setError(error => ({ ...error, [name]: '' }));
+    }
+
+    const handleToggleEditable = () => {
+        if (!editable) { setInput({ name: item.StoreName, prefix: 'AP-001' }) };
+        setEditable(!editable);
+    }
+
+    const handleEditItem = (event) => {
+        event.preventDefault();
+
+        if (checkValid()) {
+            const notification = toast.loading("Đang xử lí yêu cầu...");
+
+            const editItem = async () => {
+                api.put("stores?id=" + item.MerchantStoreId, {
+                    storeName: input.name
+                })
+                .then(function (res) {
+                    if (res.data.ResultMessage === "SUCCESS") {
+                        navigate("/");
+                        toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                    toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
+                });
+            };
+            editItem();
+        }
+    }
+
+    const checkValid = () => {
+        let check = false;
+        setError(error => ({ ...error, name: '' }));
+
+        if (input.name === null || input.name === '') {
+            setError(error => ({ ...error, name: 'Vui lòng nhập tên sản phẩm' }));
+            check = true;
+        }
+
+        if (check) {
+            return false;
+        }
+
+        return true;
     }
 
     return (
-        <PageWrapper>            
-            <form id="form">
+        <PageWrapper>
+            <Title>Bảng giá</Title>
+
+            <form onSubmit={handleEditItem} id="form">
                 <ContainerWrapper>
                     <HeaderWrapper>
                         <Row>
                             <Header>Thông tin cơ bản</Header>
-                            <StyledHyperlink>Sửa</StyledHyperlink>
+                            <StyledHyperlink onClick={handleToggleEditable}>{editable ? "Sửa" : "Hủy"}</StyledHyperlink>
                         </Row>
                     </HeaderWrapper>
 
-                    <ContentWrapper>
-                        <FieldLabel>Tên cửa hàng</FieldLabel>
+                    <TextFieldWrapper mb>
+                        <Row spacebetween>
+                            <FieldLabel>Tên cửa hàng</FieldLabel>
+                            <HelperText ml0>{input.name.length}/250 kí tự</HelperText>
+                        </Row>
+
                         <TextField
-                            type="text" value={input.name ? input.name : ''} name='name'
+                            disabled={editable} maxLength={250}
+                            type="text" value={loading ? "Đang tải..." : input.name} name='name'
                             onChange={handleChange}
-                            error={error.nameError !== ''}
+                            error={error.name !== ''}
                          />
-                         <HelperText>{error.nameError}</HelperText>
-                    </ContentWrapper>
+                         <HelperText error>{error.name}</HelperText>
+                    </TextFieldWrapper>
+
+                    <TextFieldWrapper>
+                        <Row spacebetween>
+                            <FieldLabel>Tiền tố sản phẩm</FieldLabel>
+                            <HelperText ml0>{input.prefix.length}/100 kí tự</HelperText>
+                        </Row>
+
+                        <TextField
+                            disabled={editable} maxLength={100}
+                            type="text" value={loading ? "Đang tải..." : input.prefix} name='prefix'
+                            onChange={handleChange}
+                            error={error.prefix !== ''}
+                         />
+                         <HelperText error>{error.prefix}</HelperText>
+                    </TextFieldWrapper>
                 </ContainerWrapper>
 
                 <FooterWrapper>
                     <FloatRight>
-                        <Button>Lưu</Button>
+                        <Button disabled={editable}>Lưu</Button>
                     </FloatRight>
                 </FooterWrapper>
             </form>

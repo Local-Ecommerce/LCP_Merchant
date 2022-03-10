@@ -1,3 +1,5 @@
+
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Link, useParams } from "react-router-dom";
@@ -9,7 +11,6 @@ import { TimePicker, LocalizationProvider } from '@mui/lab';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import { DateTime } from 'luxon';
 
-import Products from '../../mockdata/Products';
 import AddItemModal from './AddItemModal';
 import ConfirmModal from './ConfirmModal';
 import ProductInMenuList from '../../components/Menu/ProductInMenuList';
@@ -54,16 +55,8 @@ const MenuWrapper = styled.div`
 const Row = styled.div`
     display: flex;
     align-items: center;
-`;
-
-const Center = styled.div`
-    position: absolute;
-    margin-left: auto;
-    margin-right: auto;
-    left: 0;
-    right: 0;
-    text-align: center;
-    top: 45%;
+    justify-content: ${props => props.spacebetween ? "space-between" : null};
+    margin-top: ${props => props.mt ? "20px" : null};
 `;
 
 const SpaceBetween = styled.div`
@@ -220,10 +213,6 @@ const FormLabel = styled.div`
     margin: 30px 0px 10px 0px;
 `;
 
-const RadioLabel = styled.span`
-    font-size: 14px;
-`;
-
 const FooterWrapper = styled.div`
     border-top: 1px solid #d6d6d6;
     padding-top: 20px;
@@ -291,30 +280,40 @@ const NoProductButton = styled.button`
     }
 `;
 
+const HelperText = styled.div`
+    margin-left: ${props => props.ml0 ? "0px" : "30px"};
+    align-items: center;
+    text-decoration: none;
+    font-size: ${props => props.error ? "13px" : "14px"};
+    margin-top: ${props => props.mt ? "20px" : props.error ? "10px" : "0px"};
+    color: ${props => props.error ? props.theme.red : "#727272"};
+`;
+
 const EditMenu = () => {
     const { id } = useParams();
     const [confirmModal, setConfirmModal] = useState(false);
     const toggleConfirmModal = () => { setConfirmModal(!confirmModal); }
     const [addItemModal, setAddItemModal] = useState(false);
     const toggleAddItemModal = () => { setAddItemModal(!addItemModal); }
-    const [stockItems, setStockItems] = useState([]);
-    const [menuItems, setMenuItems] = useState([]);
 
     const [menu, setMenu] = useState([]);
     const [products, setProducts] = useState([]);
+    const [newProducts, setNewProducts] = useState([]);
+    const [stock, setStock] = useState([]);
 
     const [input, setInput] = useState({ id: '', name: '', description: '', startTime: '', endTime: '' });
     const [repeatDay, setRepeatDay] = useState({ t2:true, t3:true, t4:true, t5:true, t6:true, t7:true, cn:true });
     const [error, setError] = useState({ 'name': '', 'time': '' });
 
-    const [loading, setLoading] = useState(false);
+    const [loadingMenu, setLoadingMenu] = useState(false);
+    const [loadingProduct, setLoadingProduct] = useState(false);
     const [search, setSearch] = useState('');
     const [sort, setSort] = useState('+productname');
     const [change, setChange] = useState(false);
 
-    useEffect(() => {
-        setLoading(true);
-        let url = "menus?id=" + id;
+    useEffect(() => {   //get menu
+        setLoadingMenu(true);
+        let url = "menus?id=" + id + "&include=product";
         const fetchData = () => {
             api.get(url)
             .then(function (res) {
@@ -337,54 +336,94 @@ const EditMenu = () => {
                         t7: res.data.Data.List[0].RepeatDate.includes('7') ? true : false,
                         cn: res.data.Data.List[0].RepeatDate.includes('8') ? true : false
                     });
-                    setLoading(false);
+                    setLoadingMenu(false);
                 }
             })
             .catch(function (error) {
                 console.log(error);
-                setLoading(false);
+                setLoadingMenu(false);
+            });
+        }
+        fetchData();
+    }, [change]);
+
+    useEffect(() => {   // get products of merchant
+        setLoadingProduct(true);
+        let url = "products?"
+                + "sort=" + sort
+                + "&status=1001&status=1004"
+                + (search !== '' ? ("&search=" + search) : '') 
+        const fetchData = () => {
+            api.get(url)
+            .then(function (res) {
+                setStock(res.data.Data.List);
+                setLoadingProduct(false);
+            })
+            .catch(function (error) {
+                console.log(error);
+                setLoadingProduct(false);
             });
         }
         fetchData();
     }, [change]);
 
     useEffect(() => {
-        setLoading(true);
-        let url = "products?"
-                + "sort=" + sort 
-                + (search !== '' ? ("&search=" + search) : '') 
-        const fetchData = () => {
-            api.get(url)
-            .then(function (res) {
-                setStockItems(res.data.Data.List);
-                setLoading(false);
-            })
-            .catch(function (error) {
-                console.log(error);
-                setLoading(false);
-            });
+        if (!loadingMenu && !loadingProduct && stock.length) {
+            setStock(stock.map((item) => (
+                    { 
+                        Product: item, 
+                        Price: item.DefaultPrice.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
+                        ProductInMenuId: null, 
+                        checked: products.some((item2) => item2.Product.ProductId.includes( item.ProductId ))
+                    }
+                ))
+            );
+            setNewProducts(products.map((item) => ({ ...item, Price: item.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") })));
         }
-        fetchData();
-    }, [change]);
+    }, [loadingMenu, loadingProduct]);
     
     function handleChange(e) {
         const { name, value } = e.target;
         setInput(input => ({ ...input, [name]: value }));
+        setError(error => ({ ...error, [name]: '' }));
     }
 
     function handleToggleDate(e) {
         const { name, checked } = e.target;
         setRepeatDay(date => ({ ...date, [name]: !checked }));
     }
-    
+
     const handleEditItem = (event) => {
         event.preventDefault();
 
         if (checkValid()) {
-            const notification = toast.loading("Đang xử lí yêu cầu...");
-            const url = "menus?id=" + id;
-            const addData = async () => {
-                api.put(url, {
+            let deleteArray = [];
+            let insertArray = [];
+            let differenceArray = products.filter(
+                o1 => !newProducts.some(o2 => o1.Product.ProductId === o2.Product.ProductId)).concat(newProducts.filter(
+                    o1 => !products.some(o2 => o1.Product.ProductId === o2.Product.ProductId)
+                )
+            );
+            differenceArray.forEach((item) => {
+                if (item.ProductInMenuId !== null) {
+                    deleteArray.push(item.ProductInMenuId);
+                } else {
+                    insertArray.push({
+                        productId: item.Product.ProductId,
+                        price: item.Price.replace(/\D/g, "")
+                    });
+                }
+            });
+
+            let APIarray = [];
+            if (menu.MenuName !== input.name 
+                || menu.MenuDescription !== input.description
+                || menu.RepeatDate !== (repeatDay.t2 ? '2' : '') + (repeatDay.t3 ? '3' : '') + (repeatDay.t4 ? '4' : '') 
+                + (repeatDay.t5 ? '5' : '') + (repeatDay.t6 ? '6' : '') + (repeatDay.t7 ? '7' : '') + (repeatDay.cn ? '8' : '')
+                || menu.TimeStart !== DateTime.fromISO(input.startTime).toFormat('TT')
+                || menu.TimeEnd !== DateTime.fromISO(input.endTime).toFormat('TT')
+            ) {
+                APIarray.push(api.put("menus?id=" + id, {
                     menuName: input.name,
                     menuDescription: input.description,
                     timeStart: DateTime.fromISO(input.startTime).toFormat('TT'),
@@ -396,19 +435,29 @@ const EditMenu = () => {
                                 + (repeatDay.t6 ? '6' : '') 
                                 + (repeatDay.t7 ? '7' : '') 
                                 + (repeatDay.cn ? '8' : '')
-                })
-                .then(function (res) {
-                    if (res.data.ResultMessage === "SUCCESS") {
-                        toast.update(notification, { render: "Cập nhật bảng giá thành công!", type: "success", autoClose: 5000, isLoading: false });
-                        setChange(!change);
-                    }
+                }));
+            }
+            if (deleteArray.length) {
+                APIarray.push(api.delete("menu-products", {
+                    data: deleteArray
+                }));
+            }
+            if (insertArray.length) {
+                APIarray.push(api.post("menu-products?menuid=" + id, insertArray));
+            }
+
+            if (APIarray.length) {
+                const notification = toast.loading("Đang xử lí yêu cầu...");
+                Promise.all(APIarray)
+                .then(function (results) {
+                    setChange(!change);
+                    toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
                 })
                 .catch(function (error) {
                     console.log(error);
                     toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
                 });
-            };
-            addData();
+            }
             toggleConfirmModal();
         }
     }
@@ -438,14 +487,32 @@ const EditMenu = () => {
         }
     }
 
-    const handleGetNewProducts = (products) => {
-        setProducts(products);
+    const handleSaveItem = (productList) => {
+        setNewProducts(productList);
     }
 
-    const handleDeleteItem = (deleteItem) => {
-        setMenuItems(menuItems.filter(item => item.ProductId !== deleteItem.ProductId));
-        setProducts(products.filter(item => item.ProductId !== deleteItem.ProductId));
-        stockItems.push(deleteItem);
+    const handleToggleChecked = (id, checked) => {
+        let index = stock.findIndex((item) => item.Product.ProductId === id);
+        let newArray = [...stock];
+        newArray[index].checked = !checked;
+        setStock(newArray);
+    }
+
+    const handleSetPrice = (id, value) => {
+        if (value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",").length + 1 <= 12) {
+            let index = newProducts.findIndex((item) => item.Product.ProductId === id);
+            let newArray = [...newProducts];
+            newArray[index].Price = value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            setNewProducts(newArray);
+        }
+    }
+
+    const handleDeleteItem = (id) => {
+        let index = stock.findIndex((item) => item.Product.ProductId === id);
+        let newArray = [...stock];
+        newArray[index].checked = false;
+        setStock(newArray);
+        setNewProducts(newProducts.filter(item => item.Product.ProductId !== id));
     }
 
     return (
@@ -460,7 +527,7 @@ const EditMenu = () => {
                     <SpaceBetween>
                         <FormLabel>Sản phẩm</FormLabel>
                         {
-                            (products && products.length) ?
+                            newProducts && newProducts.length ?
                             <AddButton type="button" onClick={toggleAddItemModal}> 
                                 <StyledAddIcon />
                                 Thêm sản phẩm 
@@ -488,10 +555,11 @@ const EditMenu = () => {
                     
                     <ProductListWrapper>
                         {
-                            products && products.length ?
+                            newProducts && newProducts.length ?
                             <ProductInMenuList 
-                                currentItems={products} 
+                                currentItems={newProducts} 
                                 handleDeleteItem={handleDeleteItem}
+                                handleSetPrice={handleSetPrice}
                             />
                             : 
                             <NoProductWrapper>
@@ -503,21 +571,29 @@ const EditMenu = () => {
                 </ProductWrapper>
                 
                 <MenuWrapper>
-                    <FormLabel>Tiêu đề</FormLabel>
+                    <Row spacebetween>
+                        <FormLabel>Tiêu đề</FormLabel>
+                        <HelperText ml0 mt>{input.name.length}/250 kí tự</HelperText>
+                    </Row>
+
                     <TextField
                         fullWidth size="small" placeholder="Ví dụ: Thịt cá các loại, đồ gia dụng, etc" 
-                        inputProps={{style: {fontSize: 14}}}
-                        value={loading ? 'Loading ...' : input.name} name='name'
+                        inputProps={{ maxLength: 250, style: {fontSize: 14} }}
+                        value={loadingMenu ? 'Đang tải...' : input.name} name='name'
                         onChange={handleChange}
                         error={error.name !== ''}
                         helperText={error.name}
                     />
 
-                    <FormLabel>Mô tả</FormLabel>
+                    <Row spacebetween>
+                        <FormLabel>Mô tả</FormLabel>
+                        <HelperText ml0 mt>{input.description.length}/500 kí tự</HelperText>
+                    </Row>
+
                     <TextField
-                        fullWidth size="small" multiline rows={3}
-                        inputProps={{style: {fontSize: 14}}}
-                        value={loading ? 'Loading ...' : input.description} name='description'
+                        fullWidth size="small" multiline rows={3} placeholder="Mô tả giúp khách hàng hình dung và hiểu rõ hơn sản phẩm thuộc bảng giá."
+                        inputProps={{ maxLength: 500, style: {fontSize: 14} }}
+                        value={loadingMenu ? 'Đang tải...' : input.description} name='description'
                         onChange={handleChange}
                     />
 
@@ -560,11 +636,9 @@ const EditMenu = () => {
             <AddItemModal 
                 display={addItemModal} 
                 toggle={toggleAddItemModal}
-                stockItems={stockItems}
-                menuItems={menuItems}
-                setStockItems={setStockItems}
-                setMenuItems={setMenuItems}
-                getNewProducts={handleGetNewProducts}
+                stock={stock}
+                saveItem={handleSaveItem}
+                handleToggleChecked={handleToggleChecked}
             />
 
             <ConfirmModal

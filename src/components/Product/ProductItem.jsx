@@ -115,7 +115,7 @@ const ProductItem = ({ item, handleGetDeleteItem }) =>  {
         <TableRow onClick={() => navigate("/product/" + item.ProductId)}>
             <TableData center> <Image src={item.Image} /> </TableData>
             <TableData>{item.ProductName}</TableData>
-            <TableData center>{item.DefaultPrice.toLocaleString().replace(',', '.')} đ</TableData>
+            <TableData center>{item.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ</TableData>
             <TableData center> <Status active={activeCheck}>{activeLabel}</Status> </TableData>
 
             <TableData center>
