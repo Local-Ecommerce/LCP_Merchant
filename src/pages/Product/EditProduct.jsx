@@ -623,9 +623,7 @@ const EditProduct = () => {
                         <CategoryList currentItems={lv2Category} selected={input.category.lv2} handleGetCategory={handleGetCategoryLv2} />
                         <CategoryList currentItems={lv3Category} selected={input.category.lv3} handleGetCategory={handleGetCategoryLv3} />
                     </Row>
-                    <HelperText error>
-                        {error.category}
-                    </HelperText>
+                    <HelperText error> {error.category} </HelperText>
                 </ContainerWrapper>
 
                 <ContainerWrapper p0>

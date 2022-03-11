@@ -6,7 +6,7 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, ArrowRight, Search, AddBox } from '@mui/icons-material';
-import { TextField } from '@mui/material';
+import { TextField, CircularProgress } from '@mui/material';
 import { TimePicker, LocalizationProvider } from '@mui/lab';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import { DateTime } from 'luxon';
@@ -289,6 +289,22 @@ const HelperText = styled.div`
     color: ${props => props.error ? props.theme.red : "#727272"};
 `;
 
+const StyledCircularProgress = styled(CircularProgress)`
+    && {
+        margin: 30px;
+    }
+`;
+
+const DangerText = styled.div`
+    color: #762a36;
+    padding: 10px 20px;
+    background: #f8d7da;
+    border-radius: 5px;
+    text-align: center;
+    margin-bottom: 5px;
+    font-size: 14px;
+`;
+
 const EditMenu = () => {
     const { id } = useParams();
     const [confirmModal, setConfirmModal] = useState(false);
@@ -303,23 +319,22 @@ const EditMenu = () => {
 
     const [input, setInput] = useState({ id: '', name: '', description: '', startTime: '', endTime: '' });
     const [repeatDay, setRepeatDay] = useState({ t2:true, t3:true, t4:true, t5:true, t6:true, t7:true, cn:true });
-    const [error, setError] = useState({ 'name': '', 'time': '' });
+    const [error, setError] = useState({ 'name': '', 'time': '', price: '' });
 
-    const [loadingMenu, setLoadingMenu] = useState(false);
-    const [loadingProduct, setLoadingProduct] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState('');
     const [sort, setSort] = useState('+productname');
     const [change, setChange] = useState(false);
 
     useEffect(() => {   //get menu
-        setLoadingMenu(true);
-        let url = "menus?id=" + id + "&include=product";
+        setLoading(true);
         const fetchData = () => {
-            api.get(url)
+            api.get("menus?id=" + id + "&include=product")
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
                     setMenu(res.data.Data.List[0]);
                     setProducts(res.data.Data.List[0].ProductInMenus);
+                    setNewProducts(res.data.Data.List[0].ProductInMenus.map((item) => ({ ...item, Price: item.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") })));
                     setInput({
                         id: res.data.Data.List[0].MenuId, 
                         name: res.data.Data.List[0].MenuName, 
@@ -336,52 +351,34 @@ const EditMenu = () => {
                         t7: res.data.Data.List[0].RepeatDate.includes('7') ? true : false,
                         cn: res.data.Data.List[0].RepeatDate.includes('8') ? true : false
                     });
-                    setLoadingMenu(false);
+
+                    let url = "products?"
+                        + "sort=" + sort
+                        + "&status=1001&status=1004"
+                        + (search !== '' ? ("&search=" + search) : '');
+                    api.get(url).then(function (res2) {
+                        if (res2.data.ResultMessage === "SUCCESS") {
+                            setStock(res2.data.Data.List.map((item) => (
+                                { 
+                                    Product: item, 
+                                    Price: item.DefaultPrice.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
+                                    ProductInMenuId: res.data.Data.List[0].ProductInMenus.find((item2) => item2.Product.ProductId.includes( item.ProductId )) !== undefined ? res.data.Data.List[0].ProductInMenus.find((item2) => item2.Product.ProductId.includes( item.ProductId )).ProductInMenuId : null,
+                                    checked: res.data.Data.List[0].ProductInMenus.some((item2) => item2.Product.ProductId.includes( item.ProductId ))
+                                }
+                            )));
+                            setLoading(false);
+                        }
+                    })
                 }
             })
             .catch(function (error) {
                 console.log(error);
-                setLoadingMenu(false);
+                setLoading(false);
             });
         }
         fetchData();
     }, [change]);
 
-    useEffect(() => {   // get products of merchant
-        setLoadingProduct(true);
-        let url = "products?"
-                + "sort=" + sort
-                + "&status=1001&status=1004"
-                + (search !== '' ? ("&search=" + search) : '') 
-        const fetchData = () => {
-            api.get(url)
-            .then(function (res) {
-                setStock(res.data.Data.List);
-                setLoadingProduct(false);
-            })
-            .catch(function (error) {
-                console.log(error);
-                setLoadingProduct(false);
-            });
-        }
-        fetchData();
-    }, [change]);
-
-    useEffect(() => {
-        if (!loadingMenu && !loadingProduct && stock.length) {
-            setStock(stock.map((item) => (
-                    { 
-                        Product: item, 
-                        Price: item.DefaultPrice.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
-                        ProductInMenuId: null, 
-                        checked: products.some((item2) => item2.Product.ProductId.includes( item.ProductId ))
-                    }
-                ))
-            );
-            setNewProducts(products.map((item) => ({ ...item, Price: item.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") })));
-        }
-    }, [loadingMenu, loadingProduct]);
-    
     function handleChange(e) {
         const { name, value } = e.target;
         setInput(input => ({ ...input, [name]: value }));
@@ -398,6 +395,7 @@ const EditMenu = () => {
 
         if (checkValid()) {
             let deleteArray = [];
+            let updateArray = [];
             let insertArray = [];
             let differenceArray = products.filter(
                 o1 => !newProducts.some(o2 => o1.Product.ProductId === o2.Product.ProductId)).concat(newProducts.filter(
@@ -414,6 +412,14 @@ const EditMenu = () => {
                     });
                 }
             });
+            updateArray = newProducts.filter(
+                o1 => products.some(o2 => o1.Product.ProductId === o2.Product.ProductId
+                    && o1.Price.toString().replace(/\D/g, "") !== o2.Price.toString().replace(/\D/g, ""))
+            ).map((item) => ({
+                productInMenuId: item.ProductInMenuId,
+                price: item.Price.replace(/\D/g, ""),
+                status: 10001
+            }));
 
             let APIarray = [];
             if (menu.MenuName !== input.name 
@@ -442,8 +448,15 @@ const EditMenu = () => {
                     data: deleteArray
                 }));
             }
+            if (updateArray.length) {
+                APIarray.push(api.put("menu-products", {
+                    productInMenus: updateArray
+                }));
+            }
             if (insertArray.length) {
-                APIarray.push(api.post("menu-products?menuid=" + id, insertArray));
+                APIarray.push(api.post("menu-products?menuid=" + id, 
+                    insertArray
+                ));
             }
 
             if (APIarray.length) {
@@ -464,9 +477,9 @@ const EditMenu = () => {
 
     const checkValid = () => {
         let check = false;
-        setError(error => ({ ...error, name: '', time: '' }));
+        setError(error => ({ ...error, name: '', time: '', price: '' }));
 
-        if (input.title === null || input.title === '') {
+        if (input.name === null || input.name === '') {
             setError(error => ({ ...error, name: 'Vui lòng nhập tiêu đề' }));
             check = true;
         }
@@ -474,6 +487,12 @@ const EditMenu = () => {
             setError(error => ({ ...error, time: 'Giờ bắt đầu không được lớn hơn giờ kết thúc' }));
             check = true;
         }
+        newProducts.forEach((item) => {
+            if (item.Price === null || item.Price === '' || item.Price === '0' || item.Price === 0) {
+                setError(error => ({ ...error, price: 'Vui lòng nhập giá' }));
+                check = true;
+            }
+        })
         if (check) {
             return false;
         }
@@ -499,11 +518,18 @@ const EditMenu = () => {
     }
 
     const handleSetPrice = (id, value) => {
+        setError(error => ({ ...error, price: '' }));
         if (value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",").length + 1 <= 12) {
             let index = newProducts.findIndex((item) => item.Product.ProductId === id);
             let newArray = [...newProducts];
             newArray[index].Price = value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
             setNewProducts(newArray);
+        }
+        if (value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",").length + 1 <= 12) {
+            let index = stock.findIndex((item) => item.Product.ProductId === id);
+            let newArray = [...stock];
+            newArray[index].Price = value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            setStock(newArray);
         }
     }
 
@@ -527,7 +553,7 @@ const EditMenu = () => {
                     <SpaceBetween>
                         <FormLabel>Sản phẩm</FormLabel>
                         {
-                            newProducts && newProducts.length ?
+                            !loading && newProducts && newProducts.length ?
                             <AddButton type="button" onClick={toggleAddItemModal}> 
                                 <StyledAddIcon />
                                 Thêm sản phẩm 
@@ -555,17 +581,32 @@ const EditMenu = () => {
                     
                     <ProductListWrapper>
                         {
-                            newProducts && newProducts.length ?
-                            <ProductInMenuList 
-                                currentItems={newProducts} 
-                                handleDeleteItem={handleDeleteItem}
-                                handleSetPrice={handleSetPrice}
-                            />
-                            : 
+                            loading ? 
                             <NoProductWrapper>
-                                <NoProductTitle> Bảng giá chưa có sản phẩm</NoProductTitle>
-                                <NoProductButton type="button" onClick={toggleAddItemModal}> Thêm sản phẩm </NoProductButton>
+                                <StyledCircularProgress />
                             </NoProductWrapper>
+                            :
+                            <>
+                                {
+                                    error.price !== '' ?
+                                    <DangerText> {error.price} </DangerText>
+                                    : null
+                                }
+
+                                {
+                                    newProducts && newProducts.length ?
+                                    <ProductInMenuList 
+                                        currentItems={newProducts} 
+                                        handleDeleteItem={handleDeleteItem}
+                                        handleSetPrice={handleSetPrice}
+                                    />
+                                    : 
+                                    <NoProductWrapper>
+                                        <NoProductTitle> Bảng giá chưa có sản phẩm</NoProductTitle>
+                                        <NoProductButton type="button" onClick={toggleAddItemModal}> Thêm sản phẩm </NoProductButton>
+                                    </NoProductWrapper>
+                                }
+                            </>
                         }
                     </ProductListWrapper>
                 </ProductWrapper>
@@ -579,7 +620,7 @@ const EditMenu = () => {
                     <TextField
                         fullWidth size="small" placeholder="Ví dụ: Thịt cá các loại, đồ gia dụng, etc" 
                         inputProps={{ maxLength: 250, style: {fontSize: 14} }}
-                        value={loadingMenu ? 'Đang tải...' : input.name} name='name'
+                        value={loading ? 'Đang tải...' : input.name} name='name'
                         onChange={handleChange}
                         error={error.name !== ''}
                         helperText={error.name}
@@ -593,7 +634,7 @@ const EditMenu = () => {
                     <TextField
                         fullWidth size="small" multiline rows={3} placeholder="Mô tả giúp khách hàng hình dung và hiểu rõ hơn sản phẩm thuộc bảng giá."
                         inputProps={{ maxLength: 500, style: {fontSize: 14} }}
-                        value={loadingMenu ? 'Đang tải...' : input.description} name='description'
+                        value={loading ? 'Đang tải...' : input.description} name='description'
                         onChange={handleChange}
                     />
 

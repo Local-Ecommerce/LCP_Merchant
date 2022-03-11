@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import { FormControlLabel, Checkbox } from '@mui/material';
 
 const ContainerWrapper = styled.div`
     font-size: 14px;
-    padding: 15px 0px 15px 15px;
+    padding: 12px 0px 12px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -72,7 +72,16 @@ const Image = styled.img`
     border-radius: 50%;
 `;
 
-const ProductInAddModalItem = ({ item, handleToggle }) =>  {
+const ProductInAddModalItem = ({ item, search, handleToggle }) =>  {
+    
+    if (item === 0) {
+        return null;
+    }
+
+    if (!item.Product.ProductName.includes(search)) {
+        return null;
+    }
+
     let activeCheck = '';
     let activeLabel = '';
     switch (item.Product.Status) {
@@ -92,10 +101,6 @@ const ProductInAddModalItem = ({ item, handleToggle }) =>  {
             activeCheck = 'inactive';
             activeLabel = 'WRONG STATUS';
             break;
-    }
-    
-    if (item === 0) {
-        return null;
     }
 
     const handleToggleChecked = () => {

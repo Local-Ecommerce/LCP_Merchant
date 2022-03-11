@@ -1,19 +1,15 @@
-import ReactDOM from "react-dom";
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import styled from "styled-components";
 import Modal from 'react-modal';
 import { Link } from "react-router-dom";
 import { Search, ProductionQuantityLimits } from '@mui/icons-material';
-import { FormControlLabel, Checkbox } from '@mui/material';
-import { arrayMoveImmutable as arrayMove } from "array-move";
-import { SortableContainer, SortableElement } from "react-sortable-hoc";
-import _ from "lodash";
 
 import ProductInAddModalList from '../../components/Menu/ProductInAddModalList';
 
 const Row = styled.div`
     display: flex;
     align-items: center;
+    margin-bottom: ${props => props.mb ? "10px" : null};
 `;
 
 const SearchBar = styled.div`
@@ -83,6 +79,7 @@ const ModalTitle = styled.h4`
 
 const ModalContentWrapper = styled.div`
     padding: 20px;
+    height: 50vh;
 `;
 const ModalButtonWrapper = styled.div`
     border-top: 1px solid #cfd2d4;
@@ -186,8 +183,13 @@ const AddItemModal = ({ display, toggle, stock, saveItem, handleToggleChecked })
         toggle();
     }
 
+    const handleToggle = () => {
+        setSearch('');
+        toggle();
+    }
+
     return (
-        <Modal isOpen={display} onRequestClose={toggle} style={customStyles} ariaHideApp={false}>
+        <Modal isOpen={display} onRequestClose={handleToggle} style={customStyles} ariaHideApp={false}>
             <ModalWrapper>
                 <ModalTitle>Thêm sản phẩm</ModalTitle>
 
@@ -195,16 +197,17 @@ const AddItemModal = ({ display, toggle, stock, saveItem, handleToggleChecked })
                    {
                        stock && stock.length ?
                         <>
-                            <Row>
+                            <Row mb>
                                 <SearchBar>
                                     <StyledSearchIcon />
-                                    <Input id="searchStock" placeholder="Tìm kiếm sản phẩm" onChange={event => setSearch(event.target.value)}/>
+                                    <Input id="search" placeholder="Tìm kiếm sản phẩm" onChange={event => setSearch(event.target.value)}/>
                                     <Button onClick={handleClearSearch}>Xóa</Button>
                                 </SearchBar>
                             </Row>
 
                             <ProductInAddModalList
                                 currentItems={stock}
+                                search={search}
                                 handleToggle={handleToggleChecked}
                             />
                         </>
@@ -227,7 +230,7 @@ const AddItemModal = ({ display, toggle, stock, saveItem, handleToggleChecked })
                         <ModalButton disabled onClick={handleSaveItem}>Lưu</ModalButton>
                     }
                     
-                    <ModalButton onClick={toggle}>Hủy</ModalButton>
+                    <ModalButton onClick={handleToggle}>Hủy</ModalButton>
                 </ModalButtonWrapper>
             </ModalWrapper>
         </Modal>
