@@ -361,7 +361,7 @@ const EditMenu = () => {
                             setStock(res2.data.Data.List.map((item) => (
                                 { 
                                     Product: item, 
-                                    Price: item.DefaultPrice.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
+                                    Price: res.data.Data.List[0].ProductInMenus.find((item2) => item2.Product.ProductId.includes( item.ProductId )) !== undefined ? res.data.Data.List[0].ProductInMenus.find((item2) => item2.Product.ProductId.includes( item.ProductId )).Price : item.DefaultPrice.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
                                     ProductInMenuId: res.data.Data.List[0].ProductInMenus.find((item2) => item2.Product.ProductId.includes( item.ProductId )) !== undefined ? res.data.Data.List[0].ProductInMenus.find((item2) => item2.Product.ProductId.includes( item.ProductId )).ProductInMenuId : null,
                                     checked: res.data.Data.List[0].ProductInMenus.some((item2) => item2.Product.ProductId.includes( item.ProductId ))
                                 }
