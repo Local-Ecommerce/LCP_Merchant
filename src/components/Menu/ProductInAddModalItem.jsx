@@ -103,12 +103,13 @@ const ProductInAddModalItem = ({ item, search, handleToggle }) =>  {
             break;
     }
 
-    const handleToggleChecked = () => {
+    const handleToggleChecked = (e) => {
+        e.stopPropagation();
         handleToggle(item.Product.ProductId, item.checked);
     }
 
     return (
-        <ContainerWrapper>
+        <ContainerWrapper onClick={handleToggleChecked}>
             <FormControlLabel
                 style={{ pointerEvents: "none" }}
                 control={

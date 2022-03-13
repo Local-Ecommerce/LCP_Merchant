@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { useNavigate } from "react-router-dom";
 import { api } from "../../RequestMethod";
 import { toast } from 'react-toastify';
 
@@ -117,14 +116,14 @@ const HelperText = styled.span`
     color: ${props => props.error ? props.theme.red : props.theme.grey};
 `;
 
-const Detail = () => {
-    let navigate = useNavigate();
+const StoreDetail = () => {
     const [editable, setEditable] = useState(true);
     const [loading, setLoading] = useState(false);
 
     const [item, setItem] = useState('');
     const [input, setInput] = useState({ name: '', prefix: '' });
     const [error, setError] = useState({ name: '', prefix: '' });
+    const [change, setChange] = useState(false);
 
     useEffect(() => {   //get APIdata store
         setLoading(true);
@@ -146,7 +145,7 @@ const Detail = () => {
             });
         }
         fetchData();
-    }, []);
+    }, [change]);
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -165,15 +164,18 @@ const Detail = () => {
         if (checkValid()) {
             const notification = toast.loading("Đang xử lí yêu cầu...");
 
+            console.log(input);
             const editItem = async () => {
                 api.put("stores?id=" + item.MerchantStoreId, {
-                    storeName: input.name
+                    storeName: input.name,
+                    apartmentId: "AP001",
+                    status: 6001
                 })
                 .then(function (res) {
                     if (res.data.ResultMessage === "SUCCESS") {
-                        navigate("/");
                         toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
                     }
+                    setChange(!change);
                 })
                 .catch(function (error) {
                     console.log(error);
@@ -254,4 +256,4 @@ const Detail = () => {
     )
 }
 
-export default Detail;
+export default StoreDetail;

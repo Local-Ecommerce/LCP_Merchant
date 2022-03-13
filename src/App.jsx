@@ -19,7 +19,7 @@ import Menu from './pages/Menu/Menu';
 import AddMenu from './pages/Menu/AddMenu';
 import EditMenu from './pages/Menu/EditMenu';
 
-import Detail from './pages/Setting/Detail';
+import StoreDetail from './pages/Setting/StoreDetail';
 
 const HeaderWrapper = styled.div`
     position:absolute; position: fixed; 
@@ -119,8 +119,8 @@ const App = () => {
 				/>
 
 				<Route 
-					path="/settings/detail" 
-					element={<RequireLoggedIn> <Detail /> </RequireLoggedIn>} 
+					path="/settings/storeDetail" 
+					element={<RequireLoggedIn> <StoreDetail /> </RequireLoggedIn>} 
 				/>
 			</Route>
 

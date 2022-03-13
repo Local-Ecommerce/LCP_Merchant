@@ -162,7 +162,7 @@ const ProductOption = ({ passedData, savedData, type, saveOption, editOption }) 
     }
 
     const addValue = (newValue) => {
-        if (values.length < 10) {
+        if (values.length < 5) {
             setCount(count + 1);
             editOption(type);
             setValues(values => [...values, newValue]);
@@ -265,7 +265,7 @@ const ProductOption = ({ passedData, savedData, type, saveOption, editOption }) 
                     <SavedDataWrapper>
                         {savedData.map((item, index) => {
                             return (
-                                <ValueTag old={item.old} key={index}> {item.value} </ValueTag>
+                                <ValueTag old={item.old} key={index}> {item.value} {type === 'weights' ? " kg" : null} </ValueTag>
                             );
                         })}
                     </SavedDataWrapper>
@@ -327,8 +327,8 @@ const ProductOption = ({ passedData, savedData, type, saveOption, editOption }) 
                             : null
                         }
                         {
-                            values && values.length >= 10 ?
-                            <WarningText>Tối đa 10 tùy chọn mỗi mục.</WarningText>
+                            values && values.length >= 5 ?
+                            <WarningText>Tối đa 5 tùy chọn mỗi mục.</WarningText>
                             : null
                         }
                     </Row>

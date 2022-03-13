@@ -180,9 +180,7 @@ const EditProduct = () => {
     const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: 0, images: [], colors: [], sizes: [],  weights: [], code: 'AP-001' });
     const [error, setError] = useState({ name: '', category: '', price: '', colors: '', sizes: '', weights: '', code: '' });
 
-    const [colors, setColors] = useState([]);
-    const [sizes, setSizes] = useState([]);
-    const [weights, setWeights] = useState([]);
+    const [combination, setCombination] = useState([ { id: '', color: null, size: null, weight: null } ]);
 
     const [manual, setManual] = useState(true);
     const [type, setType] = useState('Khác');
@@ -197,51 +195,101 @@ const EditProduct = () => {
 
     useEffect(() => {
         setLoading(true);
-        let url = "products?id=" + id + "&include=related";
+
         const fetchData = () => {
-            api.get(url)
-            .then(function (res) {
-                if (res.data.ResultMessage === "SUCCESS") {
-                    setItem(res.data.Data.List[0]);
-                    setInput(input => ({
-                        ...input,
-                        code: res.data.Data.List[0].ProductCode,
-                        name: res.data.Data.List[0].ProductName,
-                        description: res.data.Data.List[0].Description,
-                        shortDescription: res.data.Data.List[0].BriefDescription,
-                        price: res.data.Data.List[0].DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-                        image: res.data.Data.List[0].Image,
-                        status: res.data.Data.List[0].Status,
-                        colors: [...new Map(res.data.Data.List[0].RelatedProducts.map(({ Color }) => ({ 
-                            value: Color, error: '', old: true
-                        })).map(item => [item['value'], item])).values()].filter(item => (item.value))
-                        .map((item, index) => ({ name: index, ...item })),
-
-                        sizes: [...new Map(res.data.Data.List[0].RelatedProducts.map(({ Size }) => ({ 
-                            value: Size, error: '', old: true
-                        })).map(item => [item['value'], item])).values()].filter(item => (item.value))
-                        .map((item, index) => ({ name: index, ...item })),
-
-                        weights: [...new Map(res.data.Data.List[0].RelatedProducts.map(({ Weight }) => ({ 
-                            value: Weight, error: '', old: true
-                        })).map(item => [item['value'], item])).values()].filter(item => (item.value))
-                        .map((item, index) => ({ name: index, ...item })),
+            api.get("categories?status=3001&sort=" + sort)
+            .then(function (res1) {
+                if (res1.data.ResultMessage === "SUCCESS") {
+                    setLv1Category(res1.data.Data.List.filter((item) => {
+                        return item.CategoryLevel === 1;
                     }));
-                    setColors([...new Map(res.data.Data.List[0].RelatedProducts.map(({ Color }) => ({ 
-                        value: Color, error: '', old: true
-                    })).map(item => [item['value'], item])).values()].filter(item => (item.value))
-                    .map((item, index) => ({ name: index, ...item })));
 
-                    setSizes([...new Map(res.data.Data.List[0].RelatedProducts.map(({ Size }) => ({ 
-                        value: Size, error: '', old: true
-                    })).map(item => [item['value'], item])).values()].filter(item => (item.value))
-                    .map((item, index) => ({ name: index, ...item })));
+                    api.get("products?id=" + id + "&include=related&include=productCategory")
+                    .then(function (res2) {
+                        if (res2.data.ResultMessage === "SUCCESS") {
+                            setItem(res2.data.Data.List[0]);
 
-                    setWeights([...new Map(res.data.Data.List[0].RelatedProducts.map(({ Weight }) => ({ 
-                        value: Weight, error: '', old: true
-                    })).map(item => [item['value'], item])).values()].filter(item => (item.value))
-                    .map((item, index) => ({ name: index, ...item })));
-                    setLoading(false);
+                            let colorArray = [...new Map(res2.data.Data.List[0].RelatedProducts.map(({ Color }) => ({ 
+                                value: Color, error: '', old: true
+                            })).map(item => [item['value'], item])).values()].filter(item => (item.value))
+                            .map((item, index) => ({ name: index, ...item }));
+
+                            let sizeArray = [...new Map(res2.data.Data.List[0].RelatedProducts.map(({ Size }) => ({ 
+                                value: Size, error: '', old: true
+                            })).map(item => [item['value'], item])).values()].filter(item => (item.value))
+                            .map((item, index) => ({ name: index, ...item }));
+
+                            let weightArray = [...new Map(res2.data.Data.List[0].RelatedProducts.map(({ Weight }) => ({ 
+                                value: Weight, error: '', old: true
+                            })).map(item => [item['value'], item])).values()].filter(item => (item.value))
+                            .map((item, index) => ({ name: index, ...item }));
+
+                            setCombination(res2.data.Data.List[0].RelatedProducts.map((item) => ({ 
+                                id: item.ProductId, color: item.Color, size: item.Size, weight: item.Weight
+                            })));
+
+                            setInput(input => ({
+                                ...input,
+                                code: res2.data.Data.List[0].ProductCode,
+                                name: res2.data.Data.List[0].ProductName,
+                                description: res2.data.Data.List[0].Description,
+                                shortDescription: res2.data.Data.List[0].BriefDescription,
+                                price: res2.data.Data.List[0].DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                                image: res2.data.Data.List[0].Image,
+                                status: res2.data.Data.List[0].Status,
+                                colors: colorArray,
+                                sizes: sizeArray,
+                                weights: weightArray,
+                            }));
+
+                            api.get("categories?id=" + res2.data.Data.List[0].SystemCategoryId + "&include=parent")
+                            .then(function (res3) {
+                                if (res3.data.ResultMessage === "SUCCESS") {
+                                    if (res3.data.Data.List[0].CategoryLevel === 3) {
+                                        setInput(input => ({
+                                            ...input,
+                                            category: {
+                                                lv1: res3.data.Data.List[0].Parent.BelongTo,
+                                                lv2: res3.data.Data.List[0].Parent.SystemCategoryId,
+                                                lv3: res3.data.Data.List[0].SystemCategoryId
+                                            }
+                                        }));
+                                        let lv2CategoryList = res1.data.Data.List.filter((item) => {
+                                            return item.SystemCategoryId === res3.data.Data.List[0].Parent.BelongTo;
+                                        })[0].Children;
+                                        setLv2Category(lv2CategoryList);
+                                        setLv3Category(lv2CategoryList.filter((item) => {
+                                            return item.SystemCategoryId === res3.data.Data.List[0].Parent.SystemCategoryId;
+                                        })[0].Children);
+                                    } else if (res3.data.Data.List[0].CategoryLevel === 2) {
+                                        setInput(input => ({
+                                            ...input,
+                                            category: {
+                                                lv1: res3.data.Data.List[0].Parent.SystemCategoryId,
+                                                lv2: res3.data.Data.List[0].SystemCategoryId,
+                                                lv3: ''
+                                            }
+                                        }));
+                                        let lv2CategoryList = res1.data.Data.List.filter((item) => {
+                                            return item.SystemCategoryId === res3.data.Data.List[0].Parent.SystemCategoryId;
+                                        })[0].Children;
+                                        setLv2Category(lv2CategoryList);
+                                    } else if (res3.data.Data.List[0].CategoryLevel === 1) {
+                                        setInput(input => ({
+                                            ...input,
+                                            category: {
+                                                lv1: res3.data.Data.List[0].SystemCategoryId,
+                                                lv2: '',
+                                                lv3: ''
+                                            }
+                                        }));
+                                    }
+                                    setType(res3.data.Data.List[0].Type);
+                                    setLoading(false);
+                                }
+                            })
+                        }
+                    })
                 }
             })
             .catch(function (error) {
@@ -251,27 +299,6 @@ const EditProduct = () => {
         }
         fetchData();
     }, [change]);
-
-    useEffect(() => {   //set systemCategory level 1
-        let url = "categories"
-                + "?limit=" + 100
-                + "&status=" + 3001
-                + "&sort=" + sort;
-        const fetchData = () => {
-            api.get(url)
-            .then(function (res) {
-                if (res.data.ResultMessage === "SUCCESS") {
-                    setLv1Category(res.data.Data.List.filter((item) => {
-                        return item.CategoryLevel === 1;
-                    }));
-                }
-            })
-            .catch(function (error) {
-                console.log(error);
-            });
-        }
-        fetchData();
-    }, []);
 
     useEffect(() => {   //filter based on category type
         const result = lv1Category.filter((item) => {
@@ -348,120 +375,46 @@ const EditProduct = () => {
         event.preventDefault();
 
         if (checkValid()) {
-            let deleteArray = [];
-            let insertArray = [];
-            let differenceColors = input.colors.filter(
-                o1 => !colors.some(o2 => o1.name === o2.name)).concat(colors.filter(
-                    o1 => !input.colors.some(o2 => o1.name === o2.name)
-                )
-            );
-            let differenceSizes = input.sizes.filter(
-                o1 => !sizes.some(o2 => o1.name === o2.name)).concat(sizes.filter(
-                    o1 => !input.sizes.some(o2 => o1.name === o2.name)
-                )
-            );
-            let differenceWeights = input.weights.filter(
-                o1 => !weights.some(o2 => o1.name === o2.name)).concat(weights.filter(
-                    o1 => !input.weights.some(o2 => o1.name === o2.name)
-                )
-            );
-            differenceColors.forEach((color) => {
-                if (color.old) {
-                    item.RelatedProducts.forEach((item) => {
-                        if (item.Color === color.value) {
-                            if (!deleteArray.some(e => e.ProductId === item.ProductId)) {
-                                deleteArray.push(item.ProductId);
-                            }
-                        }
-                    })
-                }
-            });
-            differenceSizes.forEach((size) => {
-                if (size.old) {
-                    item.RelatedProducts.forEach((item) => {
-                        if (item.Size === size.value) {
-                            if (!deleteArray.some(e => e.ProductId === item.ProductId)) {
-                                deleteArray.push(item.ProductId);
-                            }
-                        }
-                    })
-                }
-            });
-            differenceWeights.forEach((weight) => {
-                if (weight.old) {
-                    item.RelatedProducts.forEach((item) => {
-                        if (item.Weight === weight.value) {
-                            if (!deleteArray.some(e => e.ProductId === item.ProductId)) {
-                                deleteArray.push(item.ProductId);
-                            }
-                        }
-                    })
-                }
-            });
+            let newCombination = [];
             const arrayColors = input.colors.length ? input.colors : [{ value: null }];
             const arraySizes = input.sizes.length ? input.sizes : [{ value: null }];
             const arrayWeights = input.weights.length ? input.weights : [{ value: 0 }];
-            differenceColors.forEach((color) => {
-                if (!color.old) {
-                    arraySizes.forEach((size) => {
-                        arrayWeights.forEach((weight) => {
-                            insertArray.push({
-                                productCode: input.code,
-                                productName: input.name,
-                                briefDescription: input.shortDescription,
-                                description: input.description,
-                                defaultPrice: input.price.replace(/\D/g, ""),
-                                size: size.value,
-                                color: color.value,
-                                weight: weight.value,
-                                image: [
-                                    // "string"
-                                ]
-                            })
-                        })
+            
+            arrayColors.forEach((color) => {
+                arraySizes.forEach((size) => {
+                    arrayWeights.forEach((weight) => {
+                        newCombination.push({ id: null, color: color.value, size: size.value, weight: parseInt(weight.value) })
                     })
-                }
-            });
-            differenceSizes.forEach((size) => {
-                if (!size.old) {
-                    arrayColors.forEach((color) => {
-                        arrayWeights.forEach((weight) => {
-                            insertArray.push({
-                                productCode: input.code,
-                                productName: input.name,
-                                briefDescription: input.shortDescription,
-                                description: input.description,
-                                defaultPrice: input.price.replace(/\D/g, ""),
-                                size: size.value,
-                                color: color.value,
-                                weight: weight.value,
-                                image: [
-                                    // "string"
-                                ]
-                            })
-                        })
-                    })
-                }
-            });
-            differenceWeights.forEach((weight) => {
-                if (!weight.old) {
-                    arraySizes.forEach((size) => {
-                        arrayColors.forEach((color) => {
-                            insertArray.push({
-                                productCode: input.code,
-                                productName: input.name,
-                                briefDescription: input.shortDescription,
-                                description: input.description,
-                                defaultPrice: input.price.replace(/\D/g, ""),
-                                size: size.value,
-                                color: color.value,
-                                weight: weight.value,
-                                image: [
-                                    // "string"
-                                ]
-                            })
-                        })
-                    })
+                })
+            })
+            let difference = newCombination.filter(
+                    o1 => !combination.some(o2 => o1.color === o2.color && o1.size === o2.size && o1.weight === o2.weight))
+                .concat(combination.filter(
+                    o1 => !newCombination.some(o2 => o1.color === o2.color && o1.size === o2.size && o1.weight === o2.weight)
+                )
+            );
+
+            let deleteArray = [];
+            let insertArray = [];
+
+            difference.forEach((item) => {
+                if (item.id !== null) {
+                    deleteArray.push(item.id);
+                } else {
+                    insertArray.push({
+                        productCode: input.code,
+                        productName: input.name,
+                        briefDescription: input.shortDescription,
+                        description: input.description,
+                        defaultPrice: input.price.replace(/\D/g, ""),
+                        size: item.size,
+                        color: item.color,
+                        weight: item.weight,
+                        systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
+                        image: [
+                            // "string"
+                        ]
+                    });
                 }
             });
 
@@ -480,6 +433,7 @@ const EditProduct = () => {
                             briefDescription: input.shortDescription,
                             description: input.description,
                             defaultPrice: input.price.replace(/\D/g, ""),
+                            systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
                             image: [
                                 // "string"
                             ],
@@ -490,7 +444,7 @@ const EditProduct = () => {
             }
             if (deleteArray.length) {
                 APIarray.push(api.delete("products", {
-                    data: { productIds: [...new Set(deleteArray.map(item => item))] }
+                    data: { productIds: deleteArray }
                 }));
             }
             if (insertArray.length) {
@@ -656,9 +610,9 @@ const EditProduct = () => {
                     <FormLabel>Tùy chọn</FormLabel>
                     <OptionLabel>Thêm các tùy chọn của sản phẩm, như màu sắc, kích thước hay trọng lượng</OptionLabel>
                     
-                    <ProductOption passedData={colors} savedData={input.colors} type='colors' saveOption={saveOption} editOption={editOption} />
-                    <ProductOption passedData={sizes} savedData={input.sizes} type='sizes' saveOption={saveOption} editOption={editOption} />
-                    <ProductOption passedData={weights} savedData={input.weights} type='weights' saveOption={saveOption} editOption={editOption} />
+                    <ProductOption passedData={input.colors} savedData={input.colors} type='colors' saveOption={saveOption} editOption={editOption} />
+                    <ProductOption passedData={input.sizes} savedData={input.sizes} type='sizes' saveOption={saveOption} editOption={editOption} />
+                    <ProductOption passedData={input.weights} savedData={input.weights} type='weights' saveOption={saveOption} editOption={editOption} />
                 </ContainerWrapper>
 
                 <ContainerWrapper>

@@ -299,6 +299,7 @@ const AddProduct = () => {
                     briefDescription: input.shortDescription,
                     description: input.description,
                     defaultPrice: input.price.replace(/\D/g, ""),
+                    systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
                     image: [
                         // "string"
                     ],
@@ -316,6 +317,7 @@ const AddProduct = () => {
                                             size: size.value,
                                             color: color.value,
                                             weight: weight.value,
+                                            systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
                                             image: [
                                                 // "string"
                                             ]
@@ -329,9 +331,6 @@ const AddProduct = () => {
                             }, [])
                         )
                     ,
-                    systemCategoryIds: [
-                        input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1
-                    ]
                 })
                 .then(function (res) {
                     if (res.data.ResultMessage === "SUCCESS") {
@@ -469,8 +468,8 @@ const AddProduct = () => {
                         InputProps={{ inputMode: 'numeric', pattern: '[0-9]*', startAdornment: <InputAdornment position="start">vnđ</InputAdornment> }}
                         value={input.price} name='price'
                         onChange={handleSetPrice}
-                        error={error.name !== ''}
-                        helperText={error.name}
+                        error={error.price !== ''}
+                        helperText={error.price}
                     />
 
                     <FormLabel>Hình ảnh</FormLabel>
