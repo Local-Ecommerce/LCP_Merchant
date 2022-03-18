@@ -65,7 +65,7 @@ const Home = () => {
       
         return () => clearTimeout(timer);
     });
-    
+
     return (
         <PageWrapper>
             <Flex>

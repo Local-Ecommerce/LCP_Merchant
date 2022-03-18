@@ -164,7 +164,6 @@ const StoreDetail = () => {
         if (checkValid()) {
             const notification = toast.loading("Đang xử lí yêu cầu...");
 
-            console.log(input);
             const editItem = async () => {
                 api.put("stores?id=" + item.MerchantStoreId, {
                     storeName: input.name,

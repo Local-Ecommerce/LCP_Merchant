@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import Modal from 'react-modal';
 import { Link } from 'react-router-dom';
 import { Notifications, Search, AccountCircleOutlined, HelpOutlineOutlined, Logout } from '@mui/icons-material';
 import { Badge } from '@mui/material';
-import { useNavigate } from "react-router-dom";
+import { toast } from 'react-toastify';
 import { useAuth } from "../contexts/AuthContext";
 import useClickOutside from "../contexts/useClickOutside";
 
@@ -247,11 +247,25 @@ const StyledLogoutIcon = styled(Logout)`
 `;
 
 const Header = () => {
-    const { logout } = useAuth();
+    const { logout, socket } = useAuth();
     const user = JSON.parse(localStorage.getItem('USER'));
-    let navigate = useNavigate();
     const [NotificationModal, toggleNotificationModal] = useState(false);
     const [UserDropdown, toggleUserDropdown] = useState(false);
+
+    useEffect(() => {
+        socket && socket.on("getNotification", (data) => {
+            if (data.type === "approve") {
+                toast.success(data.product +  " của bạn đã được duyệt!", {
+                    position: "bottom-left",
+                    autoClose: 5000,
+                    newestOnTop: true,
+                    hideProgressBar: true
+                });
+            } else if (data.type === "reject") {
+
+            }
+        });
+    }, [socket]);
 
     let clickOutside = useClickOutside(() => {
         toggleUserDropdown(false);

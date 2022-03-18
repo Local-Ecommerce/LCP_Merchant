@@ -1,8 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { api } from "../RequestMethod";
 import { auth } from "../firebase";
 import { useNavigate } from 'react-router-dom';
+import { io } from "socket.io-client";
+import { toast } from 'react-toastify';
 
 const AuthContext = React.createContext();
 
@@ -12,7 +14,40 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
     let navigate = useNavigate();
+    const [socket, setSocket] = useState(null);
+    
+    useEffect(() => {
+        setSocket(io("1.52.23.214:5002", {
+            transports: ['websocket'],
+        }));
+        
+        const user = JSON.parse(localStorage.getItem('USER'));
+        if (user) {
+            socket?.emit("newAccount", user.AccountId);
+        }
+    }, []);
 
+    useEffect(() => {
+		if (socket) {
+            socket.on("getNotification", (data) => {
+                toast.success(data.product + ' của bạn đã được duyệt!', {
+                    position: "bottom-left",
+                    autoClose: 5000,
+                    hideProgressBar: false
+                });
+            });
+        }
+	}, [socket]);
+
+    useEffect(() => {
+        if (socket) {
+            const user = JSON.parse(localStorage.getItem('USER'));
+            if (user) {
+                socket?.emit("newAccount", user.AccountId);
+            }
+        }
+    }, [socket])
+    
     async function login(email, password) {
         await auth.signInWithEmailAndPassword(email, password);
         auth.onAuthStateChanged(async user => {
@@ -26,6 +61,7 @@ export function AuthProvider({ children }) {
                 })
                 .then(function (res) {
                     if (res.data.Data.RoleId === "R001" && res.data.Data.Residents[0].Type === "Merchant") {
+                        socket?.emit("newAccount", res.data.Data.AccountId);
                         localStorage.setItem('USER', JSON.stringify(res.data.Data));
                         localStorage.setItem('ACCESS_TOKEN', res.data.Data.RefreshTokens[0].AccessToken);
                         localStorage.setItem('REFRESH_TOKEN', res.data.Data.RefreshTokens[0].Token);
@@ -87,6 +123,7 @@ export function AuthProvider({ children }) {
     }
 
     const value = {
+        socket,
         login,
         logout
     };

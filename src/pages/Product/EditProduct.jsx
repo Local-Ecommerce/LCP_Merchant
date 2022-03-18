@@ -204,7 +204,7 @@ const EditProduct = () => {
                         return item.CategoryLevel === 1;
                     }));
 
-                    api.get("products?id=" + id + "&include=related&include=productCategory")
+                    api.get("products?id=" + id + "&include=related")
                     .then(function (res2) {
                         if (res2.data.ResultMessage === "SUCCESS") {
                             setItem(res2.data.Data.List[0]);

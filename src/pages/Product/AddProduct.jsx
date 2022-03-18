@@ -7,6 +7,7 @@ import { KeyboardBackspace, AddPhotoAlternate, Warning } from '@mui/icons-materi
 import { TextField, InputAdornment, FormControlLabel, Radio, RadioGroup, Checkbox } from '@mui/material';
 import ProductOption from './ProductOption';
 import CategoryList from '../../components/Product/CategoryList';
+import imageCompression from 'browser-image-compression';
 
 const PageWrapper = styled.div`
     min-width: 600px;
@@ -132,12 +133,20 @@ const ImageListWrapper = styled.div`
     margin-bottom: 30px;
 `;
 
-const ImageWrapper = styled.div`
+const ImageWrapper = styled.label`
     display: flex;
     flex-direction: column;
     align-items: center;
     font-size: 14px;
     margin: 0px 35px 20px 0px;
+`;
+
+const Image = styled.img`
+    object-fit: contain;
+    width: 100px;
+    height: 100px;
+    display: ${props => props.display === "true" ? null : "none"};
+    cursor: pointer;
 `;
 
 const StyledPhotoIcon = styled(AddPhotoAlternate)`
@@ -175,7 +184,8 @@ const OptionLabel = styled.div`
 const AddProduct = () => {    
     let navigate = useNavigate();
 
-    const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: '', images: [], colors: [], sizes: [],  weights: [], code: 'AP-001' });
+    const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: '', colors: [], sizes: [],  weights: [], code: 'AP-001' });
+    const [images, setImages] = useState({ cover: '', image1: '', image2: '', image3: '', image4: '', image5: '', image6: '', image7: '', image8: ''} );
     const [error, setError] = useState({ name: '', category: '', price: '', colors: '', sizes: '', weights: '', code: '' });
 
     const [manual, setManual] = useState(false);
@@ -214,10 +224,6 @@ const AddProduct = () => {
         })
         setFilteredLv1Category(result);
     }, [type, lv1Category]);
-
-    useEffect(() => {
-        console.log(input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1)
-    }, [input])
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -283,6 +289,36 @@ const AddProduct = () => {
         setInput(input => ({ ...input, category: {lv1: input.category.lv1, lv2: input.category.lv2, lv3: id} }));
     }
 
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+
+    const handleSetImage = async (e) => {
+        const { name } = e.target;
+        const [file] = e.target.files;
+        const options = {
+            maxSizeMB: 0.1,
+            maxWidthOrHeight: 640
+        }
+        if (file) {
+            const compressedFile = await imageCompression(file, options);
+            document.getElementById(name).src = URL.createObjectURL(compressedFile);
+            const base64 = await toBase64(compressedFile);
+            setImages(prev => ({ ...prev, [name]: base64 }));
+        }
+    }
+
+    useEffect(() => {
+            console.log([
+                Object.values(images).filter(Boolean).map(image => {
+                    return image.split(',')[1]
+                })
+            ])
+    }, [images])
+
     const handleAddItem = (event) => {
         event.preventDefault();
 
@@ -292,6 +328,16 @@ const AddProduct = () => {
                 const colors = input.colors.length ? input.colors : [{ value: null }];
                 const sizes = input.sizes.length ? input.sizes : [{ value: null }];
                 const weights = input.weights.length ? input.weights : [{ value: 0 }];
+                let skipRelated = false;
+                if (colors.length === 1 && colors[0].value === null 
+                    && sizes.length === 1 && sizes[0].value === null 
+                    && weights.length === 1 && weights[0].value === 0 ) {
+                        skipRelated = true;
+                        console.log("skiprelated = true");
+                }
+                console.log(colors)
+                console.log(sizes)
+                console.log(weights)
 
                 api.post("products", {
                     productCode: input.code,
@@ -300,36 +346,37 @@ const AddProduct = () => {
                     description: input.description,
                     defaultPrice: input.price.replace(/\D/g, ""),
                     systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
-                    image: [
-                        // "string"
-                    ],
+                    image: 
+                        Object.values(images).filter(Boolean).map(image => {
+                            return image.split(',')[1]
+                        })
+                    ,
                     relatedProducts: 
-                        (
-                            sizes.map(size => { 
-                                return colors.map(color => {
-                                    return weights.map(weight => {
-                                        return {
-                                            productCode: input.code,
-                                            productName: input.name,
-                                            briefDescription: input.shortDescription,
-                                            description: input.description,
-                                            defaultPrice: input.price.replace(/\D/g, ""),
-                                            size: size.value,
-                                            color: color.value,
-                                            weight: weight.value,
-                                            systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
-                                            image: [
-                                                // "string"
-                                            ]
-                                        }
-                                    })
-                                }).reduce((total, value) => {
-                                    return total.concat(value);
-                                }, [])
+                        skipRelated ? [] : sizes.map(size => { 
+                            return colors.map(color => {
+                                return weights.map(weight => {
+                                    return {
+                                        productCode: input.code,
+                                        productName: input.name,
+                                        briefDescription: input.shortDescription,
+                                        description: input.description,
+                                        defaultPrice: input.price.replace(/\D/g, ""),
+                                        size: size.value,
+                                        color: color.value,
+                                        weight: weight.value,
+                                        systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
+                                        image: 
+                                            Object.values(images).filter(Boolean).map(image => {
+                                                return image.split(',')[1]
+                                            })
+                                    }
+                                })
                             }).reduce((total, value) => {
                                 return total.concat(value);
                             }, [])
-                        )
+                        }).reduce((total, value) => {
+                            return total.concat(value);
+                        }, [])
                     ,
                 })
                 .then(function (res) {
@@ -359,7 +406,7 @@ const AddProduct = () => {
             setError(error => ({ ...error, category: 'Vui lòng chọn danh mục sản phẩm' }));
             check = true;
         }
-        if (input.price === null || input.price === '' || input.price === 0) {
+        if (input.price === null || input.price === '' || input.price < 500) {
             setError(error => ({ ...error, price: 'Vui lòng nhập giá' }));
             check = true;
         }
@@ -474,15 +521,44 @@ const AddProduct = () => {
 
                     <FormLabel>Hình ảnh</FormLabel>
                     <ImageListWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Ảnh bìa<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 1<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 2<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 3<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 4<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 5<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 6<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 7<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 8<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
+                        <ImageWrapper htmlFor="upload-cover">
+                            <HiddenInputFile type="file" id="upload-cover" name="cover" accept="image/png, image/jpeg" onChange={handleSetImage} />
+                            {
+                                images.cover === '' ?
+                                <StyledPhotoIcon />
+                                : null
+                            }
+                            <Image id="cover" src="#" display={images.cover === '' ? "false" : "true"} />
+                            Ảnh bìa
+                        </ImageWrapper>
+
+                        <ImageWrapper htmlFor="upload-image1">
+                            <HiddenInputFile type="file" id="upload-image1" name="image1" accept="image/png, image/jpeg" onChange={handleSetImage} />
+                            {
+                                images.image1 === '' ?
+                                <StyledPhotoIcon /> 
+                                : null
+                            }
+                            <Image id="image1" src="#" display={images.image1 === '' ? "false" : "true"} />
+                            Hình ảnh 1
+                        </ImageWrapper>
+                        
+                        <ImageWrapper htmlFor="upload-image2">
+                            <HiddenInputFile type="file" id="upload-image2" name="image2" accept="image/png, image/jpeg" onChange={handleSetImage} />
+                            {
+                                images.image2 === '' ?
+                                <StyledPhotoIcon /> 
+                                : null
+                            }
+                            <Image id="image2" src="#" display={images.image2 === '' ? "false" : "true"} />
+                            Hình ảnh 2
+                        </ImageWrapper>
+                        <ImageWrapper for="upload-photo"><StyledPhotoIcon /> Hình ảnh 3<HiddenInputFile type="file" id="upload-photo" accept="image/png, image/jpeg" /></ImageWrapper>
+                        <ImageWrapper for="upload-photo"><StyledPhotoIcon /> Hình ảnh 4<HiddenInputFile type="file" id="upload-photo" accept="image/png, image/jpeg" /></ImageWrapper>
+                        <ImageWrapper for="upload-photo"><StyledPhotoIcon /> Hình ảnh 5<HiddenInputFile type="file" id="upload-photo" accept="image/png, image/jpeg" /></ImageWrapper>
+                        <ImageWrapper for="upload-photo"><StyledPhotoIcon /> Hình ảnh 6<HiddenInputFile type="file" id="upload-photo" accept="image/png, image/jpeg" /></ImageWrapper>
+                        <ImageWrapper for="upload-photo"><StyledPhotoIcon /> Hình ảnh 7<HiddenInputFile type="file" id="upload-photo" accept="image/png, image/jpeg" /></ImageWrapper>
+                        <ImageWrapper for="upload-photo"><StyledPhotoIcon /> Hình ảnh 8<HiddenInputFile type="file" id="upload-photo" accept="image/png, image/jpeg" /></ImageWrapper>
                     </ImageListWrapper>
                 </ContainerWrapper>
 
