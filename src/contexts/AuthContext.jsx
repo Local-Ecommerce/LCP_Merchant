@@ -17,12 +17,11 @@ export function AuthProvider({ children }) {
     const [socket, setSocket] = useState(null);
     
     useEffect(() => {
-        setSocket(io("1.52.23.214:5002", {
-            transports: ['websocket'],
-        }));
+        setSocket(io("https://lcpsocket.herokuapp.com/"));
         
         const user = JSON.parse(localStorage.getItem('USER'));
         if (user) {
+            console.log("login success")
             socket?.emit("newAccount", user.AccountId);
         }
     }, []);
