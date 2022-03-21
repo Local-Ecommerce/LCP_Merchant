@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
-import Modal from 'react-modal';
 import { Link } from 'react-router-dom';
 import { Notifications, Search, AccountCircleOutlined, HelpOutlineOutlined, Logout } from '@mui/icons-material';
 import { Badge } from '@mui/material';
-import { toast } from 'react-toastify';
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import useClickOutside from "../contexts/useClickOutside";
+import NotificationList from '../components/Header/NotificationList';
+import * as Constant from '../Constant';
+import _ from 'lodash';
+
+import { db } from "../firebase";
+import { ref, onValue, update, query, limitToLast, orderByChild, equalTo } from "firebase/database";
 
 const Wrapper = styled.div`
     display: flex;
@@ -15,6 +20,54 @@ const Wrapper = styled.div`
     box-shadow: 0 4px 3px -5px rgba(0, 0, 0, 0.75);
     justify-content: space-between;
     align-items: center;
+`;
+
+const Tab = styled.h1`
+    color: ${props => props.active ? "#383838" : props.theme.grey};
+    padding: 15px 0;
+    margin: 0px;
+    border-right: ${props => props.br ? "1px solid rgba(0,0,0,0.05)" : null};
+    border-bottom: ${props => props.active ? "2px solid " + props.theme.blue : "2px solid rgba(0,0,0,0.05)"};
+    font-size: 14px;
+    width: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+`;
+
+const NotificationSpan = styled.span`
+    padding: 3px 5px;
+    text-align: center;
+    border-radius: 25px;
+    color: ${props => props.theme.white};
+    background-color: ${props =>  props.theme.red};
+    margin: 0px 0px 0px 3px;
+    font-size: 10px;
+    font-weight: 400;
+`;
+
+const NoNotificationWrapper = styled.div`
+    height: auto;
+    margin: 0 auto;
+    text-align: center;
+`;
+
+const StyledNoNotificationIcon = styled(Notifications)`
+    && {
+        margin: 40px;
+        font-size: 77px;
+        color: #D8D8D8;
+    }
+`;
+
+const Row = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: ${props => props.start ? "flex-start" : "space-between"};
+    margin-left: ${props => props.ml ? "10px" : "0px"};
+    margin-top: ${props => props.mt ? "20px" : "0px"};
+    margin-bottom: ${props => props.mb ? "20px" : "0px"};
 `;
 
 const Logo = styled.img`
@@ -96,56 +149,38 @@ const StyledNotificationIcon = styled(Notifications)`
     }
 `;
 
-const ModalTitle = styled.h2`
-    margin: 25px 20px;
-    color: #212529;
-    text-align: center;
-`;
+const NotificationDropdownWrapper = styled.div`
+    position: absolute;
+    top: 75px;
+    right: 50px;
+    margin: 0px 20px;
+    background: ${props => props.theme.white};
+    width: 400px;
+    box-sizing: 0 5px 25px rgba(0,0,0,0.1);
+    border-radius: 15px;
+    border: 1px solid rgba(0,0,0,0.1);
+    transition: 0.5s;
+    box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
 
-const ModalContentWrapper = styled.div`
-    border-top: 1px solid #cfd2d4;
-    border-bottom: 1px solid #cfd2d4;
-`;
-
-const ModalButton = styled.button`
-    min-width: 80px;
-    margin: 20px;
-    padding: 10px;
-    margin-left: 10px;
-    background: ${props => props.red ? "#dc3545" : "#fff"};
-    color: ${props => props.red ? "#fff" : "#212529"};;
-    border: 1px solid ${props => props.red ? "#dc3545" : "#fff"};
-    border-radius: 4px;
-    text-align: center;
-    font-size: 1rem;
-    float: right;
-
-    &:hover {
-    opacity: 0.8;
-    }
-
-    &:focus {
-    outline: 0;
-    }
-
-    &:active {
-    transform: translateY(2px);
+    &:before {
+        content: '';
+        position: absolute;
+        top: -10px;
+        right: 28px;
+        width: 18px;
+        height: 18px;
+        background: ${props => props.theme.white};
+        transform: rotate(45deg);
     }
 `;
 
-const customStyles = {
-    content: {
-        top: '50%',
-        left: '50%',
-        right: '50%',
-        bottom: 'auto',
-        marginRight: '-45%',
-        transform: 'translate(-50%, -50%)',
-        padding: '0px',
-    },
-};
+const NotificationWrapper = styled.div`
+    max-height: 60vh;
+    overflow: auto;
+    overflow-x: hidden;
+`;
 
-const DropdownWrapper = styled.div`
+const UserDropdownWrapper = styled.div`
     position: absolute;
     top: 75px;
     right: -10px;
@@ -247,33 +282,60 @@ const StyledLogoutIcon = styled(Logout)`
 `;
 
 const Header = () => {
-    const { logout, socket } = useAuth();
+    const { logout } = useAuth();
+    let navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem('USER'));
-    const [NotificationModal, toggleNotificationModal] = useState(false);
-    const [UserDropdown, toggleUserDropdown] = useState(false);
 
-    useEffect(() => {
-        socket && socket.on("getNotification", (data) => {
-            if (data.type === "approve") {
-                toast.success(data.product +  " của bạn đã được duyệt!", {
-                    position: "bottom-left",
-                    autoClose: 5000,
-                    newestOnTop: true,
-                    hideProgressBar: true
-                });
-            } else if (data.type === "reject") {
+    const [activeTab, setActiveTab] = useState(1);
+    const [notificationDropdown, toggleNotificationDropdown] = useState(false);
+    const [userDropdown, toggleUserDropdown] = useState(false);
 
-            }
-        });
-    }, [socket]);
+    const [products, setProducts] = useState([]);
+    const [productRead, setProductRead] = useState(0);
+    const [stores, setStores] = useState([]);
+    const [storeRead, setStoreRead] = useState(0);
+    const [idList, setIdList] = useState([]);
+
+    useEffect(() => {  //fetch api data
+        if (user && user.RoleId === "R001" && user.Residents[0].Type === Constant.MERCHANT) {
+            const dataRef = query(ref(db, 'Notification/' + user.Residents[0].ResidentId), limitToLast(100), orderByChild('receiverId'), equalTo(user.Residents[0].ResidentId));
+            return onValue(dataRef, (snapshot) => {
+                const data = _.reverse(_.toArray(snapshot.val()));
+                const productList = data.filter(item => item.type === '001' || item.type === '002');
+                const storeList = data.filter(item => item.type === '101' || item.type === '102');
+                setProducts(productList);
+                setStores(storeList);
+                setProductRead(productList.filter(item => item.read === 0).length);
+                setStoreRead(storeList.filter(item => item.read === 0).length);
+                setIdList(Object.entries(snapshot.toJSON()).map(item => { return item[0] }));
+            })
+        }
+    }, []);
 
     let clickOutside = useClickOutside(() => {
-        toggleUserDropdown(false);
+        if (notificationDropdown) {
+            handleSetRead();
+            toggleNotificationDropdown(false);
+        }
+        if (userDropdown) {
+            toggleUserDropdown(false);
+        }
     });
+
+    const handleSetRead = () => {
+        if (idList.length) {
+            idList.forEach(item => {
+                update(ref(db, `Notification/` + user.Residents[0].ResidentId + "/" + item), {
+                    read: 1
+                });
+            })
+        }
+    };
 
     async function handleLogout() {
         try {
             await logout();
+            navigate("/");
         } catch {}
     }
 
@@ -289,40 +351,80 @@ const Header = () => {
             </SearchField>
 
             <div>
-                <IconButton onClick={() => toggleNotificationModal(!NotificationModal)}>
-                    <StyledBadge badgeContent={1} overlap="circular">
+                <IconButton onClick={() => toggleNotificationDropdown(!notificationDropdown)}>
+                    <StyledBadge badgeContent={productRead + storeRead} overlap="circular">
                         <StyledNotificationIcon />
                     </StyledBadge>
                 </IconButton>
             
-                <Avatar onClick={() => toggleUserDropdown(!UserDropdown)} src="./images/user.png" alt="Loich Logo" />
+                <Avatar onClick={() => toggleUserDropdown(!userDropdown)} src="./images/user.png" alt="Loich Logo" />
             </div>
 
             {
-            UserDropdown ?
-            <DropdownWrapper ref={clickOutside}>
-                <Name>
-                    {!user ? null : user.Residents[0].ResidentName} <br/> 
-                    <Title>Người bán hàng</Title> 
-                </Name>
-                
-                <DropdownList>
-                    <DropdownLink to={"/"}> <StyledPersonIcon /> Thông tin cá nhân </DropdownLink>
-                    <DropdownLink to={"/"}> <StyledHelpIcon /> Trợ giúp </DropdownLink>
-                    <DropdownItem onClick={handleLogout}> <StyledLogoutIcon /> Đăng xuất </DropdownItem>
-                </DropdownList>
-            </DropdownWrapper>
-            : null
+                notificationDropdown ?
+                <NotificationDropdownWrapper ref={clickOutside}>
+                    <Row>
+                        <Tab br active={activeTab === 1 ? true : false} onClick={() => setActiveTab(1)}>
+                            Sản phẩm 
+                            {
+                                productRead > 0 ?
+                                <NotificationSpan> {productRead} </NotificationSpan>
+                                : null
+                            }
+                        </Tab>
+
+                        <Tab br active={activeTab === 2 ? true : false} onClick={() => setActiveTab(2)}>
+                            Cửa hàng
+                            {
+                                storeRead > 0 ?
+                                <NotificationSpan> {storeRead} </NotificationSpan>
+                                : null
+                            }
+                        </Tab>
+                    </Row>
+
+                    {
+                        activeTab === 1 && products.length ?
+                        <>
+                            <NotificationWrapper>
+                                <NotificationList 
+                                    currentItems={products}
+                                />
+                            </NotificationWrapper>
+                        </>
+                        : activeTab === 2 && stores.length ?
+                        <>
+                            <NotificationWrapper>
+                                <NotificationList 
+                                    currentItems={stores} 
+                                />
+                            </NotificationWrapper>
+                        </>
+                        : 
+                        <NoNotificationWrapper>
+                            <StyledNoNotificationIcon />
+                        </NoNotificationWrapper>
+                    }
+                </NotificationDropdownWrapper>
+                : null
             }
 
-            <Modal isOpen={NotificationModal} onRequestClose={() => toggleNotificationModal(!NotificationModal)} style={customStyles} ariaHideApp={false}>
-                <ModalTitle>Thông báo</ModalTitle>
-
-                <ModalContentWrapper>
-                </ModalContentWrapper>
-
-                <ModalButton red onClick={() => toggleNotificationModal(!NotificationModal)}>Quay lại</ModalButton>
-            </Modal>
+            {
+                userDropdown ?
+                <UserDropdownWrapper ref={clickOutside}>
+                    <Name>
+                        {user ? user.Residents[0].ResidentName : null} <br/> 
+                        <Title>Thương nhân</Title> 
+                    </Name>
+                    
+                    <DropdownList>
+                        <DropdownLink to={"/"}> <StyledPersonIcon /> Thông tin cá nhân </DropdownLink>
+                        <DropdownLink to={"/"}> <StyledHelpIcon /> Trợ giúp </DropdownLink>
+                        <DropdownItem onClick={handleLogout}> <StyledLogoutIcon /> Đăng xuất </DropdownItem>
+                    </DropdownList>
+                </UserDropdownWrapper>
+                : null
+            }
         </Wrapper>
     );
 }

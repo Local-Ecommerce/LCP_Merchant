@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate } from "react-router-dom";
-import { api } from "../../RequestMethod";
+import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, ArrowRight } from '@mui/icons-material';
 import { TextField, Checkbox, FormControlLabel } from '@mui/material';
@@ -134,7 +134,7 @@ const AddMenu = () => {
     });
     const [repeatDay, setRepeatDay] = useState({ t2:false, t3:false, t4:false, t5:false, t6:false, t7:false, cn:false });
     const [twentyfour, setTwentyfour] = useState(false);
-    const [error, setError] = useState({ 'name': '', 'time': '' });
+    const [error, setError] = useState({ name: '', repeatDate: '', time: '' });
 
     useEffect(() => {   //get store id
         const fetchData = () => {
@@ -154,21 +154,28 @@ const AddMenu = () => {
     function handleChange(e) {
         const { name, value } = e.target;
         setInput(input => ({ ...input, [name]: value }));
+        if (name === 'startTime' || name === 'endTime') {
+            setError(error => ({ ...error, time: '' }));
+        } else {
+            setError(error => ({ ...error, [name]: '' }));
+        }
     }
 
     function handleToggleDate(e) {
+        setError(error => ({ ...error, repeatDay: '' }));
         const { name, checked } = e.target;
         setRepeatDay(date => ({ ...date, [name]: checked }));
     }
 
     function handleToggleAllDate(e) {
+        setError(error => ({ ...error, repeatDay: '' }));
         const { checked } = e.target;
         setRepeatDay({ t2:checked, t3:checked, t4:checked, t5:checked, t6:checked, t7:checked, cn:checked });
     }
 
     const handleSetTime = () => {
-        setTwentyfour(!twentyfour);
         setError(error => ({ ...error, time: '' }));
+        setTwentyfour(!twentyfour);
     }
 
     const handleAddMenu = (event) => {
@@ -181,7 +188,8 @@ const AddMenu = () => {
                     menuName: input.name,
                     menuDescription: input.description,
                     timeStart: twentyfour ? '00:00:00' : DateTime.fromISO(input.startTime).toFormat('TT'),
-                    timeEnd: twentyfour ? '23:59:59': DateTime.fromISO(input.endTime).toFormat('TT'),
+                    timeEnd: twentyfour || DateTime.fromISO(input.endTime).toFormat('TT') === '00:00:00' ?
+                             '23:59:59': DateTime.fromISO(input.endTime).toFormat('TT'),
                     repeatDate: (repeatDay.t2 ? '2' : '') 
                               + (repeatDay.t3 ? '3' : '') 
                               + (repeatDay.t4 ? '4' : '') 
@@ -219,7 +227,7 @@ const AddMenu = () => {
             setError(error => ({ ...error, repeatDay: 'Không được để trống ngày hoạt động' }));
             check = true;
         }
-        if (!twentyfour && input.startTime >= input.endTime) {
+        if (!twentyfour && DateTime.fromISO(input.endTime).toFormat('TT') !== '00:00:00' && input.startTime >= input.endTime) {
             setError(error => ({ ...error, time: 'Giờ bắt đầu không được lớn hơn giờ kết thúc' }));
             check = true;
         }
@@ -310,7 +318,7 @@ const AddMenu = () => {
 
                             <TimePicker 
                                 disabled={twentyfour ? true : false} ampm={false}
-                                label={twentyfour ? "23:59:59" : "Thời gian kết thúc"}
+                                label={twentyfour ? "00:00:00" : "Thời gian kết thúc"}
                                 value={twentyfour ? null :input.endTime}
                                 onChange={time => handleChange({ target: { value: time.toISOString(), name: 'endTime' } })} 
                                 renderInput={(params) => <TextField disabled {...params} error={error.time !== ''} helperText={error.time} />} 

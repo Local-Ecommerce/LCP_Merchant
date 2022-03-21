@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { HideImage } from '@mui/icons-material';
 import { FormControlLabel, Checkbox } from '@mui/material';
 
 const ContainerWrapper = styled.div`
@@ -69,7 +70,17 @@ const Image = styled.img`
     vertical-align: middle;
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 3px;
+`;
+
+const StyledNoImageIcon = styled(HideImage)`
+    && {
+        color: ${props => props.theme.grey};
+        font-size: 30px;
+        padding: 5px;
+        border-radius: 3px;
+        border: 1px solid rgba(0,0,0,0.2);
+    }
 `;
 
 const ProductInAddModalItem = ({ item, search, handleToggle }) =>  {
@@ -122,7 +133,11 @@ const ProductInAddModalItem = ({ item, search, handleToggle }) =>  {
                 label={<span></span>} 
             />
 
-            <Image src={"../images/product1.png"} />
+            {
+                item.Product.Image ?
+                <Image src={item.Product.Image ? item.Product.Image.split("|")[0] : ''} />
+                : <StyledNoImageIcon />
+            }
 
             <TextWrapper>
                 <Name>

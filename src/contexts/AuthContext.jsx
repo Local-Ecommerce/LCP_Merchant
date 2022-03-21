@@ -2,9 +2,8 @@
 import React, { useContext, useState, useEffect } from "react";
 import { api } from "../RequestMethod";
 import { auth } from "../firebase";
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
 import { useNavigate } from 'react-router-dom';
-import { io } from "socket.io-client";
-import { toast } from 'react-toastify';
 
 const AuthContext = React.createContext();
 
@@ -14,42 +13,10 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
     let navigate = useNavigate();
-    const [socket, setSocket] = useState(null);
-    
-    useEffect(() => {
-        setSocket(io("https://lcpsocket.herokuapp.com/"));
-        
-        const user = JSON.parse(localStorage.getItem('USER'));
-        if (user) {
-            console.log("login success")
-            socket?.emit("newAccount", user.AccountId);
-        }
-    }, []);
-
-    useEffect(() => {
-		if (socket) {
-            socket.on("getNotification", (data) => {
-                toast.success(data.product + ' của bạn đã được duyệt!', {
-                    position: "bottom-left",
-                    autoClose: 5000,
-                    hideProgressBar: false
-                });
-            });
-        }
-	}, [socket]);
-
-    useEffect(() => {
-        if (socket) {
-            const user = JSON.parse(localStorage.getItem('USER'));
-            if (user) {
-                socket?.emit("newAccount", user.AccountId);
-            }
-        }
-    }, [socket])
     
     async function login(email, password) {
-        await auth.signInWithEmailAndPassword(email, password);
-        auth.onAuthStateChanged(async user => {
+        await signInWithEmailAndPassword(auth, email, password);
+        onAuthStateChanged(auth, async user => {
             if (user) {
                 const firebaseToken = await user.getIdToken(true);
                 console.log("Firebase Token: " + firebaseToken);
@@ -60,7 +27,6 @@ export function AuthProvider({ children }) {
                 })
                 .then(function (res) {
                     if (res.data.Data.RoleId === "R001" && res.data.Data.Residents[0].Type === "Merchant") {
-                        socket?.emit("newAccount", res.data.Data.AccountId);
                         localStorage.setItem('USER', JSON.stringify(res.data.Data));
                         localStorage.setItem('ACCESS_TOKEN', res.data.Data.RefreshTokens[0].AccessToken);
                         localStorage.setItem('REFRESH_TOKEN', res.data.Data.RefreshTokens[0].Token);
@@ -77,7 +43,7 @@ export function AuthProvider({ children }) {
     };
 
     async function logout() {
-        await auth.signOut();
+        await signOut(auth);
         const accessToken = localStorage.getItem("ACCESS_TOKEN");
         
         if (accessToken !== null) {
@@ -122,7 +88,6 @@ export function AuthProvider({ children }) {
     }
 
     const value = {
-        socket,
         login,
         logout
     };

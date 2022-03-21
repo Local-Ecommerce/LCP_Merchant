@@ -1,7 +1,8 @@
-import firebase from "firebase/app";
-import "firebase/auth";
+import { initializeApp } from 'firebase/app';
+import { getAuth } from "firebase/auth";
+import { getDatabase } from "firebase/database";
 
-const app = firebase.initializeApp({
+const app = initializeApp({
     apiKey: "AIzaSyCoP-E6BcuiaLtxOZ2yPk9P5XTfr_nsNLI",
     authDomain: "lcp-mobile-8c400.firebaseapp.com",
     databaseURL: "https://lcp-mobile-8c400-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -12,5 +13,6 @@ const app = firebase.initializeApp({
     measurementId: "G-8JQ0WPQN16"
 });
 
-export const auth = app.auth();
+export const auth = getAuth(app);
+export const db = getDatabase(app);
 export default app;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Close } from '@mui/icons-material';
+import { Close, HideImage } from '@mui/icons-material';
 
 const ContainerWrapper = styled.div`
     font-size: 14px;
@@ -74,7 +74,17 @@ const Image = styled.img`
     vertical-align: middle;
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 3px;
+`;
+
+const StyledNoImageIcon = styled(HideImage)`
+    && {
+        color: ${props => props.theme.grey};
+        font-size: 30px;
+        padding: 5px;
+        border-radius: 3px;
+        border: 1px solid rgba(0,0,0,0.2);
+    }
 `;
 
 const ButtonWrapper = styled.div`
@@ -106,7 +116,7 @@ const StyledCloseIcon = styled(Close)`
 `;
 
 const TextFIeldWrapper = styled.div`
-    flex: 3;
+    flex: 2.5;
     display: flex;
     align-items: flex-end;
 `;
@@ -160,7 +170,11 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice }) =>
     return (
         <ContainerWrapper>
             <Index>{index}.</Index>
-            <Image src={"../images/product1.png"} />
+            {
+                item.Product.Image ?
+                <Image src={item.Product.Image ? item.Product.Image.split("|")[0] : ''} />
+                : <StyledNoImageIcon />
+            }
 
             <TextWrapper>
                 <Name>
@@ -174,7 +188,7 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice }) =>
                     value={item.Price} name='price'
                     onChange={(event) => handleSetPrice(item.Product.ProductId, event.target.value)}
                 />
-                <Currency>vnd</Currency>
+                <Currency>đ</Currency>
             </TextFIeldWrapper>
 
             <StatusWrapper>

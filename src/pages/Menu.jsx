@@ -1,15 +1,16 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import ProductList from '../../components/Product/ProductList';
-import { api } from "../../RequestMethod";
+import MenuList from '../components/Menu/MenuList';
+import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import ReactPaginate from "react-paginate";
-import { Search, Error, Logout, ProductionQuantityLimits, AddCircle } from '@mui/icons-material';
+import { Search, Error, Logout, Summarize, AddCircle } from '@mui/icons-material';
 import { CircularProgress } from '@mui/material';
 import { Link } from 'react-router-dom';
 
-import DeleteModal from './DeleteModal';
+import ToggleStatusModal from '../components/Menu/ToggleStatusModal';
+import DeleteModal from '../components/Menu/DeleteModal';
 
 const PageWrapper = styled.div`
     margin: 50px;
@@ -198,7 +199,7 @@ const NoItemWrapper = styled.div`
     text-align: center;
 `;
 
-const StyledProductIcon = styled(ProductionQuantityLimits)`
+const StyledMenuIcon = styled(Summarize)`
     && {
         font-size: 144px;
         color: #D8D8D8;
@@ -358,13 +359,17 @@ const StyledPaginateContainer = styled.div`
     }
 `;
 
-const Product = () =>  {
+const Menu = () =>  {
     const [deleteModal, setDeleteModal] = useState(false);
     const toggleDeleteModal = () => { setDeleteModal(!deleteModal) };
+    const [toggleStatusModal, setToggleStatusModal] = useState(false);
+    const toggleToggleStatusModal = () => { setToggleStatusModal(!toggleStatusModal) };
+
     const [deleteItem, setDeleteItem] = useState({id: '', name: ''});
+    const [toggleStatusItem, setToggleStatusItem] = useState({ id: '', name: '', status: true });
 
     const [APIdata, setAPIdata] = useState([]);
-    const [productExist, setProductExist] = useState({ checked: false, exist: false });
+    const [menuExist, setMenuExist] = useState({ checked: false, exist: false });
     const [loading, setLoading] = useState(false);
     const [change, setChange] = useState(false);
 
@@ -375,11 +380,11 @@ const Product = () =>  {
     const sort = '-createddate';
     const [typing, setTyping] = useState('');
     const [search, setSearch] = useState('');
-    const [status, setStatus] = useState('1001&status=1003&status=1004');
+    const [status, setStatus] = useState('9001&status=9005');
 
     useEffect( () => {  //fetch api data
         setLoading(true);
-        let url = "products"
+        let url = "menus"
                 + "?limit=" + limit 
                 + "&page=" + (page + 1) 
                 + "&sort=" + sort 
@@ -391,8 +396,8 @@ const Product = () =>  {
                 setAPIdata(res.data.Data.List);
                 setTotal(res.data.Data.Total);
                 setLastPage(res.data.Data.LastPage);
-                if (productExist.checked === false) {
-                    setProductExist({ checked: true, exist: (res.data.Data.Total > 0 ? true : false) })
+                if (menuExist.checked === false) {
+                    setMenuExist({ checked: true, exist: (res.data.Data.Total > 0 ? true : false) })
                 }
                 setLoading(false);
             })
@@ -431,6 +436,36 @@ const Product = () =>  {
         setPage(event.selected);
     };
 
+    const handleGetToggleStatusItem = (id, name, status) => {
+        setToggleStatusItem({ id: id, name: name, status: status });
+        toggleToggleStatusModal();
+    }
+
+    const handleToggleStatus = (event) => {
+        event.preventDefault();
+        const notification = toast.loading("Đang xử lí yêu cầu...");
+
+        const url = "menus?id=" + toggleStatusItem.id;
+        const editData = async () => {
+            api.put(url, {
+                status: toggleStatusItem.status === true ? 9005 : 9001
+            })
+            .then(function (res) {
+                if (res.data.ResultMessage === "SUCCESS") {
+                    setMenuExist({ checked: false, exist: false });
+                    setChange(!change);
+                    toggleToggleStatusModal();
+                    toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+                toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
+            });
+        }
+        editData();
+    }
+
     const handleGetDeleteItem = (id, name) => {
         setDeleteItem({id: id, name: name});
         toggleDeleteModal();
@@ -440,15 +475,12 @@ const Product = () =>  {
         event.preventDefault();
         const notification = toast.loading("Đang xử lí yêu cầu...");
 
+        const url = "menus?id=" + deleteItem.id;
         const deleteData = async () => {
-            api.delete("products", {
-                data: {
-                    productIds: [ deleteItem.id ]
-                }, 
-            })
+            api.delete(url)
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
-                    setProductExist({ checked: false, exist: false });
+                    setMenuExist({ checked: false, exist: false });
                     setChange(!change);
                     toast.update(notification, { render: "Xóa thành công!", type: "success", autoClose: 5000, isLoading: false });
                 }
@@ -465,13 +497,13 @@ const Product = () =>  {
     return (
         <PageWrapper>
             {
-                loading || productExist.exist ?
+                loading || menuExist.exist ?
                 <>
                     <Row mb>
-                        <Title mb>Sản phẩm</Title>
+                        <Title mb>Bảng giá</Title>
 
-                        <AddButton to={"/addProduct"}>
-                            <AddIcon /> Tạo sản phẩm mới
+                        <AddButton to={"/addMenu"}>
+                            <AddIcon /> Tạo bảng giá mới
                         </AddButton>
                     </Row>
 
@@ -479,7 +511,7 @@ const Product = () =>  {
                         <Row mb>
                             <SearchBar>
                                 <StyledSearchIcon />
-                                <Input id="search" placeholder="Tìm kiếm sản phẩm" onChange={handleSetSearch} />
+                                <Input id="search" placeholder="Tìm kiếm bảng giá" onChange={handleSetSearch} />
                                 <Button type="button" onClick={clearSearch}>Xóa</Button>
                             </SearchBar>
 
@@ -487,10 +519,9 @@ const Product = () =>  {
                                 <small>Trạng thái:&nbsp;</small>
                                 <DropdownWrapper width="16%">
                                     <Select value={status} onChange={handleSetStatus}>
-                                    <option value='1001&status=1003&status=1004'>Toàn bộ</option>
-                                        <option value={1001}>Hoạt động</option>
-                                        <option value={1003}>Từ chối</option>
-                                        <option value={1004}>Chờ xác thực</option>
+                                    <option value='9001&status=9005'>Toàn bộ</option>
+                                        <option value={9001}>Hoạt động</option>
+                                        <option value={9005}>Ngừng hoạt động</option>
                                     </Select>
                                 </DropdownWrapper>
                             </Align>
@@ -499,9 +530,10 @@ const Product = () =>  {
                         <Table>
                             <TableHead>
                                 <TableRow>
-                                    <TableHeader width="7%" center>Ảnh</TableHeader>
-                                    <TableHeader width="48%">Tên sản phẩm</TableHeader>
-                                    <TableHeader width="15%" center>Giá</TableHeader>
+                                    <TableHeader width="3%" grey>#</TableHeader>
+                                    <TableHeader width="37%">Tiêu đề</TableHeader>
+                                    <TableHeader width="15%" center>Giờ hoạt động</TableHeader>
+                                    <TableHeader width="15%" center>Ngày hoạt động</TableHeader>
                                     <TableHeader width="15%" center>Trạng thái</TableHeader>
                                     <TableHeader width="15%" center>Hành động</TableHeader>
                                 </TableRow>
@@ -513,8 +545,9 @@ const Product = () =>  {
                                         <TableData center colSpan={100}> <CircularProgress /> </TableData>
                                     </tr>
                                     : 
-                                    <ProductList 
+                                    <MenuList 
                                         currentItems={APIdata} 
+                                        handleGetToggleStatusItem={handleGetToggleStatusItem}
                                         handleGetDeleteItem={handleGetDeleteItem} 
                                     />
                                 }
@@ -525,7 +558,7 @@ const Product = () =>  {
                             loading || APIdata.length === 0 || total <= 10 ?
                             null :
                             <Row mt>
-                                <small>Hiển thị {page * limit + 1} - {page * limit + APIdata.length} trong tổng số {total} sản phẩm.</small>
+                                <small>Hiển thị {page * limit + 1} - {page * limit + APIdata.length} trong tổng số {total} bảng giá.</small>
 
                                 <StyledPaginateContainer>
                                     <ReactPaginate
@@ -558,23 +591,23 @@ const Product = () =>  {
                 :
 
                 <>
-                    <Title>Sản phẩm</Title>
+                    <Title>Bảng giá</Title>
 
                     <TableWrapper>
                         <NoItemWrapper>
-                            <StyledProductIcon />
+                            <StyledMenuIcon />
 
                             <NoItemTitle>
-                                Bạn hiện chưa có sản phẩm
+                                Bạn hiện chưa có bảng giá
                             </NoItemTitle>
 
                             <NoItemText>
-                                Tạo sản phẩm và đưa vào bảng giá giúp khách hàng có thể thấy được sản phẩm của cửa hàng bạn.
+                                Tạo bảng giá và đưa các sản phẩm vào giúp khách hàng có thể thấy được sản phẩm của cửa hàng.
                             </NoItemText>
 
-                            <Link to="/addProduct">
+                            <Link to="/addMenu">
                                 <NoItemButton>
-                                    Tạo sản phẩm
+                                    Tạo bảng giá
                                 </NoItemButton>
                             </Link>
                         </NoItemWrapper>
@@ -583,9 +616,9 @@ const Product = () =>  {
             }
 
             <TipText>
-            <StyledExclamationIcon />
-                Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/S%E1%BA%A3n_ph%E1%BA%A9m"
-                                                  target="_blank">sản phẩm</StyledLink>
+                <StyledExclamationIcon />
+                Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/B%C3%A1o_gi%C3%A1_b%C3%A1n_h%C3%A0ng"
+                                                  target="_blank">bảng giá</StyledLink>
                 <StyledLinkIcon />
             </TipText>
 
@@ -595,8 +628,15 @@ const Product = () =>  {
                 deleteItem={deleteItem}
                 handleDeleteItem={handleDeleteItem}
             />
+        
+            <ToggleStatusModal
+                display={toggleStatusModal}
+                toggle={toggleToggleStatusModal}
+                toggleStatusItem={toggleStatusItem}
+                handleToggleStatus={handleToggleStatus}
+            />
         </PageWrapper>
     )
 }
 
-export default Product;
+export default Menu;

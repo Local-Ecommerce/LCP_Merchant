@@ -2,12 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Link, useParams } from "react-router-dom";
-import { api } from "../../RequestMethod";
+import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
-import { KeyboardBackspace, AddPhotoAlternate, Warning } from '@mui/icons-material';
+import { KeyboardBackspace, Warning } from '@mui/icons-material';
 import { TextField, InputAdornment, FormControlLabel, Radio, RadioGroup, Checkbox } from '@mui/material';
-import ProductOption from './ProductOption';
-import CategoryList from '../../components/Product/CategoryList';
+import imageCompression from 'browser-image-compression';
+import ProductOption from '../components/Product/ProductOption';
+import ImageUpload from '../components/Product/ImageUpload';
+import CategoryList from '../components/Product/CategoryList';
 
 const PageWrapper = styled.div`
     min-width: 600px;
@@ -47,6 +49,7 @@ const ContainerWrapper = styled.div`
     box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
     background-color: #fff;
     border-radius: 5px;
+    border: ${props => props.error ? "2px solid " + props.theme.red : null};
 `;
 
 const StyledTextFieldMb = styled(TextField)`
@@ -90,11 +93,12 @@ const StyledWarningIcon = styled(Warning)`
 `;
 
 const HelperText = styled.div`
-    margin-left: ${props => props.m0 ? "0px" : "30px"};
+    margin-left: ${props => props.ml0 ? "0px" : "30px"};
     align-items: center;
     text-decoration: none;
     font-size: ${props => props.error ? "13px" : "14px"};
     margin-top: ${props => props.error ? "10px" : "0px"};
+    margin-bottom: ${props => props.mb ? "15px" : "0px"};
     color: ${props => props.error ? props.theme.red : "#727272"};
 `;
 
@@ -127,46 +131,6 @@ const Button = styled.button`
     }
 `;
 
-const ImageListWrapper = styled.div`
-    display: flex;
-    flex-wrap: wrap;
-    margin-bottom: 30px;
-`;
-
-const ImageWrapper = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: 14px;
-    margin: 0px 35px 20px 0px;
-`;
-
-const StyledPhotoIcon = styled(AddPhotoAlternate)`
-    && {
-        cursor: pointer;
-        border: 2px dashed #727272;
-        padding: 40px;
-        border-radius: 5px;
-        color: #383838;
-        margin-bottom: 10px;
-
-        &:active {
-            border: 2px solid #727272;
-        }
-
-        &:hover {
-            opacity: 0.8;
-            background-color: #E8E8E8;
-        }
-    }
-`;
-
-const HiddenInputFile = styled.input`
-    opacity: 0;
-    position: absolute;
-    z-index: -1;
-`;
-
 const OptionLabel = styled.div`
     margin-top: ${props => props.mt ? "20px" : "0px"};
     margin-bottom: 10px;
@@ -177,8 +141,9 @@ const EditProduct = () => {
     const { id } = useParams();
 
     const [item, setItem] = useState({});
-    const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: 0, images: [], colors: [], sizes: [],  weights: [], code: 'AP-001' });
-    const [error, setError] = useState({ name: '', category: '', price: '', colors: '', sizes: '', weights: '', code: '' });
+    const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: 0, colors: [], sizes: [],  weights: [], code: 'AP-001' });
+    const [images, setImages] = useState([ { name: 0, image: '' } ]);
+    const [error, setError] = useState({ name: '', category: '', price: '', colors: '', image: '', sizes: '', weights: '', code: '' });
 
     const [combination, setCombination] = useState([ { id: '', color: null, size: null, weight: null } ]);
 
@@ -235,12 +200,15 @@ const EditProduct = () => {
                                 description: res2.data.Data.List[0].Description,
                                 shortDescription: res2.data.Data.List[0].BriefDescription,
                                 price: res2.data.Data.List[0].DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-                                image: res2.data.Data.List[0].Image,
                                 status: res2.data.Data.List[0].Status,
                                 colors: colorArray,
                                 sizes: sizeArray,
                                 weights: weightArray,
                             }));
+
+                            setImages(res2.data.Data.List[0].Image.split("|").map((item, index) => (
+                                { name: index, image: item }
+                            )));
 
                             api.get("categories?id=" + res2.data.Data.List[0].SystemCategoryId + "&include=parent")
                             .then(function (res3) {
@@ -352,6 +320,7 @@ const EditProduct = () => {
     }
 
     const handleGetCategoryLv1 = (id) => {
+        setError(error => ({ ...error, category: '' }));
         setInput(input => ({ ...input, category: {lv1: id, lv2: '', lv3: ''} }));
         setLv2Category(lv1Category.filter((item) => {
             return item.SystemCategoryId === id;
@@ -370,6 +339,46 @@ const EditProduct = () => {
     const handleGetCategoryLv3 = (id) => {
         setInput(input => ({ ...input, category: {lv1: input.category.lv1, lv2: input.category.lv2, lv3: id} }));
     }
+
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+
+    const handleSetImage = async (e) => {
+        setError(error => ({ ...error, image: '' }));
+        const { name } = e.target;
+        const [file] = e.target.files;
+        const options = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 640,
+            fileType: "image/jpg"
+        }
+        if (file) {
+            const compressedFile = await imageCompression(file, options);
+            const base64 = await toBase64(compressedFile);
+
+            let newImages = [...images];
+            let index = newImages.findIndex(obj => parseInt(obj.name) === parseInt(name));
+
+            if (images.filter(item => item.image === base64.toString()).length === 0) {
+                newImages[index] = { name: name, image: base64.toString() };
+                setImages(newImages);
+            } else {
+                setError(error => ({ ...error, image: 'Ảnh trùng. Vui lòng chọn ảnh khác.' }));
+            }
+        }
+    };
+
+    const handleRemoveImage = (name) => {
+        setError(error => ({ ...error, image: '' }));
+        let newImages = [...images];
+        let index = newImages.findIndex(obj => parseInt(obj.name) === parseInt(name));
+        newImages[index] = { name: name, image: '' };
+        setImages(newImages);
+    };
 
     const handleEditItem = (event) => {
         event.preventDefault();
@@ -484,6 +493,10 @@ const EditProduct = () => {
             setError(error => ({ ...error, price: 'Vui lòng nhập giá' }));
             check = true;
         }
+        if (images[0].image === '') {
+            setError(error => ({ ...error, image: 'Xin hãy chọn ảnh bìa cho sản phẩm' }));
+            check = true;
+        }
         if (input.code === null || input.code === '') {
             setError(error => ({ ...error, code: 'Vui lòng nhập mã sản phẩm' }));
             check = true;
@@ -503,7 +516,7 @@ const EditProduct = () => {
             </Row>
             
             <form onSubmit={handleEditItem} id="form">
-                <ContainerWrapper>
+                <ContainerWrapper error={error.name !== ''}>
                     <Row spacebetween>
                         <FormLabel>Tên sản phẩm</FormLabel>
                         <HelperText ml0>{input.name.length}/250 kí tự</HelperText>
@@ -545,7 +558,7 @@ const EditProduct = () => {
                     />
                 </ContainerWrapper>
 
-                <ContainerWrapper>
+                <ContainerWrapper error={error.category !== ''}>
                     <FormLabel>Danh mục</FormLabel>
 
                     <RadioGroup value={type} name='type' onChange={handleSetType}>
@@ -580,7 +593,7 @@ const EditProduct = () => {
                     <HelperText error> {error.category} </HelperText>
                 </ContainerWrapper>
 
-                <ContainerWrapper p0>
+                <ContainerWrapper p0 error={error.price !== '' || error.image !== ''}>
                     <FormLabel>Giá mặc định</FormLabel>
                     <StyledTextFieldMb
                         fullWidth
@@ -592,17 +605,19 @@ const EditProduct = () => {
                     />
 
                     <FormLabel>Hình ảnh</FormLabel>
-                    <ImageListWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Ảnh bìa<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 1<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 2<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 3<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 4<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 5<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 6<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 7<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                        <ImageWrapper><StyledPhotoIcon /> Hình ảnh 8<HiddenInputFile type="file" id="upload-photo" /></ImageWrapper>
-                    </ImageListWrapper>
+                    <HelperText ml0 mb>Chỉ hình ảnh đầu tiên được lưu nếu trùng lặp.</HelperText>
+                    <HelperText ml0 mb error>{error.image}</HelperText>
+
+                    {
+                        loading ? 
+                        null :
+                        <ImageUpload
+                            images={images}
+                            setImages={setImages}
+                            handleSetImage={handleSetImage}
+                            handleRemoveImage={handleRemoveImage}
+                        />
+                    }
                 </ContainerWrapper>
 
 
@@ -647,7 +662,7 @@ const EditProduct = () => {
                             helperText={error.code}
                         />
                         :
-                        <HelperText m0>
+                        <HelperText ml0>
                             Dựa trên tiền tố hiện tại, mã của sản phẩm này sẽ là AP-001. 
                             Cửa hàng có thể điều chỉnh tiền tố của mình trong cài đặt.
                         </HelperText>

@@ -4,7 +4,7 @@ import Modal from 'react-modal';
 import { Link } from "react-router-dom";
 import { Search, ProductionQuantityLimits } from '@mui/icons-material';
 
-import ProductInAddModalList from '../../components/Menu/ProductInAddModalList';
+import ProductInAddModalList from './ProductInAddModalList';
 
 const Row = styled.div`
     display: flex;
@@ -79,8 +79,11 @@ const ModalTitle = styled.h4`
 
 const ModalContentWrapper = styled.div`
     padding: 20px;
-    height: 50vh;
+    min-height: 50vh;
+    max-height: 50vh;
+    overflow-y: scroll;
 `;
+
 const ModalButtonWrapper = styled.div`
     border-top: 1px solid #cfd2d4;
     padding: 20px;
@@ -211,9 +214,7 @@ const AddItemModal = ({ display, toggle, stock, saveItem, handleToggleChecked })
                                 handleToggle={handleToggleChecked}
                             />
                         </>
-                       
                         :
-
                         <NoProductWrapper>
                                 <StyledProductIcon />
                                 <NoProductTitle>Bạn hiện chưa có sản phẩm</NoProductTitle>

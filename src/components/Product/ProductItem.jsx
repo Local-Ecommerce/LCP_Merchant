@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Delete } from '@mui/icons-material';
+import { Delete, HideImage } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
 
 const Button = styled.button`
@@ -41,7 +41,17 @@ const Image = styled.img`
     vertical-align: middle;
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 3px;
+`;
+
+const StyledNoImageIcon = styled(HideImage)`
+    && {
+        color: ${props => props.theme.grey};
+        font-size: 30px;
+        padding: 5px;
+        border-radius: 3px;
+        border: 1px solid rgba(0,0,0,0.2);
+    }
 `;
 
 const Status = styled.span`
@@ -113,7 +123,13 @@ const ProductItem = ({ item, handleGetDeleteItem }) =>  {
 
     return (
         <TableRow onClick={() => navigate("/product/" + item.ProductId)}>
-            <TableData center> <Image src={item.Image} /> </TableData>
+            <TableData center>
+                {
+                    item.Image ?
+                    <Image src={item.Image ? item.Image.split("|")[0] : ''} />
+                    : <StyledNoImageIcon />
+                }
+            </TableData>
             <TableData>{item.ProductName}</TableData>
             <TableData center>{item.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ</TableData>
             <TableData center> <Status active={activeCheck}>{activeLabel}</Status> </TableData>

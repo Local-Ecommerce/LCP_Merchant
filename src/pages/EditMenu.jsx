@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Link, useParams } from "react-router-dom";
-import { api } from "../../RequestMethod";
+import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, ArrowRight, Search, AddBox } from '@mui/icons-material';
 import { TextField, CircularProgress } from '@mui/material';
@@ -11,9 +11,9 @@ import { TimePicker, LocalizationProvider } from '@mui/lab';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import { DateTime } from 'luxon';
 
-import AddItemModal from './AddItemModal';
-import ConfirmModal from './ConfirmModal';
-import ProductInMenuList from '../../components/Menu/ProductInMenuList';
+import AddItemModal from '../components/Menu/AddItemModal';
+import ConfirmModal from '../components/Menu/ConfirmModal';
+import ProductInMenuList from '../components/Menu/ProductInMenuList';
 
 const PageWrapper = styled.form`
     min-width: 720px;
@@ -332,6 +332,7 @@ const EditMenu = () => {
             api.get("menus?id=" + id + "&include=product")
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
+                    console.log(res.data.Data.List[0])
                     setMenu(res.data.Data.List[0]);
                     setProducts(res.data.Data.List[0].ProductInMenus);
                     setNewProducts(res.data.Data.List[0].ProductInMenus.map((item) => ({ ...item, Price: item.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") })));
@@ -359,11 +360,19 @@ const EditMenu = () => {
                     api.get(url).then(function (res2) {
                         if (res2.data.ResultMessage === "SUCCESS") {
                             setStock(res2.data.Data.List.map((item) => (
+                                res.data.Data.List[0].ProductInMenus.some((item2) => item2.Product.ProductId.includes( item.ProductId )) ?
                                 { 
                                     Product: item, 
-                                    Price: res.data.Data.List[0].ProductInMenus.find((item2) => item2.Product.ProductId.includes( item.ProductId )) !== undefined ? res.data.Data.List[0].ProductInMenus.find((item2) => item2.Product.ProductId.includes( item.ProductId )).Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : item.DefaultPrice.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
-                                    ProductInMenuId: res.data.Data.List[0].ProductInMenus.find((item2) => item2.Product.ProductId.includes( item.ProductId )) !== undefined ? res.data.Data.List[0].ProductInMenus.find((item2) => item2.Product.ProductId.includes( item.ProductId )).ProductInMenuId : null,
-                                    checked: res.data.Data.List[0].ProductInMenus.some((item2) => item2.Product.ProductId.includes( item.ProductId ))
+                                    Price: res.data.Data.List[0].ProductInMenus.find((item2) => item2.Product.ProductId.includes( item.ProductId )).Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
+                                    ProductInMenuId: res.data.Data.List[0].ProductInMenus.find((item2) => item2.Product.ProductId.includes( item.ProductId )).ProductInMenuId,
+                                    checked: true
+                                } 
+                                :
+                                {
+                                    Product: item, 
+                                    Price: item.DefaultPrice.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
+                                    ProductInMenuId: null,
+                                    checked: false
                                 }
                             )));
                             setLoading(false);
@@ -545,7 +554,7 @@ const EditMenu = () => {
         <PageWrapper>
             <Row>
                 <Link to="/menus"><StyledBackIcon /></Link>
-                <Title><TitleGrey>Bảng giá </TitleGrey>/ {menu.MenuName}</Title>
+                <Title><TitleGrey>Bảng giá </TitleGrey>/ {loading ? '' : menu.MenuName}</Title>
             </Row>
 
             <FlexWrapper>

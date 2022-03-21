@@ -108,8 +108,13 @@ const MenuItem = ({ item, handleGetToggleStatusItem, handleGetDeleteItem, index 
         <TableRow onClick={() => navigate("/menu/" + item.MenuId)}>
             <TableData grey>{index + 1}</TableData>
             <TableData>{item.MenuName}</TableData>
-            <TableData center>{item.TimeStart}</TableData>
-            <TableData center>{item.TimeEnd}</TableData>
+            <TableData center>
+                {
+                    item.TimeStart === '00:00:00' && item.TimeEnd === '23:59:59' ?
+                    "Cả ngày" :
+                    item.TimeStart.slice(0,5) + " - " + item.TimeEnd.slice(0,5)
+                }
+            </TableData>
             <TableData center>
                 {item.RepeatDate.includes('2') ? <DaySpan green>2</DaySpan> : <DaySpan>2</DaySpan>}
                 {item.RepeatDate.includes('3') ? <DaySpan green>3</DaySpan> : <DaySpan>3</DaySpan>}

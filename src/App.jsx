@@ -11,15 +11,15 @@ import Header  from './pages/Header';
 import Sidebar from './pages/Sidebar';
 import PageNotFound from './pages/PageNotFound';
 
-import Product from './pages/Product/Product';
-import AddProduct from './pages/Product/AddProduct';
-import EditProduct from './pages/Product/EditProduct';
+import Product from './pages/Product';
+import AddProduct from './pages/AddProduct';
+import EditProduct from './pages/EditProduct';
 
-import Menu from './pages/Menu/Menu';
-import AddMenu from './pages/Menu/AddMenu';
-import EditMenu from './pages/Menu/EditMenu';
+import Menu from './pages/Menu';
+import AddMenu from './pages/AddMenu';
+import EditMenu from './pages/EditMenu';
 
-import StoreDetail from './pages/Setting/StoreDetail';
+import StoreDetail from './pages/StoreDetail';
 
 const HeaderWrapper = styled.div`
     position:absolute; position: fixed; 
