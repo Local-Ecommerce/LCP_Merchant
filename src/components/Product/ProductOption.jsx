@@ -161,6 +161,17 @@ const ProductOption = ({ passedData, savedData, type, saveOption, editOption }) 
         setValues(newValues);
     }
 
+    const changeWeightValue = (e) => {
+        const { name, value } = e.target;
+        let newValues = [...values];
+        let index = newValues.findIndex(obj => parseInt(obj.name) === parseInt(name));
+        let inputValue = value.replace(/\D/g,'');
+        let error = (newValues.find(obj => obj.value === inputValue && obj.name !== name && inputValue !== '') ? "Tùy chọn đã tồn tại" : "");
+        let old = false;
+        newValues[index] = { name, value: inputValue, error, old };
+        setValues(newValues);
+    }
+
     const addValue = (newValue) => {
         if (values.length < 5) {
             setCount(count + 1);
@@ -286,15 +297,13 @@ const ProductOption = ({ passedData, savedData, type, saveOption, editOption }) 
                                     {
                                         type === 'weights' ?
                                         <StyledOptionTextField key={index}
-                                            size="small" type="number"
+                                            size="small"
                                             InputProps={{ 
-                                                style: {fontSize: 14}, 
-                                                inputMode: 'numeric', 
-                                                pattern: '[0-9]*', 
+                                                style: {fontSize: 14},
                                                 startAdornment: <InputAdornment position="start">kg</InputAdornment> 
                                             }}
                                             value={item.value} name={item.name.toString()}
-                                            onChange={changeValue}
+                                            onChange={changeWeightValue}
                                             error={item.error !== ''}
                                             helperText={item.error}
                                         />

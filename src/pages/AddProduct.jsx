@@ -10,6 +10,9 @@ import ImageUpload from '../components/Product/ImageUpload';
 import CategoryList from '../components/Product/CategoryList';
 import imageCompression from 'browser-image-compression';
 
+import { db } from "../firebase";
+import { ref, push } from "firebase/database";
+
 const PageWrapper = styled.div`
     min-width: 600px;
     max-width: 900px;
@@ -138,6 +141,8 @@ const OptionLabel = styled.div`
 
 const AddProduct = () => {    
     let navigate = useNavigate();
+    const user = JSON.parse(localStorage.getItem('USER'));
+    const [processing, setProcessing] = useState(false);
 
     const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: '', colors: [], sizes: [],  weights: [], code: 'AP-001' });
     const [images, setImages] = useState([ { name: 0, image: '' } ]);
@@ -286,7 +291,7 @@ const AddProduct = () => {
 
     const handleAddItem = (event) => {
         event.preventDefault();
-
+        setProcessing(true);
         if (checkValid()) {
             const notification = toast.loading("Đang xử lí yêu cầu...");
             const addData = async () => {
@@ -336,16 +341,29 @@ const AddProduct = () => {
                 })
                 .then(function (res) {
                     if (res.data.ResultMessage === "SUCCESS") {
+                        push(ref(db, `Notification/` + user.Residents[0].ApartmentId), {
+                            createdDate: Date.now(),
+                            data: {
+                                name: input.name
+                            },
+                            read: 0,
+                            receiverId: user.Residents[0].ApartmentId,
+                            senderId: user.Residents[0].ResidentId,
+                            type: '003'
+                        });
                         navigate("/products");
                         toast.update(notification, { render: "Tạo sản phẩm thành công!", type: "success", autoClose: 5000, isLoading: false });
                     }
                 })
                 .catch(function (error) {
                     console.log(error);
+                    setProcessing(false);
                     toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
                 });
             };
             addData();
+        } else {
+            setProcessing(false);
         }
     }
 
@@ -555,6 +573,8 @@ const AddProduct = () => {
                                 <WarningText error>Bạn có thông tin chưa điền!</WarningText>
                                 <Button disabled>Tạo mới</Button>
                             </>
+                            : processing ?
+                            <Button disabled>Tạo mới</Button>
                             :
                             <Button>Tạo mới</Button>
                         }
