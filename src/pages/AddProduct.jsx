@@ -328,7 +328,7 @@ const AddProduct = () => {
                                         color: color.value,
                                         weight: weight.value,
                                         systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
-                                        image: images.filter(item => item.image !== '').map(item => item.image.split(',')[1])
+                                        image: []
                                     }
                                 })
                             }).reduce((total, value) => {
@@ -573,10 +573,8 @@ const AddProduct = () => {
                                 <WarningText error>Bạn có thông tin chưa điền!</WarningText>
                                 <Button disabled>Tạo mới</Button>
                             </>
-                            : processing ?
-                            <Button disabled>Tạo mới</Button>
                             :
-                            <Button>Tạo mới</Button>
+                            <Button disabled={processing}>Tạo mới</Button>
                         }
                     </FloatRight>
                 </FooterWrapper>
