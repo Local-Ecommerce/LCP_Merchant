@@ -141,13 +141,12 @@ const EditProduct = () => {
     const { id } = useParams();
 
     const [item, setItem] = useState({});
-    const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: 0, colors: [], sizes: [],  weights: [], code: 'AP-001' });
+    const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: 0, colors: [], sizes: [],  weights: [], code: '' });
     const [images, setImages] = useState([ { name: 0, image: '' } ]);
     const [error, setError] = useState({ name: '', category: '', price: '', colors: '', image: '', sizes: '', weights: '', code: '' });
 
     const [combination, setCombination] = useState([ { id: '', color: null, size: null, weight: null } ]);
 
-    const [manual, setManual] = useState(true);
     const [type, setType] = useState('Khác');
     const [loading, setLoading] = useState(false);
     const [change, setChange] = useState(false);
@@ -294,15 +293,6 @@ const EditProduct = () => {
         setType(value);
         setLv2Category([]);
         setLv3Category([]);
-    };
-
-    const handleSetManual = () => {
-        if (manual) {
-            setInput(input => ({ ...input, code: 'AP-001' }));
-        } else {
-            setInput(input => ({ ...input, code: item.ProductCode }));
-        }
-        setManual(!manual);
     };
 
     const saveOption = (option, data) => {
@@ -462,8 +452,8 @@ const EditProduct = () => {
                 }));
             }
 
+            const notification = toast.loading("Đang xử lí yêu cầu...");
             if (APIarray.length) {
-                const notification = toast.loading("Đang xử lí yêu cầu...");
                 Promise.all(APIarray)
                 .then(function (results) {
                     setChange(!change);
@@ -473,6 +463,8 @@ const EditProduct = () => {
                     console.log(error);
                     toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
                 });
+            } else {
+                toast.update(notification, { render: "Vui lòng chỉnh sửa sản phẩm trước khi chọn cập nhật.", type: "info", autoClose: 5000, isLoading: false });
             }
         }
     }
@@ -631,43 +623,22 @@ const EditProduct = () => {
                 </ContainerWrapper>
 
                 <ContainerWrapper>
-                    <FormLabel>Mã sản phẩm</FormLabel>
                     <Row spacebetween>
-                        <FormControlLabel
-                            style={{ pointerEvents: "none" }}
-                            control={
-                                <Checkbox
-                                    checked={manual}
-                                    onClick={handleSetManual}
-                                    style={{ pointerEvents: "auto" }}
-                                />
-                            }
-                            label={<span style={{ fontSize: '14px' }}>Đặt thủ công</span>} 
-                        />
-
-                        {
-                            manual ?
-                            <HelperText ml0>{input.code.length}/200 kí tự</HelperText>
-                            : null
-                        }
+                        <FormLabel>Mã sản phẩm</FormLabel>
+                        <HelperText ml0>{input.code.length}/200 kí tự</HelperText>
                     </Row>
-                    {
-                        manual ?
-                        <TextField
-                            fullWidth size="small" placeholder="Ví dụ: Bánh mì 2 trứng" 
-                            inputProps={{ maxLength: 200, style: {fontSize: 14} }}
-                            value={loading ? "Đang tải..." : input.code} name='code'
-                            onChange={handleChange}
-                            error={error.code !== ''}
-                            helperText={error.code}
-                        />
-                        :
-                        <HelperText ml0>
-                            Dựa trên tiền tố hiện tại, mã của sản phẩm này sẽ là AP-001. 
-                            Cửa hàng có thể điều chỉnh tiền tố của mình trong cài đặt.
-                        </HelperText>
-                    }
                     
+                    <TextField
+                        fullWidth size="small" placeholder="Ví dụ: AP-001" 
+                        inputProps={{ maxLength: 200, style: {fontSize: 14} }}
+                        value={input.code ? input.code : ''} name='code'
+                        onChange={handleChange}
+                        error={error.code !== ''}
+                        helperText={error.code}
+                    />
+                    <HelperText mt ml0>
+                        Mã sản phẩm giúp người bán dễ dàng quẩn lí sản phẩm của mình. Để trống nếu bạn không rõ.
+                    </HelperText>
                 </ContainerWrapper>
 
                 <FooterWrapper>

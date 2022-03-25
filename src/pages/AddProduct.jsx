@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, Warning } from '@mui/icons-material';
-import { TextField, InputAdornment, FormControlLabel, Radio, RadioGroup, Checkbox } from '@mui/material';
+import { TextField, InputAdornment, FormControlLabel, Radio, RadioGroup } from '@mui/material';
 import ProductOption from '../components/Product/ProductOption';
 import ImageUpload from '../components/Product/ImageUpload';
 import CategoryList from '../components/Product/CategoryList';
@@ -99,7 +99,7 @@ const HelperText = styled.div`
     align-items: center;
     text-decoration: none;
     font-size: ${props => props.error ? "13px" : "14px"};
-    margin-top: ${props => props.error ? "10px" : "0px"};
+    margin-top: ${props => props.error || props.mt ? "10px" : "0px"};
     margin-bottom: ${props => props.mb ? "15px" : "0px"};
     color: ${props => props.error ? props.theme.red : "#727272"};
 `;
@@ -144,11 +144,10 @@ const AddProduct = () => {
     const user = JSON.parse(localStorage.getItem('USER'));
     const [processing, setProcessing] = useState(false);
 
-    const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: '', colors: [], sizes: [],  weights: [], code: 'AP-001' });
+    const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: '', colors: [], sizes: [],  weights: [], code: '' });
     const [images, setImages] = useState([ { name: 0, image: '' } ]);
     const [error, setError] = useState({ name: '', category: '', price: '', image: '', colors: '', sizes: '', weights: '', code: '' });
 
-    const [manual, setManual] = useState(false);
     const [type, setType] = useState('Khác');
     const sort = '+syscategoryname';
 
@@ -208,15 +207,6 @@ const AddProduct = () => {
         setType(value);
         setLv2Category([]);
         setLv3Category([]);
-    };
-
-    const handleSetManual = () => {
-        if (manual) {
-            setInput(input => ({ ...input, code: 'AP-001' }));
-        } else {
-            setInput(input => ({ ...input, code: '' }));
-        }
-        setManual(!manual);
     };
 
     const saveOption = (option, data) => {
@@ -519,43 +509,22 @@ const AddProduct = () => {
                 </ContainerWrapper>
 
                 <ContainerWrapper>
-                    <FormLabel>Mã sản phẩm</FormLabel>
                     <Row spacebetween>
-                        <FormControlLabel
-                            style={{ pointerEvents: "none" }}
-                            control={
-                                <Checkbox
-                                    onClick={handleSetManual}
-                                    style={{ pointerEvents: "auto" }}
-                                />
-                            }
-                            label={<span style={{ fontSize: '14px' }}>Đặt thủ công</span>} 
-                        />
-
-                        {
-                            manual ?
-                            <HelperText ml0>{input.code.length}/200 kí tự</HelperText>
-                            : null
-                        }
+                        <FormLabel>Mã sản phẩm</FormLabel>
+                        <HelperText ml0>{input.code.length}/200 kí tự</HelperText>
                     </Row>
                     
-                    {
-                        manual ?
-                        <TextField
-                            fullWidth size="small" placeholder="Ví dụ: Bánh mì 2 trứng" 
-                            inputProps={{ maxLength: 200, style: {fontSize: 14} }}
-                            value={input.code ? input.code : ''} name='code'
-                            onChange={handleChange}
-                            error={error.code !== ''}
-                            helperText={error.code}
-                        />
-                        :
-                        <HelperText ml0>
-                            Dựa trên tiền tố hiện tại, mã của sản phẩm này sẽ là AP-001. 
-                            Cửa hàng có thể điều chỉnh tiền tố của mình trong cài đặt.
-                        </HelperText>
-                    }
-                    
+                    <TextField
+                        fullWidth size="small" placeholder="Ví dụ: AP-001" 
+                        inputProps={{ maxLength: 200, style: {fontSize: 14} }}
+                        value={input.code ? input.code : ''} name='code'
+                        onChange={handleChange}
+                        error={error.code !== ''}
+                        helperText={error.code}
+                    />
+                    <HelperText mt ml0>
+                        Mã sản phẩm giúp người bán dễ dàng quẩn lí sản phẩm của mình. Để trống nếu bạn không rõ.
+                    </HelperText>
                 </ContainerWrapper>
 
                 <FooterWrapper>

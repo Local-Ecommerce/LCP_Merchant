@@ -119,7 +119,7 @@ const App = () => {
 				/>
 
 				<Route 
-					path="/settings/storeDetail" 
+					path="/storeDetail" 
 					element={<RequireLoggedIn> <StoreDetail /> </RequireLoggedIn>} 
 				/>
 			</Route>

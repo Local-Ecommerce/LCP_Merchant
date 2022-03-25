@@ -62,7 +62,7 @@ const SidebarData = [
     },
     {
         title: 'Thông tin cửa hàng',
-        path: '/settings/storeDetail',
+        path: '/storeDetail',
         icon: <StyledSettingIcon />,
     }
 ];

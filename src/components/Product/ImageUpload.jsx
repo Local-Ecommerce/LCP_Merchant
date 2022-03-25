@@ -3,9 +3,9 @@ import styled from "styled-components";
 import { Close, AddPhotoAlternate, Add } from "@mui/icons-material";
 
 const ImageListWrapper = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  margin-bottom: 30px;
+	display: flex;
+	flex-wrap: wrap;
+	margin-bottom: 30px;
 `;
 
 const ImageWrapper = styled.div`
@@ -95,106 +95,96 @@ const HiddenInputFile = styled.input`
   z-index: -1;
 `;
 
-const ImageUpload = ({
-  images,
-  setImages,
-  handleSetImage,
-  handleRemoveImage,
-}) => {
-  const [index, setIndex] = useState(1);
+const ImageUpload = ({ images, setImages, handleSetImage, handleRemoveImage }) => {
+  	const [index, setIndex] = useState(1);
 
-  useEffect(() => {
-    images.forEach((item) => {
-      if (item.image.startsWith("https://firebasestorage.googleapis.com/")) {
-        document.getElementById(item.name).src = item.image;
-      }
-    });
-    setIndex(images.length);
-  }, []);
+  	useEffect(() => {
+		images.forEach((item) => {
+      		if (item.image.startsWith("https://firebasestorage.googleapis.com/")) {
+        		document.getElementById(item.name).src = item.image;
+			}
+		});
+		setIndex(images.length);
+  	}, []);
 
-  const addImage = () => {
-    if (Object.keys(images).length < 16) {
-      setImages((prev) => [...prev, { name: index, image: "" }]);
-      setIndex(index + 1);
-    }
-  };
+	const addImage = () => {
+		if (Object.keys(images).length < 16) {
+			setImages((prev) => [...prev, { name: index, image: "" }]);
+			setIndex(index + 1);
+		}
+	};
 
-  const removeBlankImage = (name) => {
-    setImages(
-      images.filter((item) => {
-        return item.name !== name;
-      })
-    );
-  };
+	const removeBlankImage = (name) => {
+		setImages(
+			images.filter((item) => {
+				return item.name !== name;
+			})
+		);
+	};
 
   return (
-    <ImageListWrapper>
-      <ImageWrapper>
-        {images[0].image === "" ? (
-          <label>
-            <HiddenInputFile
-              type="file"
-              name={images[0].name}
-              accept="image/png, image/jpeg"
-              onChange={handleSetImage}
-            />
-            <StyledPhotoIcon />
-          </label>
-        ) : (
-          <StyledCloseButton
-            onClick={() => handleRemoveImage(images[0].name)}
-          />
-        )}
-        <Image
-          id={images[0].name}
-          src={images[0].image}
-          display={images[0].image === "" ? "false" : "true"}
-        />
-        Ảnh bìa
-      </ImageWrapper>
+		<ImageListWrapper>
+			<ImageWrapper>
+				{
+					images[0].image === "" ? 
+					<label>
+						<HiddenInputFile type="file" name={images[0].name} accept="image/png, image/jpeg" onChange={handleSetImage} />
+						<StyledPhotoIcon />
+					</label>
+					: 
+					<StyledCloseButton onClick={() => handleRemoveImage(images[0].name)} />
+				}
+				<Image id={images[0].name} src={images[0].image} display={images[0].image === "" ? "false" : "true"} />
+				Ảnh bìa
+			</ImageWrapper>
 
-      {images && images.length > 1
-        ? images.slice(1).map((image, index) => {
-            return (
-              <ImageWrapper key={index}>
-                {image.image === "" ? (
-                  <>
-                    <StyledCloseButton
-                      onClick={() => removeBlankImage(image.name)}
-                    />
-                    <label>
-                      <HiddenInputFile
-                        type="file"
-                        name={image.name}
-                        accept="image/png, image/jpeg"
-                        onChange={handleSetImage}
-                      />
-                      <StyledPhotoIcon />
-                    </label>
-                  </>
-                ) : (
-                  <StyledCloseButton
-                    onClick={() => handleRemoveImage(image.name)}
-                  />
-                )}
-                <Image
-                  id={image.name}
-                  src={image.image}
-                  display={image.image === "" ? "false" : "true"}
-                />
-                Hình ảnh {index + 1}
-              </ImageWrapper>
-            );
-          })
-        : null}
+			{
+				images && images.length > 1 ? 
+				images.slice(1).map((image, index) => {
+					return (
+						<ImageWrapper key={index}>
+							{
+								image.image === "" ? 
+								<>
+									<StyledCloseButton
+									onClick={() => removeBlankImage(image.name)}
+									/>
+									<label>
+									<HiddenInputFile
+										type="file"
+										name={image.name}
+										accept="image/png, image/jpeg"
+										onChange={handleSetImage}
+									/>
+									<StyledPhotoIcon />
+									</label>
+								</>
+								: 
+								<StyledCloseButton onClick={() => handleRemoveImage(image.name)} />
+							}
+							<Image
+							id={image.name}
+							src={image.image}
+							display={image.image === "" ? "false" : "true"}
+							/>
+							Hình ảnh {index + 1}
+						</ImageWrapper>
+					);
+				})
+				: null
+			}
 
-      {Object.keys(images).length < 16 ? (
-        <ImageWrapper>
-          <StyledAddIcon onClick={addImage} />
-          Thêm ảnh
-        </ImageWrapper>
-      ) : null}
-    </ImageListWrapper>
+			{
+				Object.keys(images).length < 16 ? 
+				(
+					<ImageWrapper>
+						<StyledAddIcon onClick={addImage} />
+						Thêm ảnh
+					</ImageWrapper>
+				) 
+				: null
+			}
+		</ImageListWrapper>
   );
 };
 

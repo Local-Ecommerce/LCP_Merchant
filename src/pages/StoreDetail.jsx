@@ -2,16 +2,15 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
+import imageCompression from 'browser-image-compression';
+import { Close, AddPhotoAlternate } from "@mui/icons-material";
+
+import { db } from "../firebase";
+import { ref, push } from "firebase/database";
 
 const PageWrapper = styled.div`
     width: 720px;
-    margin: 40px auto;
-`;
-
-const Title = styled.h1`
-    font-size: 16px;
-    color: #383838;
-    margin: 15px 15px ${props => props.mb ? "-5px" : "15px"} 15px;
+    margin: 70px auto;
 `;
 
 const Row = styled.div`
@@ -57,7 +56,7 @@ const StyledHyperlink = styled.a`
 `;
 
 const TextFieldWrapper = styled.div`
-    padding: ${props => props.mb ? "20px 20px 0px 20px" : "20px"};
+    padding: ${props => props.mb0 ? "20px 20px 0px 20px" : "20px"};
 `;
 
 const FooterWrapper = styled.div`
@@ -116,14 +115,85 @@ const HelperText = styled.span`
     color: ${props => props.error ? props.theme.red : props.theme.grey};
 `;
 
+const ImageWrapper = styled.div`
+    padding: ${props => props.mb0 ? "20px 20px 10px 20px" : "20px"};
+`;
+
+const ImageContainer = styled.div`
+    width: 120px;
+    height: 120px;
+    font-size: 14px;
+    position: relative;
+`;
+
+const Image = styled.img`
+  object-fit: contain;
+  width: 120px;
+  height: 120px;
+  margin-bottom: 10px;
+  display: ${(props) => (props.display === "true" ? null : "none")};
+  cursor: pointer;
+`;
+
+const StyledPhotoIcon = styled(AddPhotoAlternate)`
+  && {
+    cursor: pointer;
+    font-size: 30px;
+    border: ${props => props.disabled ? "2px dashed rgba(0,0,0,0.2)" : "2px dashed #727272"};
+    padding: 45px;
+    border-radius: 5px;
+    color: ${props => props.disabled ? "rgba(0,0,0,0.2)" : props.theme.grey};
+    margin-bottom: 10px;
+
+    &:active {
+      transform: ${props => props.disabled ? null : "translateY(1px)"};
+    }
+
+    &:hover {
+      opacity: 0.8;
+      background-color: ${props => props.disabled ? null : "#e8e8e8"}
+    }
+  }
+`;
+
+const StyledCloseButton = styled(Close)`
+  && {
+    position: absolute;
+    padding: 2px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 25px;
+    color: white;
+    font-size: 20px;
+    top: -10px;
+    right: -10px;
+    cursor: pointer;
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    &:hover {
+      opacity: 0.8;
+      background-color: ${(props) => props.theme.dark};
+    }
+  }
+`;
+
+const HiddenInputFile = styled.input`
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+`;
+
 const StoreDetail = () => {
+    const user = JSON.parse(localStorage.getItem('USER'));
+
     const [editable, setEditable] = useState(true);
     const [loading, setLoading] = useState(false);
 
     const [item, setItem] = useState('');
-    const [input, setInput] = useState({ name: '', prefix: '' });
-    const [error, setError] = useState({ name: '', prefix: '' });
-    const [change, setChange] = useState(false);
+    const [input, setInput] = useState({ name: '', image: '' });
+    const [error, setError] = useState({ name: '', image: '' });
 
     useEffect(() => {   //get APIdata store
         setLoading(true);
@@ -134,7 +204,7 @@ const StoreDetail = () => {
                     setItem(res.data.Data.List[0]);
                     setInput({
                         name: res.data.Data.List[0].StoreName,
-                        prefix: 'AP-001'
+                        image: res.data.Data.List[0].StoreImage || ''
                     });
                     setLoading(false);
                 }
@@ -145,7 +215,7 @@ const StoreDetail = () => {
             });
         }
         fetchData();
-    }, [change]);
+    }, []);
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -154,9 +224,36 @@ const StoreDetail = () => {
     }
 
     const handleToggleEditable = () => {
-        if (!editable) { setInput({ name: item.StoreName, prefix: 'AP-001' }) };
+        if (!editable) { setInput({ name: item.StoreName, image: item.StoreImage || '' }) };
         setEditable(!editable);
     }
+
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+
+    const handleSetImage = async (e) => {
+        setError(error => ({ ...error, image: '' }));
+        const [file] = e.target.files;
+        const options = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 640,
+            fileType: "image/jpg"
+        }
+        if (file) {
+            const compressedFile = await imageCompression(file, options);
+            let base64 = await toBase64(compressedFile);
+            setInput(input => ({ ...input, image: base64.toString() }));
+        }
+    };
+
+    const handleRemoveImage = () => {
+        setError(error => ({ ...error, image: '' }));
+        setInput(input => ({ ...input, image: '' }));
+    };
 
     const handleEditItem = (event) => {
         event.preventDefault();
@@ -165,16 +262,25 @@ const StoreDetail = () => {
             const notification = toast.loading("Đang xử lí yêu cầu...");
 
             const editItem = async () => {
+                console.log(input.image.split(',')[1])
                 api.put("stores?id=" + item.MerchantStoreId, {
                     storeName: input.name,
-                    apartmentId: "AP001",
-                    status: 6001
+                    storeImage: input.image.split(',')[1]
                 })
                 .then(function (res) {
                     if (res.data.ResultMessage === "SUCCESS") {
-                        toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
+                        push(ref(db, `Notification/` + user.Residents[0].ApartmentId), {
+                            createdDate: Date.now(),
+                            data: {
+                                name: input.name
+                            },
+                            read: 0,
+                            receiverId: user.Residents[0].ApartmentId,
+                            senderId: user.Residents[0].ResidentId,
+                            type: '103'
+                        });
+                        toast.update(notification, { render: "Gửi cập nhật chờ duyệt thành công!", type: "success", autoClose: 5000, isLoading: false });
                     }
-                    setChange(!change);
                 })
                 .catch(function (error) {
                     console.log(error);
@@ -203,8 +309,6 @@ const StoreDetail = () => {
 
     return (
         <PageWrapper>
-            <Title>Bảng giá</Title>
-
             <form onSubmit={handleEditItem} id="form">
                 <ContainerWrapper>
                     <HeaderWrapper>
@@ -214,7 +318,23 @@ const StoreDetail = () => {
                         </Row>
                     </HeaderWrapper>
 
-                    <TextFieldWrapper mb>
+                    <ImageWrapper mb0>
+                        <FieldLabel>Ảnh cửa hàng</FieldLabel>
+                        <ImageContainer>
+                            {
+                                input.image === "" ? 
+                                <label>
+                                    <HiddenInputFile disabled={editable} type="file" accept="image/png, image/jpeg" onChange={handleSetImage} />
+                                    <StyledPhotoIcon disabled={editable} />
+                                </label>
+                                : 
+                                <StyledCloseButton onClick={handleRemoveImage} />
+                            }
+                            <Image src={input.image} display={input.image === "" ? "false" : "true"} />
+                        </ImageContainer>
+                    </ImageWrapper>
+
+                    <TextFieldWrapper>
                         <Row spacebetween>
                             <FieldLabel>Tên cửa hàng</FieldLabel>
                             <HelperText ml0>{input.name.length}/250 kí tự</HelperText>
@@ -227,21 +347,6 @@ const StoreDetail = () => {
                             error={error.name !== ''}
                          />
                          <HelperText error>{error.name}</HelperText>
-                    </TextFieldWrapper>
-
-                    <TextFieldWrapper>
-                        <Row spacebetween>
-                            <FieldLabel>Tiền tố sản phẩm</FieldLabel>
-                            <HelperText ml0>{input.prefix.length}/100 kí tự</HelperText>
-                        </Row>
-
-                        <TextField
-                            disabled={editable} maxLength={100}
-                            type="text" value={loading ? "Đang tải..." : input.prefix} name='prefix'
-                            onChange={handleChange}
-                            error={error.prefix !== ''}
-                         />
-                         <HelperText error>{error.prefix}</HelperText>
                     </TextFieldWrapper>
                 </ContainerWrapper>
 

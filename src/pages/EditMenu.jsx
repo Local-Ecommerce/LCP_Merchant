@@ -332,7 +332,6 @@ const EditMenu = () => {
             api.get("menus?id=" + id + "&include=product")
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
-                    console.log(res.data.Data.List[0])
                     setMenu(res.data.Data.List[0]);
                     setProducts(res.data.Data.List[0].ProductInMenus);
                     setNewProducts(res.data.Data.List[0].ProductInMenus.map((item) => ({ ...item, Price: item.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") })));

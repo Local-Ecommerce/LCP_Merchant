@@ -46,18 +46,6 @@ const TopText = styled.span`
     font-size: 14px;
 `;
 
-const TimeWrapper = styled.div`
-    flex: 1;
-    margin: 0px;
-    color: #484848;
-    font-size: 12px;
-    font-weight: 400;
-`;
-
-const TimeLabel = styled.span`
-    float: right;
-`;
-
 const BottomText = styled.p`
     margin: 0px;
     overflow: hidden;
@@ -80,21 +68,7 @@ const StyledSeenCircle = styled(Circle)`
     }
 `;
 
-const StatusLabel = styled.span`
-    margin-right: 6px;
-    display: inline-block;
-    padding: 3px 5px;
-    font-size: 0.8em;
-    font-weight: 700;
-    text-align: center;
-    white-space: nowrap;
-    vertical-align: baseline;
-    border-radius: 5px;
-    color: #fff;
-    background-color: ${props => props.red ? "#dc3545" : "#FF8800"};
-`;
-
-const NotificationItem = ({ item, handleRejectItem }) => {
+const NotificationItem = ({ item }) => {
     const date = DateTime.fromISO(item.ApprovedTime)
     const diff = date.diffNow(["years", "months", "days", "hours", "minutes"])
     let timeLabel = '';
@@ -113,24 +87,6 @@ const NotificationItem = ({ item, handleRejectItem }) => {
     } 
     else {
         timeLabel = (Math.abs(diff.toObject().minutes) + ' phút trước');
-    }
-
-    let statusLabel = '';
-    switch(item.Status) {
-        case 1006:
-            statusLabel = <StatusLabel red>Tạo mới</StatusLabel>
-            break;
-        case 1007:
-            statusLabel = <StatusLabel>Cập nhật</StatusLabel>
-            break;
-        case 6006:
-            statusLabel = <StatusLabel red>Tạo mới</StatusLabel>
-            break;
-        case 6007:
-            statusLabel = <StatusLabel>Cập nhật</StatusLabel>
-            break;
-        default:
-            break;
     }
 
     return (
