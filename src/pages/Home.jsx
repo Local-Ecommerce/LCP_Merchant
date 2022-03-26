@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { DateTime } from 'luxon';
-import NotificationList from '../components/Notification/NotificationList';
+import HomeNotificationList from '../components/Notification/HomeNotificationList';
 import Notifications from '../mockdata/Notifications';
 import News from '../mockdata/News';
 
@@ -194,7 +194,7 @@ const Home = () => {
                             <TabHeader center>Thông báo hệ thống</TabHeader>
 
                             <TabBody height="500px">
-                                <NotificationList currentItems={Notifications} />
+                                <HomeNotificationList currentItems={Notifications} />
                             </TabBody>
                         </Tab>
                     </TabWrapper>
@@ -206,7 +206,7 @@ const Home = () => {
                             <TabHeader center>Tin mới</TabHeader>
 
                             <TabBody height="215px">
-                                <NotificationList currentItems={News} />
+                                <HomeNotificationList currentItems={News} />
                             </TabBody>
                         </Tab>
                     </TabWrapper>
@@ -216,7 +216,7 @@ const Home = () => {
                             <TabHeader center>POI</TabHeader>
 
                             <TabBody height="215px">
-                                <NotificationList currentItems={News} />
+                                <HomeNotificationList currentItems={News} />
                             </TabBody>
                         </Tab>
                     </TabWrapper>

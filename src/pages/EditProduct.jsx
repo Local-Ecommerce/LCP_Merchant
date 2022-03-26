@@ -142,10 +142,11 @@ const EditProduct = () => {
 
     const [item, setItem] = useState({});
     const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: 0, colors: [], sizes: [],  weights: [], code: '' });
-    const [images, setImages] = useState([ { name: 0, image: '' } ]);
-    const [error, setError] = useState({ name: '', category: '', price: '', colors: '', image: '', sizes: '', weights: '', code: '' });
+    const [error, setError] = useState({ name: '', category: '', price: '', colors: '', image: '', sizes: '', weights: ''});
 
     const [combination, setCombination] = useState([ { id: '', color: null, size: null, weight: null } ]);
+    const [currentImages, setCurrentImages] = useState([]);
+    const [images, setImages] = useState([ { name: 0, image: '' } ]);
 
     const [type, setType] = useState('Khác');
     const [loading, setLoading] = useState(false);
@@ -192,6 +193,13 @@ const EditProduct = () => {
                                 id: item.ProductId, color: item.Color, size: item.Size, weight: item.Weight
                             })));
 
+                            let images = res2.data.Data.List[0].Image.split("|").map((item, index) => (
+                                { name: index, image: item }
+                            ));
+
+                            setImages(images);
+                            setCurrentImages(images);
+
                             setInput(input => ({
                                 ...input,
                                 code: res2.data.Data.List[0].ProductCode,
@@ -204,10 +212,6 @@ const EditProduct = () => {
                                 sizes: sizeArray,
                                 weights: weightArray,
                             }));
-
-                            setImages(res2.data.Data.List[0].Image.split("|").map((item, index) => (
-                                { name: index, image: item }
-                            )));
 
                             api.get("categories?id=" + res2.data.Data.List[0].SystemCategoryId + "&include=parent")
                             .then(function (res3) {
@@ -369,6 +373,16 @@ const EditProduct = () => {
         newImages[index] = { name: name, image: '' };
         setImages(newImages);
     };
+    
+    useEffect(() => {
+        console.log(currentImages)
+        console.log(images)
+        let difference = currentImages.filter(o1 => !images.some(o2 => o1.image === o2.image))
+        .concat(images.filter(o1 => !currentImages.some(o2 => o1.image === o2.image)))
+        .filter(item => item.image !== '').map(item => item.image.includes(',') ? item.image.split(',')[1] : item.image)
+        console.log(difference)
+        //console.log(images.filter(item => item.image !== '').map(item => item.image.includes(',') ? item.image.split(',')[1] : item.image))
+    }, [images])
 
     const handleEditItem = (event) => {
         event.preventDefault();
@@ -386,7 +400,7 @@ const EditProduct = () => {
                     })
                 })
             })
-            let difference = newCombination.filter(
+            const combinationDifference = newCombination.filter(
                     o1 => !combination.some(o2 => o1.color === o2.color && o1.size === o2.size && o1.weight === o2.weight))
                 .concat(combination.filter(
                     o1 => !newCombination.some(o2 => o1.color === o2.color && o1.size === o2.size && o1.weight === o2.weight)
@@ -396,7 +410,7 @@ const EditProduct = () => {
             let deleteArray = [];
             let insertArray = [];
 
-            difference.forEach((item) => {
+            combinationDifference.forEach((item) => {
                 if (item.id !== null) {
                     deleteArray.push(item.id);
                 } else {
@@ -410,12 +424,14 @@ const EditProduct = () => {
                         color: item.color,
                         weight: item.weight,
                         systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
-                        image: [
-                            // "string"
-                        ]
+                        image: []
                     });
                 }
             });
+
+            const imageDifference = currentImages.filter(o1 => !images.some(o2 => o1.image === o2.image))
+            .concat(images.filter(o1 => !currentImages.some(o2 => o1.image === o2.image)))
+            .filter(item => item.image !== '').map(item => item.image.includes(',') ? item.image.split(',')[1] : item.image);
 
             let APIarray = [];
             if (item.ProductCode !== input.code 
@@ -423,6 +439,7 @@ const EditProduct = () => {
                 || item.Description !== input.description
                 || item.BriefDescription !== input.shortDescription
                 || item.DefaultPrice.toString().replace(/\D/g, "") !== input.price.replace(/\D/g, "")
+                || imageDifference.length
             ) {
                 APIarray.push(api.put("products", {
                     products: [
@@ -433,9 +450,7 @@ const EditProduct = () => {
                             description: input.description,
                             defaultPrice: input.price.replace(/\D/g, ""),
                             systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
-                            image: [
-                                // "string"
-                            ],
+                            image: imageDifference,
                             productId: id
                         }
                     ]
@@ -471,7 +486,7 @@ const EditProduct = () => {
 
     const checkValid = () => {
         let check = false;
-        setError(error => ({ ...error, name: '', colors: '', sizes: '', weights: '', category: '', price: '', code: '' }));
+        setError(error => ({ ...error, name: '', colors: '', sizes: '', weights: '', category: '', price: '' }));
 
         if (input.name === null || input.name === '') {
             setError(error => ({ ...error, name: 'Vui lòng nhập tên sản phẩm' }));
@@ -487,10 +502,6 @@ const EditProduct = () => {
         }
         if (images[0].image === '') {
             setError(error => ({ ...error, image: 'Xin hãy chọn ảnh bìa cho sản phẩm' }));
-            check = true;
-        }
-        if (input.code === null || input.code === '') {
-            setError(error => ({ ...error, code: 'Vui lòng nhập mã sản phẩm' }));
             check = true;
         }
         if (check) {
@@ -633,8 +644,6 @@ const EditProduct = () => {
                         inputProps={{ maxLength: 200, style: {fontSize: 14} }}
                         value={input.code ? input.code : ''} name='code'
                         onChange={handleChange}
-                        error={error.code !== ''}
-                        helperText={error.code}
                     />
                     <HelperText mt ml0>
                         Mã sản phẩm giúp người bán dễ dàng quẩn lí sản phẩm của mình. Để trống nếu bạn không rõ.
@@ -650,7 +659,7 @@ const EditProduct = () => {
                                 <WarningText>Bạn có tùy chọn chưa lưu!</WarningText>
                                 <Button disabled>Cập nhật</Button>
                             </>
-                            : (error.name !== '' || error.category !== '' || error.price !== '' || error.code !== '') ?
+                            : (error.name !== '' || error.category !== '' || error.price !== '') ?
                             <>
                                 <StyledWarningIcon error />
                                 <WarningText error>Bạn có thông tin chưa điền!</WarningText>

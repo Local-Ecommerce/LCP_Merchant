@@ -146,7 +146,7 @@ const AddProduct = () => {
 
     const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: '', colors: [], sizes: [],  weights: [], code: '' });
     const [images, setImages] = useState([ { name: 0, image: '' } ]);
-    const [error, setError] = useState({ name: '', category: '', price: '', image: '', colors: '', sizes: '', weights: '', code: '' });
+    const [error, setError] = useState({ name: '', category: '', price: '', image: '', colors: '', sizes: '', weights: '' });
 
     const [type, setType] = useState('Khác');
     const sort = '+syscategoryname';
@@ -183,10 +183,6 @@ const AddProduct = () => {
         })
         setFilteredLv1Category(result);
     }, [type, lv1Category]);
-
-    useEffect(() => {
-        console.log(images)
-    }, [images])
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -359,7 +355,7 @@ const AddProduct = () => {
 
     const checkValid = () => {
         let check = false;
-        setError(error => ({ ...error, name: '', colors: '', sizes: '', weights: '', category: '', price: '', code: '' }));
+        setError(error => ({ ...error, name: '', colors: '', sizes: '', weights: '', category: '', price: '' }));
 
         if (input.name === null || input.name === '') {
             setError(error => ({ ...error, name: 'Vui lòng nhập tên sản phẩm' }));
@@ -375,10 +371,6 @@ const AddProduct = () => {
         }
         if (images[0].image === '') {
             setError(error => ({ ...error, image: 'Xin hãy chọn ảnh bìa cho sản phẩm' }));
-            check = true;
-        }
-        if (input.code === null || input.code === '') {
-            setError(error => ({ ...error, code: 'Vui lòng nhập mã sản phẩm' }));
             check = true;
         }
         if (check) {
@@ -519,8 +511,6 @@ const AddProduct = () => {
                         inputProps={{ maxLength: 200, style: {fontSize: 14} }}
                         value={input.code ? input.code : ''} name='code'
                         onChange={handleChange}
-                        error={error.code !== ''}
-                        helperText={error.code}
                     />
                     <HelperText mt ml0>
                         Mã sản phẩm giúp người bán dễ dàng quẩn lí sản phẩm của mình. Để trống nếu bạn không rõ.
@@ -536,7 +526,7 @@ const AddProduct = () => {
                                 <WarningText>Bạn có tùy chọn chưa lưu!</WarningText>
                                 <Button disabled>Tạo mới</Button>
                             </>
-                            : (error.name !== '' || error.category !== '' || error.price !== '' || error.code !== '') ?
+                            : (error.name !== '' || error.category !== '' || error.price !== '') ?
                             <>
                                 <StyledWarningIcon error />
                                 <WarningText error>Bạn có thông tin chưa điền!</WarningText>

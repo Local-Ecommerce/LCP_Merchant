@@ -6,7 +6,7 @@ import { Badge } from '@mui/material';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import useClickOutside from "../contexts/useClickOutside";
-import NotificationList from '../components/Header/NotificationList';
+import NotificationList from '../components/Notification/NotificationList';
 import * as Constant from '../Constant';
 import _ from 'lodash';
 

@@ -68,7 +68,8 @@ const RequireLoggedIn = ({ children }) => {
     const expiredTime = localStorage.getItem("EXPIRED_TIME");
     const isToggle = localStorage.getItem("IS_TOGGLE");
 
-    if (typeof user === 'undefined' || user === null 
+    if ((user && user.RoleId === "R001" && user.Residents[0].Type !== "Merchant")
+	 ||	typeof user === 'undefined' || user === null 
      || typeof accessToken === 'undefined' || accessToken === null 
      || typeof refreshToken === 'undefined' || refreshToken === null 
      || typeof expiredTime === 'undefined' || expiredTime === null

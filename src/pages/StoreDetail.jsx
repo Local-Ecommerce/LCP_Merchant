@@ -328,7 +328,7 @@ const StoreDetail = () => {
                                     <StyledPhotoIcon disabled={editable} />
                                 </label>
                                 : 
-                                <StyledCloseButton onClick={handleRemoveImage} />
+                                editable ? null : <StyledCloseButton onClick={handleRemoveImage} />
                             }
                             <Image src={input.image} display={input.image === "" ? "false" : "true"} />
                         </ImageContainer>

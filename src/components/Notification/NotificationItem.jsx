@@ -1,15 +1,16 @@
 import React from 'react';
 import styled from "styled-components";
-import { Circle } from '@mui/icons-material';
+import { Circle, HideImage } from '@mui/icons-material';
 import { DateTime } from 'luxon';
+import { Link } from "react-router-dom";
 
-const NotificationWrapper = styled.a`
+const NotificationWrapper = styled(Link)`
     height: 50px;
-    padding: 10px 20px;
+    padding: 8px 20px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
     border-bottom: 1px solid #dee2e6;
+    color: ${props => props.theme.black};
     text-decoration: none;
     cursor: pointer;
     background-color: #fff;
@@ -37,12 +38,22 @@ const Image = styled.img`
     margin-right: 10px;
 `;
 
+const StyledNoImageIcon = styled(HideImage)`
+    && {
+        color: rgba(0,0,0,0.2);
+        font-size: 20px;
+        padding: 10px;
+        border-radius: 50%;
+        border: 1px solid rgba(0,0,0,0.2);
+        margin-right: 10px;
+    }
+`;
+
 const TextWrapper = styled.div`
-    flex: 8;
 `;
 
 const TopText = styled.span`
-    margin: 5px 0px;
+    margin: 0px 0px 10px 0px;
     font-size: 14px;
 `;
 
@@ -57,50 +68,68 @@ const BottomText = styled.p`
 `;
 
 const SeenWrapper = styled.div`
-    display: flex;
-    margin-left: 10px;
+    margin-left: auto;
 `;
 
 const StyledSeenCircle = styled(Circle)`
     && {
         font-size: 16px;
-        color: ${props => props.checked === 1 ? "#1976d2" : "#fff"};
+        color: ${props => props.checked === 0 ? "#1976d2" : props.theme.white};
     }
 `;
 
 const NotificationItem = ({ item }) => {
-    const date = DateTime.fromISO(item.ApprovedTime)
+    const date = DateTime.fromMillis(item.createdDate)
     const diff = date.diffNow(["years", "months", "days", "hours", "minutes"])
     let timeLabel = '';
 
-    if (Math.abs(diff.toObject().years) > 0) {
+    if (Math.abs(diff.toObject().years) >= 1) {
         timeLabel = (Math.abs(diff.toObject().years) + ' năm trước');
     } 
-    else if (Math.abs(diff.toObject().months) > 0) {
+    else if (Math.abs(diff.toObject().months) >= 1) {
         timeLabel = (Math.abs(diff.toObject().months) + ' tháng trước');
     } 
-    else if (Math.abs(diff.toObject().days) > 0) {
+    else if (Math.abs(diff.toObject().days) >= 1) {
         timeLabel = (Math.abs(diff.toObject().days) + ' ngày trước');
     } 
-    else if (Math.abs(diff.toObject().hours) > 0) {
+    else if (Math.abs(diff.toObject().hours) >= 1) {
         timeLabel = (Math.abs(diff.toObject().hours) + ' tiếng trước');
     } 
-    else {
-        timeLabel = (Math.abs(diff.toObject().minutes) + ' phút trước');
+    else if (Math.abs(diff.toObject().minutes) > 1) {
+        timeLabel = Math.trunc(Math.abs(diff.toObject().minutes)) + ' phút trước';
+    } else {
+        timeLabel = '1 phút trước';
     }
 
     return (
-            <NotificationWrapper>
-                {item.Image ? <Image src={item.Image} /> : null}
+            <NotificationWrapper to={"/product/" + item.data.id}>
+                {
+                    item.data.image ?
+                    <Image src={item.data.image} />
+                    : <StyledNoImageIcon />
+                }
 
                 <TextWrapper>
-                    <TopText>{item.Text}</TopText>
+                    <TopText>
+                        <b>{item.data.name} </b> 
+                        {
+                            item.type === '001' ? "đã được duyệt."
+                            : item.type === '101' ? "cập nhật đã được duyệt."
+                            : item.type === '002' ? <>đã bị từ chối với lí do: <u>{item.data.reason}</u>.</>
+                            : item.type === '102' ? <>cập nhật đã bị từ chối với lí do: <u>{item.data.reason}</u>.</>
+                            : null
+                        }
+                    </TopText>
 
                     <BottomText>{timeLabel}</BottomText>
                 </TextWrapper>
 
                 <SeenWrapper>
-                    <StyledSeenCircle checked={item.Status} />
+                    {
+                        item.read === 0 ?
+                        <StyledSeenCircle checked={item.read} />
+                        : null
+                    }
                 </SeenWrapper>
             </NotificationWrapper>
     );
