@@ -296,7 +296,7 @@ const StoreDetail = () => {
         setError(error => ({ ...error, name: '' }));
 
         if (input.name === null || input.name === '') {
-            setError(error => ({ ...error, name: 'Vui lòng nhập tên sản phẩm' }));
+            setError(error => ({ ...error, name: 'Vui lòng nhập tên' }));
             check = true;
         }
 

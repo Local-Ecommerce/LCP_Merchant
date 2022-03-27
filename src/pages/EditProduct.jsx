@@ -11,6 +11,9 @@ import ProductOption from '../components/Product/ProductOption';
 import ImageUpload from '../components/Product/ImageUpload';
 import CategoryList from '../components/Product/CategoryList';
 
+import { db } from "../firebase";
+import { ref, push } from "firebase/database";
+
 const PageWrapper = styled.div`
     min-width: 600px;
     max-width: 900px;
@@ -139,6 +142,7 @@ const OptionLabel = styled.div`
 
 const EditProduct = () => {
     const { id } = useParams();
+    const user = JSON.parse(localStorage.getItem('USER'));
 
     const [item, setItem] = useState({});
     const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: 0, colors: [], sizes: [],  weights: [], code: '' });
@@ -150,7 +154,6 @@ const EditProduct = () => {
 
     const [type, setType] = useState('Khác');
     const [loading, setLoading] = useState(false);
-    const [change, setChange] = useState(false);
     const sort = '+syscategoryname';
 
     const [lv1Category, setLv1Category] = useState([]);
@@ -269,7 +272,7 @@ const EditProduct = () => {
             });
         }
         fetchData();
-    }, [change]);
+    }, []);
 
     useEffect(() => {   //filter based on category type
         const result = lv1Category.filter((item) => {
@@ -441,20 +444,37 @@ const EditProduct = () => {
                 || item.DefaultPrice.toString().replace(/\D/g, "") !== input.price.replace(/\D/g, "")
                 || imageDifference.length
             ) {
-                APIarray.push(api.put("products", {
-                    products: [
-                        {
-                            productCode: input.code,
-                            productName: input.name,
-                            briefDescription: input.shortDescription,
-                            description: input.description,
-                            defaultPrice: input.price.replace(/\D/g, ""),
-                            systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
-                            image: imageDifference,
-                            productId: id
-                        }
-                    ]
-                }));
+                if (imageDifference.length) {
+                    APIarray.push(api.put("products", {
+                        products: [
+                            {
+                                productCode: input.code,
+                                productName: input.name,
+                                briefDescription: input.shortDescription,
+                                description: input.description,
+                                defaultPrice: input.price.replace(/\D/g, ""),
+                                systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
+                                image: imageDifference,
+                                productId: id
+                            }
+                        ]
+                    }));
+                } else {
+                    APIarray.push(api.put("products", {
+                        products: [
+                            {
+                                productCode: input.code,
+                                productName: input.name,
+                                briefDescription: input.shortDescription,
+                                description: input.description,
+                                defaultPrice: input.price.replace(/\D/g, ""),
+                                systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
+                                image: [],
+                                productId: id
+                            }
+                        ]
+                    }));
+                }
             }
             if (deleteArray.length) {
                 APIarray.push(api.delete("products", {
@@ -471,7 +491,16 @@ const EditProduct = () => {
             if (APIarray.length) {
                 Promise.all(APIarray)
                 .then(function (results) {
-                    setChange(!change);
+                    push(ref(db, `Notification/` + user.Residents[0].ApartmentId), {
+                        createdDate: Date.now(),
+                        data: {
+                            name: input.name
+                        },
+                        read: 0,
+                        receiverId: user.Residents[0].ApartmentId,
+                        senderId: user.Residents[0].ResidentId,
+                        type: '003'
+                    });
                     toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
                 })
                 .catch(function (error) {
