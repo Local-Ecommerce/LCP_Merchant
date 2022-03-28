@@ -27,20 +27,9 @@ const SidebarData = [
         icon: <StyledHomeIcon />,
     },
     {
-        title: 'Quản lí sản phẩm',
-    },
-    {
-        title: 'Sản phẩm',
-        path: '/products',
-        icon: <StyledProductIcon />
-    },
-    {
-        title: 'Tạo sản phẩm',
-        path: '/addProduct',
-        icon: <StyledAddIcon />
-    },
-    {
-        title: 'Quản lí cửa hàng',
+        title: 'Đơn hàng',
+        path: '/',
+        icon: <StyledHomeIcon />,
     },
     {
         title: 'Bảng giá',
@@ -48,17 +37,9 @@ const SidebarData = [
         icon: <StyledMenuIcon />
     },
     {
-        title: 'Tạo bảng giá',
-        path: '/addMenu',
-        icon: <StyledAddIcon />,
-    },
-    {
-        title: 'Phân tích',
-        path: '/analysis',
-        icon: <StyledBarChartIcon />
-    },
-    {
-        title: 'Cài đặt',
+        title: 'Sản phẩm',
+        path: '/products',
+        icon: <StyledProductIcon />
     },
     {
         title: 'Thông tin cửa hàng',

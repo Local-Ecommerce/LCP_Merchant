@@ -7,9 +7,9 @@ const SidebarLink = styled(Link)`
     justify-content: space-between;
     align-items: center;
     text-align: center;
-    padding: 0px 20px;
+    padding: 0px 15px;
     list-style: none;
-    height: 45px;
+    height: 60px;
     text-decoration: none;
     color: ${props => props.theme.dark};
     font-size: 0.9em;
