@@ -116,13 +116,13 @@ const MenuItem = ({ item, handleGetToggleStatusItem, handleGetDeleteItem, index 
                 }
             </TableData>
             <TableData center>
-                {item.RepeatDate.includes('2') ? <DaySpan green>2</DaySpan> : <DaySpan>2</DaySpan>}
-                {item.RepeatDate.includes('3') ? <DaySpan green>3</DaySpan> : <DaySpan>3</DaySpan>}
-                {item.RepeatDate.includes('4') ? <DaySpan green>4</DaySpan> : <DaySpan>4</DaySpan>}
-                {item.RepeatDate.includes('5') ? <DaySpan green>5</DaySpan> : <DaySpan>5</DaySpan>}
-                {item.RepeatDate.includes('6') ? <DaySpan green>6</DaySpan> : <DaySpan>6</DaySpan>}
-                {item.RepeatDate.includes('7') ? <DaySpan green>7</DaySpan> : <DaySpan>7</DaySpan>}
-                {item.RepeatDate.includes('8') ? <DaySpan green>CN</DaySpan> : <DaySpan>CN</DaySpan>}
+                {item.RepeatDate.includes('1') ? <DaySpan green>2</DaySpan> : <DaySpan>2</DaySpan>}
+                {item.RepeatDate.includes('2') ? <DaySpan green>3</DaySpan> : <DaySpan>3</DaySpan>}
+                {item.RepeatDate.includes('3') ? <DaySpan green>4</DaySpan> : <DaySpan>4</DaySpan>}
+                {item.RepeatDate.includes('4') ? <DaySpan green>5</DaySpan> : <DaySpan>5</DaySpan>}
+                {item.RepeatDate.includes('5') ? <DaySpan green>6</DaySpan> : <DaySpan>6</DaySpan>}
+                {item.RepeatDate.includes('6') ? <DaySpan green>7</DaySpan> : <DaySpan>7</DaySpan>}
+                {item.RepeatDate.includes('0') ? <DaySpan green>CN</DaySpan> : <DaySpan>CN</DaySpan>}
             </TableData>
 
             <TableData center>

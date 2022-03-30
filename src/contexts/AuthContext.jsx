@@ -1,8 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext } from "react";
 import { api } from "../RequestMethod";
 import { auth } from "../firebase";
-import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
+import { signOut } from "firebase/auth";
 import { useNavigate } from 'react-router-dom';
 
 const AuthContext = React.createContext();
@@ -13,34 +13,6 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
     let navigate = useNavigate();
-    
-    async function login(email, password) {
-        await signInWithEmailAndPassword(auth, email, password);
-        onAuthStateChanged(auth, async user => {
-            if (user) {
-                const firebaseToken = await user.getIdToken(true);
-                console.log("Firebase Token: " + firebaseToken);
-                
-                await api.post("accounts/login", {
-                    firebaseToken: firebaseToken,
-                    role: "Merchant"
-                })
-                .then(function (res) {
-                    if (res.data.Data.RoleId === "R001" && res.data.Data.Residents[0].Type === "Merchant") {
-                        localStorage.setItem('USER', JSON.stringify(res.data.Data));
-                        localStorage.setItem('ACCESS_TOKEN', res.data.Data.RefreshTokens[0].AccessToken);
-                        localStorage.setItem('REFRESH_TOKEN', res.data.Data.RefreshTokens[0].Token);
-                        localStorage.setItem('EXPIRED_TIME', res.data.Data.RefreshTokens[0].AccessTokenExpiredDate);
-                        localStorage.setItem('IS_TOGGLE', "0");
-                        navigate("/");
-                    }
-                })
-                .catch(function (error) {
-                    console.log(error);
-                });
-            };
-        });
-    };
 
     async function logout() {
         await signOut(auth);
@@ -60,35 +32,8 @@ export function AuthProvider({ children }) {
         localStorage.removeItem("IS_TOGGLE");
         navigate('/login');
     };
-    
-    async function handleExtendSession() {
-        let url = "accounts/refresh-token";
-        const accessToken = localStorage.getItem("ACCESS_TOKEN");
-        const refreshToken = localStorage.getItem("REFRESH_TOKEN");
-
-        const extendSession = () => {
-            api.post(url, {
-                token: refreshToken,
-                accessToken: accessToken
-            })
-            .then(function (res) {
-                if (res.data.ResultMessage === "SUCCESS") {
-                    localStorage.setItem('ACCESS_TOKEN', res.data.Data.AccessToken);
-                    localStorage.setItem('EXPIRED_TIME', res.data.Data.AccessTokenExpiredDate);
-                    localStorage.setItem('IS_TOGGLE', "0");
-                    navigate(0);
-                }
-            })
-            .catch(function (error) {
-                console.log(error);
-                navigate(0);
-            });
-        }
-        extendSession();
-    }
 
     const value = {
-        login,
         logout
     };
 

@@ -11,6 +11,9 @@ import Header  from './pages/Header';
 import Sidebar from './pages/Sidebar';
 import PageNotFound from './pages/PageNotFound';
 
+import Order from './pages/Order';
+import OrderDetail from './pages/OrderDetail';
+
 import Product from './pages/Product';
 import AddProduct from './pages/AddProduct';
 import EditProduct from './pages/EditProduct';
@@ -44,6 +47,7 @@ const SidebarLayout = () => (
 			style={{ width: "320px" }}
 			autoClose={5000}
 			position="top-center"
+			pauseOnFocusLoss={false}
 		/>
 
 		<ContentWrapper>
@@ -66,14 +70,12 @@ const RequireLoggedIn = ({ children }) => {
     const accessToken = localStorage.getItem("ACCESS_TOKEN");
     const refreshToken = localStorage.getItem("REFRESH_TOKEN");
     const expiredTime = localStorage.getItem("EXPIRED_TIME");
-    const isToggle = localStorage.getItem("IS_TOGGLE");
 
     if ((user && user.RoleId === "R001" && user.Residents[0].Type !== "Merchant")
 	 ||	typeof user === 'undefined' || user === null 
      || typeof accessToken === 'undefined' || accessToken === null 
      || typeof refreshToken === 'undefined' || refreshToken === null 
-     || typeof expiredTime === 'undefined' || expiredTime === null
-     || typeof isToggle === 'undefined' || isToggle === null || isToggle === "1") {
+     || typeof expiredTime === 'undefined' || expiredTime === null) {
         logout();
         return <Navigate to="/login" />;
     };
@@ -87,6 +89,16 @@ const App = () => {
 				<Route 
 					exact path="/" 
 					element={<RequireLoggedIn> <Home /> </RequireLoggedIn>} 
+				/>
+
+				<Route 
+					path="/orders" 
+					element={<RequireLoggedIn> <Order /> </RequireLoggedIn>} 
+				/>
+
+				<Route 
+					path="/order/:id" 
+					element={<RequireLoggedIn> <OrderDetail /> </RequireLoggedIn>} 
 				/>
 
 				<Route 

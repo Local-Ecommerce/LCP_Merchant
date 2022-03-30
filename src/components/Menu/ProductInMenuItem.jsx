@@ -182,7 +182,7 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice }) =>
                 </Name>
             </TextWrapper>
 
-            <TextFIeldWrapper>
+            <TextFIeldWrapper title={"Giá mặc định: " + item.Product.DefaultPrice.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " đ"}>
                 <TextField
                     type="text" 
                     value={item.Price} name='price'

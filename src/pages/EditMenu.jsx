@@ -6,7 +6,7 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, ArrowRight, Search, AddBox } from '@mui/icons-material';
-import { TextField, CircularProgress } from '@mui/material';
+import { TextField, CircularProgress, Checkbox, FormControlLabel } from '@mui/material';
 import { TimePicker, LocalizationProvider } from '@mui/lab';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import { DateTime } from 'luxon';
@@ -295,6 +295,12 @@ const StyledCircularProgress = styled(CircularProgress)`
     }
 `;
 
+const StyledTextFieldMb20px = styled(TextField)`
+    && {
+    margin-bottom: 20px;
+    }
+`;
+
 const DangerText = styled.div`
     color: #762a36;
     padding: 10px 20px;
@@ -317,7 +323,7 @@ const EditMenu = () => {
     const [newProducts, setNewProducts] = useState([]);
     const [stock, setStock] = useState([]);
 
-    const [input, setInput] = useState({ id: '', name: '', description: '', startTime: '', endTime: '' });
+    const [input, setInput] = useState({ id: '', name: '', description: '', includeBaseMenu: false, startTime: '', endTime: '' });
     const [repeatDay, setRepeatDay] = useState({ t2:true, t3:true, t4:true, t5:true, t6:true, t7:true, cn:true });
     const [error, setError] = useState({ 'name': '', 'time': '', price: '' });
 
@@ -339,17 +345,18 @@ const EditMenu = () => {
                         id: res.data.Data.List[0].MenuId, 
                         name: res.data.Data.List[0].MenuName, 
                         description: res.data.Data.List[0].MenuDescription, 
+                        includeBaseMenu: res.data.Data.List[0].IncludeBaseMenu,
                         startTime: DateTime.fromFormat(res.data.Data.List[0].TimeStart, 'TT').toUTC().toISO(),
-                        endTime: DateTime.fromFormat(res.data.Data.List[0].TimeEnd, 'TT').toUTC().toISO(),
+                        endTime: DateTime.fromFormat(res.data.Data.List[0].TimeEnd, 'TT').toUTC().toISO()
                     });
                     setRepeatDay({
-                        t2: res.data.Data.List[0].RepeatDate.includes('2') ? true : false,
-                        t3: res.data.Data.List[0].RepeatDate.includes('3') ? true : false,
-                        t4: res.data.Data.List[0].RepeatDate.includes('4') ? true : false,
-                        t5: res.data.Data.List[0].RepeatDate.includes('5') ? true : false,
-                        t6: res.data.Data.List[0].RepeatDate.includes('6') ? true : false,
-                        t7: res.data.Data.List[0].RepeatDate.includes('7') ? true : false,
-                        cn: res.data.Data.List[0].RepeatDate.includes('8') ? true : false
+                        t2: res.data.Data.List[0].RepeatDate.includes('1') ? true : false,
+                        t3: res.data.Data.List[0].RepeatDate.includes('2') ? true : false,
+                        t4: res.data.Data.List[0].RepeatDate.includes('3') ? true : false,
+                        t5: res.data.Data.List[0].RepeatDate.includes('4') ? true : false,
+                        t6: res.data.Data.List[0].RepeatDate.includes('5') ? true : false,
+                        t7: res.data.Data.List[0].RepeatDate.includes('6') ? true : false,
+                        cn: res.data.Data.List[0].RepeatDate.includes('0') ? true : false
                     });
 
                     let url = "products?"
@@ -391,6 +398,11 @@ const EditMenu = () => {
         const { name, value } = e.target;
         setInput(input => ({ ...input, [name]: value }));
         setError(error => ({ ...error, [name]: '' }));
+    }
+
+    function handleToggleIncludeBaseMenu(e) {
+        const { checked } = e.target;
+        setInput(input => ({ ...input, includeBaseMenu: checked }));
     }
 
     function handleToggleDate(e) {
@@ -442,13 +454,14 @@ const EditMenu = () => {
                     menuDescription: input.description,
                     timeStart: DateTime.fromISO(input.startTime).toFormat('TT'),
                     timeEnd: DateTime.fromISO(input.endTime).toFormat('TT'),
-                    repeatDate: (repeatDay.t2 ? '2' : '') 
-                                + (repeatDay.t3 ? '3' : '') 
-                                + (repeatDay.t4 ? '4' : '') 
-                                + (repeatDay.t5 ? '5' : '') 
-                                + (repeatDay.t6 ? '6' : '') 
-                                + (repeatDay.t7 ? '7' : '') 
-                                + (repeatDay.cn ? '8' : '')
+                    repeatDate: (repeatDay.cn ? '0' : '')
+                                + (repeatDay.t2 ? '1' : '') 
+                                + (repeatDay.t3 ? '2' : '') 
+                                + (repeatDay.t4 ? '3' : '') 
+                                + (repeatDay.t5 ? '4' : '') 
+                                + (repeatDay.t6 ? '5' : '') 
+                                + (repeatDay.t7 ? '6' : ''),
+                    includeBaseMenu: input.includeBaseMenu,
                 }));
             }
             if (deleteArray.length) {
@@ -639,11 +652,18 @@ const EditMenu = () => {
                         <HelperText ml0 mt>{input.description.length}/500 kí tự</HelperText>
                     </Row>
 
-                    <TextField
+                    <StyledTextFieldMb20px
                         fullWidth size="small" multiline rows={3} placeholder="Mô tả giúp khách hàng hình dung và hiểu rõ hơn sản phẩm thuộc bảng giá."
                         inputProps={{ maxLength: 500, style: {fontSize: 14} }}
                         value={loading ? 'Đang tải...' : input.description} name='description'
                         onChange={handleChange}
+                    />
+
+                    <FormControlLabel 
+                        checked={input.includeBaseMenu} name='includeBaseMenu' 
+                        onClick={handleToggleIncludeBaseMenu} 
+                        control={<Checkbox />} 
+                        label={<span style={{ fontSize: '14px' }}>Tích hợp bảng giá cơ bản</span>} 
                     />
 
                     <FormLabel>Ngày hoạt động</FormLabel>

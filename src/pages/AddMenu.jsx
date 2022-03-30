@@ -67,9 +67,15 @@ const StyledArrowIcon = styled(ArrowRight)`
     }
 `;
 
-const StyledTextFieldMb = styled(TextField)`
+const StyledTextFieldMb30px = styled(TextField)`
     && {
     margin-bottom: 30px;
+    }
+`;
+
+const StyledTextFieldMb20px = styled(TextField)`
+    && {
+    margin-bottom: 20px;
     }
 `;
 
@@ -83,6 +89,7 @@ const HelperText = styled.div`
     align-items: center;
     text-decoration: none;
     font-size: ${props => props.error ? "13px" : "14px"};
+    line-height: 1.5;
     margin-top: ${props => props.error ? "10px" : "0px"};
     color: ${props => props.error ? props.theme.red : "#727272"};
 `;
@@ -115,6 +122,11 @@ const Button = styled.button`
     }
 `;
 
+const StyledLink = styled.a`
+    color: #007bff;
+    cursor: pointer;
+`;
+
 const StyledFormControlLabel = styled(FormControlLabel)`
     && {
         margin-left: 40px;
@@ -127,7 +139,8 @@ const AddMenu = () => {
 
     const [input, setInput] = useState({ 
         name: '', 
-        description: '', 
+        description: '',
+        includeBaseMenu: true,
         startTime: DateTime.fromFormat('00:00:00', 'TT').toUTC().toISO(), 
         endTime: DateTime.fromFormat('00:00:00', 'TT').toUTC().toISO(), 
         status: 9001 
@@ -161,6 +174,11 @@ const AddMenu = () => {
         }
     }
 
+    function handleToggleIncludeBaseMenu(e) {
+        const { checked } = e.target;
+        setInput(input => ({ ...input, includeBaseMenu: checked }));
+    }
+
     function handleToggleDate(e) {
         setError(error => ({ ...error, repeatDay: '' }));
         const { name, checked } = e.target;
@@ -178,6 +196,10 @@ const AddMenu = () => {
         setTwentyfour(!twentyfour);
     }
 
+    useEffect(() => {
+        console.log(input)
+    }, [input])
+
     const handleAddMenu = (event) => {
         event.preventDefault();
 
@@ -190,16 +212,18 @@ const AddMenu = () => {
                     timeStart: twentyfour ? '00:00:00' : DateTime.fromISO(input.startTime).toFormat('TT'),
                     timeEnd: twentyfour || DateTime.fromISO(input.endTime).toFormat('TT') === '00:00:00' ?
                              '23:59:59': DateTime.fromISO(input.endTime).toFormat('TT'),
-                    repeatDate: (repeatDay.t2 ? '2' : '') 
-                              + (repeatDay.t3 ? '3' : '') 
-                              + (repeatDay.t4 ? '4' : '') 
-                              + (repeatDay.t5 ? '5' : '') 
-                              + (repeatDay.t6 ? '6' : '') 
-                              + (repeatDay.t7 ? '7' : '') 
-                              + (repeatDay.cn ? '8' : ''),
+                    repeatDate: (repeatDay.cn ? '0' : '')
+                              + (repeatDay.t2 ? '1' : '') 
+                              + (repeatDay.t3 ? '2' : '') 
+                              + (repeatDay.t4 ? '3' : '') 
+                              + (repeatDay.t5 ? '4' : '') 
+                              + (repeatDay.t6 ? '5' : '') 
+                              + (repeatDay.t7 ? '6' : ''),
+                    includeBaseMenu: input.includeBaseMenu,
                     merchantStoreId: storeId
                 })
                 .then(function (res) {
+                    console.log(res)
                     if (res.data.ResultMessage === "SUCCESS") {
                         navigate("/menus");
                         toast.update(notification, { render: "Tạo bảng giá thành công!", type: "success", autoClose: 5000, isLoading: false });
@@ -252,7 +276,7 @@ const AddMenu = () => {
                         <HelperText ml0>{input.name.length}/250 kí tự</HelperText>
                     </Row>
                     
-                    <StyledTextFieldMb
+                    <StyledTextFieldMb30px
                         fullWidth placeholder="Ví dụ: Thịt cá các loại, đồ gia dụng, etc" 
                         inputProps={{ maxLength: 250, style: {fontSize: 14} }}
                         value={input.name ? input.name : ''} name='name'
@@ -266,12 +290,24 @@ const AddMenu = () => {
                         <HelperText ml0>{input.description.length}/500 kí tự</HelperText>
                     </Row>
 
-                    <TextField
+                    <StyledTextFieldMb20px
                         fullWidth multiline rows={4} placeholder="Mô tả giúp khách hàng hình dung và hiểu rõ hơn sản phẩm thuộc bảng giá."
                         inputProps={{ maxLength: 500, style: {fontSize: 14}}}
                         value={input.description ? input.description : ''} name='description'
                         onChange={handleChange}
                     />
+
+                    <FormControlLabel 
+                        checked={input.includeBaseMenu} name='includeBaseMenu' 
+                        onClick={handleToggleIncludeBaseMenu} 
+                        control={<Checkbox />} 
+                        label={<span style={{ fontSize: '14px' }}>Tích hợp bảng giá cơ bản</span>} 
+                    />
+                    <HelperText>
+                        Các sản phẩm thuộc bảng giá cơ bản vẫn sẽ tiếp tục bán khi đến giờ hoạt động của bảng giá này.<br/>
+                        Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/Th%E1%BB%B1c_ph%E1%BA%A9m_t%C6%B0%C6%A1i_s%E1%BB%91ng"
+                                            target="_blank">các loại bảng giá</StyledLink>
+                    </HelperText>
                 </ContainerWrapper>
 
                 <ContainerWrapper>

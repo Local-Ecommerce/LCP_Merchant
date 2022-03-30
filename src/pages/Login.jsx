@@ -1,8 +1,12 @@
 import styled from "styled-components";
 import React, { useState } from 'react';
+import { api } from "../RequestMethod";
 import { TextField } from '@mui/material';
-import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from 'react-router-dom';
 import { CircularProgress } from '@mui/material';
+
+import { auth } from "../firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 const LoginFormContainer = styled.div`
     position: fixed;
@@ -93,7 +97,8 @@ const Button = styled.button`
 `;
 
 const Login = () => {
-    const { login } = useAuth();
+    let navigate = useNavigate();
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [input, setInput] = useState({
@@ -106,17 +111,43 @@ const Login = () => {
         setInput(input => ({ ...input, [name]: value }));
     }
 
-    async function handleSubmit(e) {
+    function handleLogin(e) {
         e.preventDefault();
-    
-        try {
-            setError('');
-            setLoading(true);
-            await login(input.username, input.password);
-        } catch {
-            setError("Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản hoặc mật khẩu.");
+        setError('');
+        setLoading(true);
+
+        signInWithEmailAndPassword(auth, input.username, input.password)
+        .then((userCredential) => {
+            const firebaseToken = userCredential._tokenResponse.idToken;
+            console.log("Firebase Token: " + firebaseToken);
+
+            api.post("accounts/login", {
+                firebaseToken: firebaseToken,
+                role: "Merchant"
+            })
+            .then(function (res) {
+                if (res.data.Data.RoleId === "R001" && res.data.Data.Residents[0].Type === "Merchant") {
+                    localStorage.setItem('USER', JSON.stringify(res.data.Data));
+                    localStorage.setItem('ACCESS_TOKEN', res.data.Data.RefreshTokens[0].AccessToken);
+                    localStorage.setItem('REFRESH_TOKEN', res.data.Data.RefreshTokens[0].Token);
+                    localStorage.setItem('EXPIRED_TIME', res.data.Data.RefreshTokens[0].AccessTokenExpiredDate);
+                    navigate("/");
+                } else {
+                    setError("Tài khoản hoặc mật khẩu không hợp lệ. Vui lòng thử lại.");
+                    setLoading(false);
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+                setError("Tài khoản hoặc mật khẩu không hợp lệ. Vui lòng thử lại.");
+                setLoading(false);
+            });
+        })
+        .catch((error) => {
+            console.log(error);
+            setError("Tài khoản hoặc mật khẩu không hợp lệ. Vui lòng thử lại.");
             setLoading(false);
-        }
+        })
     }
 
     return (
@@ -126,7 +157,7 @@ const Login = () => {
 
             {error !== '' ? <ErrorText>{error}</ErrorText> : null}
 
-            <Form onSubmit={handleSubmit}>
+            <Form onSubmit={handleLogin}>
                 {
                 loading ?
                 <CenterWrapper>

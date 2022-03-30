@@ -1,4 +1,4 @@
-import { Home, FormatListBulleted, ShoppingCart, Add, BarChart, Settings } from '@mui/icons-material';
+import { Home, FormatListBulleted, ShoppingCart, Summarize, BarChart, Settings } from '@mui/icons-material';
 import styled from 'styled-components';
 
 const StyledHomeIcon = styled(Home)`
@@ -7,7 +7,7 @@ const StyledHomeIcon = styled(Home)`
 const StyledProductIcon = styled(ShoppingCart)`
     && { font-size: 18px; margin: 0px 15px 0px 10px; }
 `;
-const StyledAddIcon = styled(Add)`
+const StyledOrderIcon = styled(Summarize)`
     && { font-size: 18px; margin: 0px 15px 0px 10px; }
 `;
 const StyledMenuIcon = styled(FormatListBulleted)`
@@ -28,8 +28,8 @@ const SidebarData = [
     },
     {
         title: 'Đơn hàng',
-        path: '/',
-        icon: <StyledHomeIcon />,
+        path: '/orders',
+        icon: <StyledOrderIcon />,
     },
     {
         title: 'Bảng giá',
@@ -40,6 +40,11 @@ const SidebarData = [
         title: 'Sản phẩm',
         path: '/products',
         icon: <StyledProductIcon />
+    },
+    {
+        title: 'Phân tích',
+        path: '/analysis',
+        icon: <StyledBarChartIcon />
     },
     {
         title: 'Thông tin cửa hàng',

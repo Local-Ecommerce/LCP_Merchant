@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, Warning } from '@mui/icons-material';
-import { TextField, InputAdornment, FormControlLabel, Radio, RadioGroup } from '@mui/material';
+import { TextField, InputAdornment } from '@mui/material';
 import ProductOption from '../components/Product/ProductOption';
 import ImageUpload from '../components/Product/ImageUpload';
 import CategoryList from '../components/Product/CategoryList';
@@ -65,15 +65,6 @@ const FormLabel = styled.div`
     margin-bottom: 10px;
 `;
 
-const RadioLabel = styled.span`
-    font-size: 14px;
-`;
-
-const StyledLink = styled.a`
-    color: #007bff;
-    cursor: pointer;
-`;
-
 const FooterWrapper = styled.div`
     border-top: 1px solid #d6d6d6;
     padding-top: 20px;
@@ -98,9 +89,9 @@ const HelperText = styled.div`
     margin-left: ${props => props.ml0 ? "0px" : "30px"};
     align-items: center;
     text-decoration: none;
-    font-size: ${props => props.error ? "13px" : "14px"};
+    font-size: 13px;
     margin-top: ${props => props.error || props.mt ? "10px" : "0px"};
-    margin-bottom: ${props => props.mb ? "15px" : "0px"};
+    margin-bottom: ${props => props.mb30 ? "30px" : props.mb ? "15px" : "0px"};
     color: ${props => props.error ? props.theme.red : "#727272"};
 `;
 
@@ -148,18 +139,14 @@ const AddProduct = () => {
     const [images, setImages] = useState([ { name: 0, image: '' } ]);
     const [error, setError] = useState({ name: '', category: '', price: '', image: '', colors: '', sizes: '', weights: '' });
 
-    const [type, setType] = useState('Khác');
     const sort = '+syscategoryname';
-
     const [lv1Category, setLv1Category] = useState([]);
-    const [filteredLv1Category, setFilteredLv1Category] = useState([]);
     const [lv2Category, setLv2Category] = useState([]);
     const [lv3Category, setLv3Category] = useState([]);
 
     useEffect(() => {   //set systemCategory level 1
         let url = "categories"
-                + "?limit=" + 100
-                + "&status=" + 3001
+                + "?status=" + 3001
                 + "&sort=" + sort;
         const fetchData = () => {
             api.get(url)
@@ -177,13 +164,6 @@ const AddProduct = () => {
         fetchData();
     }, []);
 
-    useEffect(() => {   //filter based on category type
-        const result = lv1Category.filter((item) => {
-            return item.Type === type;
-        })
-        setFilteredLv1Category(result);
-    }, [type, lv1Category]);
-
     const handleChange = (e) => {
         const { name, value } = e.target;
         setInput(input => ({ ...input, [name]: value }));
@@ -197,13 +177,6 @@ const AddProduct = () => {
         }
         setError(error => ({ ...error, price: '' }));
     }
-
-    const handleSetType = (e) => {
-        const { value } = e.target;
-        setType(value);
-        setLv2Category([]);
-        setLv3Category([]);
-    };
 
     const saveOption = (option, data) => {
         setError(error => ({ ...error, [option]: '' }));
@@ -404,6 +377,21 @@ const AddProduct = () => {
                     />
 
                     <Row spacebetween>
+                        <FormLabel>Mã sản phẩm</FormLabel>
+                        <HelperText ml0>{input.code.length}/200 kí tự</HelperText>
+                    </Row>
+                    
+                    <TextField
+                        fullWidth size="small" placeholder="Ví dụ: AP-001" 
+                        inputProps={{ maxLength: 200, style: {fontSize: 14} }}
+                        value={input.code ? input.code : ''} name='code'
+                        onChange={handleChange}
+                    />
+                    <HelperText mt ml0 mb30>
+                        Mã sản phẩm giúp người bán dễ dàng quẩn lí sản phẩm của mình. Để trống nếu bạn không rõ.
+                    </HelperText>
+
+                    <Row spacebetween>
                         <FormLabel>Mô tả chi tiết</FormLabel>
                         <HelperText ml0>{input.description.length}/500 kí tự</HelperText>
                     </Row>
@@ -433,32 +421,8 @@ const AddProduct = () => {
                 <ContainerWrapper error={error.category !== ''}>
                     <FormLabel>Danh mục</FormLabel>
 
-                    <RadioGroup value={type} name='type' onChange={handleSetType}>
-                        <FormControlLabel 
-                            value="Tươi sống" 
-                            control={<Radio />} 
-                            label={<RadioLabel>Tươi sống</RadioLabel>} 
-                        />
-                        <HelperText>
-                            Bảng giá thuộc lại tươi sống sẽ nằm bên mục&nbsp;<b>Tươi sống</b>. 
-                            Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/Th%E1%BB%B1c_ph%E1%BA%A9m_t%C6%B0%C6%A1i_s%E1%BB%91ng"
-                                                              target="_blank">danh mục tươi sống</StyledLink>
-                        </HelperText>
-
-                        <FormControlLabel 
-                            value="Khác" 
-                            control={<Radio />} 
-                            label={<RadioLabel>Khác</RadioLabel>} 
-                        />
-                        <HelperText>
-                            Bảng giá thuộc lại khác sẽ nằm bên mục&nbsp;<b>Khác</b>. 
-                            Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/S%E1%BA%A3n_ph%E1%BA%A9m"
-                                                              target="_blank">danh mục khác</StyledLink>
-                        </HelperText>
-                    </RadioGroup>
-
                     <Row spacebetween mt>
-                        <CategoryList currentItems={filteredLv1Category} selected={input.category.lv1} handleGetCategory={handleGetCategoryLv1} />
+                        <CategoryList currentItems={lv1Category} selected={input.category.lv1} handleGetCategory={handleGetCategoryLv1} />
                         <CategoryList currentItems={lv2Category} selected={input.category.lv2} handleGetCategory={handleGetCategoryLv2} />
                         <CategoryList currentItems={lv3Category} selected={input.category.lv3} handleGetCategory={handleGetCategoryLv3} />
                     </Row>
@@ -498,23 +462,6 @@ const AddProduct = () => {
                     <ProductOption savedData={input.colors} type='colors' saveOption={saveOption} editOption={editOption} />
                     <ProductOption savedData={input.sizes} type='sizes' saveOption={saveOption} editOption={editOption} />
                     <ProductOption savedData={input.weights} type='weights' saveOption={saveOption} editOption={editOption} />
-                </ContainerWrapper>
-
-                <ContainerWrapper>
-                    <Row spacebetween>
-                        <FormLabel>Mã sản phẩm</FormLabel>
-                        <HelperText ml0>{input.code.length}/200 kí tự</HelperText>
-                    </Row>
-                    
-                    <TextField
-                        fullWidth size="small" placeholder="Ví dụ: AP-001" 
-                        inputProps={{ maxLength: 200, style: {fontSize: 14} }}
-                        value={input.code ? input.code : ''} name='code'
-                        onChange={handleChange}
-                    />
-                    <HelperText mt ml0>
-                        Mã sản phẩm giúp người bán dễ dàng quẩn lí sản phẩm của mình. Để trống nếu bạn không rõ.
-                    </HelperText>
                 </ContainerWrapper>
 
                 <FooterWrapper>

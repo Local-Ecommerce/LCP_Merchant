@@ -79,9 +79,9 @@ const ModalTitle = styled.h4`
 
 const ModalContentWrapper = styled.div`
     padding: 20px;
-    min-height: 50vh;
+    min-height: 200px;
     max-height: 50vh;
-    overflow-y: scroll;
+    overflow-y: auto;
 `;
 
 const ModalButtonWrapper = styled.div`
@@ -228,7 +228,7 @@ const AddItemModal = ({ display, toggle, stock, saveItem, handleToggleChecked })
                         stock && stock.length ?
                         <ModalButton blue onClick={handleSaveItem}>Lưu</ModalButton>
                         :
-                        <ModalButton disabled onClick={handleSaveItem}>Lưu</ModalButton>
+                        null
                     }
                     
                     <ModalButton onClick={handleToggle}>Hủy</ModalButton>
