@@ -102,7 +102,13 @@ const NotificationItem = ({ item }) => {
     }
 
     return (
-            <NotificationWrapper to={"/product/" + item.data.id}>
+            <NotificationWrapper to={
+                item.type === '001' || item.type === '002' ?
+                "/product/" + item.data.id
+                : item.type === '101' || item.type === '102' ?
+                "/storeDetail"
+                : "/"
+            }>
                 {
                     item.data.image ?
                     <Image src={item.data.image} />
