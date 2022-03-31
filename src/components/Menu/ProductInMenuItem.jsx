@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import { Close, HideImage } from '@mui/icons-material';
 
@@ -33,41 +33,54 @@ const Index = styled.span`
 `;
 
 const TextWrapper = styled.div`
-    flex: 8;
+    flex: ${props => props.isBaseMenu ? "11" : "8"};
     width: 1px; //constraint width
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-`;
-
-const Name = styled.span`    
     margin: 0px 20px;
 `;
 
-const StatusWrapper = styled.div`
-    flex: 2;
-    display: flex;
-    justify-content: center;
-    margin: 0px 25px;
+const TooltipText = styled.div`
+    visibility: hidden;
+    width: 70px;
+    font-size: 13px;
+    font-weight: 400;
+    background-color: ${props => props.theme.dark};
+    color: ${props => props.theme.white};
+    padding: 6px;
+    border-radius: 6px;
+    text-align: center;
+
+    position: absolute;
+    z-index: 1;
 `;
 
 const Status = styled.span`
-    display: inline-block;
-    padding: 4px 6px;
-    font-size: 0.8em;
+    position: absolute;
+    top: -3px;
+    right: -3px;
+
+    padding: 5px;
+    font-size: 10px;
     font-weight: 700;
-    text-align: center;
-    white-space: nowrap;
-    vertical-align: baseline;
-    border-radius: 20px;
-    color: ${props => props.active === "inactive" ? "grey" : "#fff"};
+    border-radius: 50%;
+    color: #fff;
     background-color: ${props => props.active === "active" ? "#28a745"
-        :
-        props.active === "unverified" ? "#FF8800"
-            :
-            props.active === "deleted" ? "#dc3545"
-                :
-                "#dc3545"};
+    :
+    props.active === "unverified" ? "#FF8800"
+    :
+    props.active === "deleted" ? "#dc3545"
+    :
+    "#dc3545"};
+
+    &:hover ${TooltipText} {
+        visibility: visible;
+    }
+`;
+
+const ImageWrapper = styled.div`
+    position: relative;
 `;
 
 const Image = styled.img`
@@ -75,6 +88,7 @@ const Image = styled.img`
     width: 40px;
     height: 40px;
     border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.2);
 `;
 
 const StyledNoImageIcon = styled(HideImage)`
@@ -116,9 +130,10 @@ const StyledCloseIcon = styled(Close)`
 `;
 
 const TextFIeldWrapper = styled.div`
-    flex: 2.5;
+    flex: 3;
     display: flex;
     align-items: flex-end;
+    margin-right: 15px;
 `;
 
 const Currency = styled.span`
@@ -141,25 +156,26 @@ const TextField = styled.input`
     background-color: ${props => props.theme.white};
 `;
 
-const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice }) =>  {
+const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice, isBaseMenu }) =>  {
+
     let activeCheck = '';
     let activeLabel = '';
     switch (item.Product.Status) {
         case 1001:
             activeCheck = 'active';
-            activeLabel = 'Xác thực';
+            activeLabel = 'Hoạt động';
             break;
         case 1003:
             activeCheck = 'deleted';
-            activeLabel = 'Từ chối';
+            activeLabel = 'Bị từ chối';
             break;
         case 1004:
             activeCheck = 'unverified';
-            activeLabel = 'Chờ duyệt';
+            activeLabel = 'Chờ duyệt'
             break;
         default:
             activeCheck = 'inactive';
-            activeLabel = 'WRONG STATUS';
+            activeLabel = 'WRONG STATUS'
             break;
     }
     
@@ -170,30 +186,47 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice }) =>
     return (
         <ContainerWrapper>
             <Index>{index}.</Index>
-            {
-                item.Product.Image ?
-                <Image src={item.Product.Image ? item.Product.Image.split("|")[0] : ''} />
-                : <StyledNoImageIcon />
-            }
 
-            <TextWrapper>
-                <Name>
-                    {item.Product.ProductName}                  
-                </Name>
+            <ImageWrapper>
+                    {
+                        item.Product.Image ?
+                        <Image src={item.Product.Image ? item.Product.Image.split("|")[0] : ''} />
+                        : <StyledNoImageIcon />
+                    }
+                    
+                    {
+                        activeCheck === 'active' ?
+                        null :
+                        <Status active={activeCheck}>
+                            <TooltipText>{activeLabel}</TooltipText>
+                        </Status>
+                    }
+            </ImageWrapper>
+
+            <TextWrapper isBaseMenu={isBaseMenu}>
+                {item.Product.ProductName}        
             </TextWrapper>
 
-            <TextFIeldWrapper title={"Giá mặc định: " + item.Product.DefaultPrice.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " đ"}>
+            <TextFIeldWrapper>
                 <TextField
-                    type="text" 
-                    value={item.Price} name='price'
-                    onChange={(event) => handleSetPrice(item.Product.ProductId, event.target.value)}
+                    type="text" disabled={true}
+                    value={item.Product.DefaultPrice.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                 />
                 <Currency>đ</Currency>
             </TextFIeldWrapper>
 
-            <StatusWrapper>
-                <Status active={activeCheck}>{activeLabel}</Status>
-            </StatusWrapper>
+            {
+                isBaseMenu ?
+                null :
+                <TextFIeldWrapper>
+                    <TextField
+                        type="text" 
+                        value={item.Price} name='price'
+                        onChange={(event) => handleSetPrice(item.Product.ProductId, event.target.value)}
+                    />
+                    <Currency>đ</Currency>
+                </TextFIeldWrapper>
+            }
 
             <ButtonWrapper>
                 <Button type="button" onClick={() => handleDeleteItem(item.Product.ProductId)}>

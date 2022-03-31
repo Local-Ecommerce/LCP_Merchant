@@ -38,9 +38,7 @@ const ProductWrapper = styled.div`
 `;
 
 const ProductListWrapper = styled.div`
-    margin-top: 25px;
-    border-top: 1px solid #dee2e6;
-    
+    margin-top: 25px;    
 `;
 
 const MenuWrapper = styled.div`
@@ -339,6 +337,7 @@ const EditMenu = () => {
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
                     setMenu(res.data.Data.List[0]);
+                    console.log(res.data.Data.List[0])
                     setProducts(res.data.Data.List[0].ProductInMenus);
                     setNewProducts(res.data.Data.List[0].ProductInMenus.map((item) => ({ ...item, Price: item.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") })));
                     setInput({
@@ -361,7 +360,7 @@ const EditMenu = () => {
 
                     let url = "products?"
                         + "sort=" + sort
-                        + "&status=1001&status=1004"
+                        + "&status=1001&status=1003&status=1004"
                         + (search !== '' ? ("&search=" + search) : '');
                     api.get(url).then(function (res2) {
                         if (res2.data.ResultMessage === "SUCCESS") {
@@ -448,6 +447,7 @@ const EditMenu = () => {
                 + (repeatDay.t5 ? '5' : '') + (repeatDay.t6 ? '6' : '') + (repeatDay.t7 ? '7' : '') + (repeatDay.cn ? '8' : '')
                 || menu.TimeStart !== DateTime.fromISO(input.startTime).toFormat('TT')
                 || menu.TimeEnd !== DateTime.fromISO(input.endTime).toFormat('TT')
+                || menu.IncludeBaseMenu !== input.includeBaseMenu
             ) {
                 APIarray.push(api.put("menus?id=" + id, {
                     menuName: input.name,
@@ -620,6 +620,7 @@ const EditMenu = () => {
                                         currentItems={newProducts} 
                                         handleDeleteItem={handleDeleteItem}
                                         handleSetPrice={handleSetPrice}
+                                        isBaseMenu={menu.BaseMenu}
                                     />
                                     : 
                                     <NoProductWrapper>
@@ -659,12 +660,16 @@ const EditMenu = () => {
                         onChange={handleChange}
                     />
 
-                    <FormControlLabel 
-                        checked={input.includeBaseMenu} name='includeBaseMenu' 
-                        onClick={handleToggleIncludeBaseMenu} 
-                        control={<Checkbox />} 
-                        label={<span style={{ fontSize: '14px' }}>Tích hợp bảng giá cơ bản</span>} 
-                    />
+                    {
+                        menu.BaseMenu ?
+                        null :
+                        <FormControlLabel 
+                            checked={input.includeBaseMenu} name='includeBaseMenu' 
+                            onClick={handleToggleIncludeBaseMenu} 
+                            control={<Checkbox />} 
+                            label={<span style={{ fontSize: '14px' }}>Tích hợp bảng giá cơ bản</span>} 
+                        />
+                    }
 
                     <FormLabel>Ngày hoạt động</FormLabel>
                     <DatePickerWrapper>

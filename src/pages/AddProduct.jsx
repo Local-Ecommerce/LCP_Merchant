@@ -422,7 +422,7 @@ const AddProduct = () => {
                     <StyledTextFieldMb
                         fullWidth multiline rows={4}
                         placeholder="Khách hàng sẽ thấy mô tả này khi họ vào xem chi tiết sản phẩm." 
-                        inputProps={{ maxLength: 250, style: {fontSize: 14} }}
+                        inputProps={{ maxLength: 500, style: {fontSize: 14} }}
                         value={input.description} name='description'
                         onChange={handleChange}
                     />
@@ -435,7 +435,7 @@ const AddProduct = () => {
                     <TextField
                         fullWidth multiline rows={2}
                         placeholder="Khách hàng sẽ thấy mô tả này khi họ nhấn xem sản phẩm." 
-                        inputProps={{ maxLength: 250, style: {fontSize: 14} }}
+                        inputProps={{ maxLength: 500, style: {fontSize: 14} }}
                         value={input.shortDescription} name='shortDescription'
                         onChange={handleChange}
                     />
