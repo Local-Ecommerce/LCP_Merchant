@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, Warning } from '@mui/icons-material';
-import { TextField, InputAdornment } from '@mui/material';
+import { TextField, InputAdornment, Checkbox, FormControlLabel } from '@mui/material';
 import ProductOption from '../components/Product/ProductOption';
 import ImageUpload from '../components/Product/ImageUpload';
 import CategoryList from '../components/Product/CategoryList';
@@ -47,6 +47,7 @@ const Title = styled.h1`
 
 const ContainerWrapper = styled.div`
     padding: ${props => props.p0 ? "30px 30px 1px 30px" : "30px 30px"};
+    padding-top: ${props => props.pt0 ? "10px" : null};
     margin-bottom: 20px;
     box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
     background-color: #fff;
@@ -130,12 +131,28 @@ const OptionLabel = styled.div`
     font-size: 14px;
 `;
 
+const StyledLink = styled.a`
+    color: #007bff;
+    cursor: pointer;
+`;
+
 const AddProduct = () => {    
     let navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem('USER'));
     const [processing, setProcessing] = useState(false);
 
-    const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: '', colors: [], sizes: [],  weights: [], code: '' });
+    const [input, setInput] = useState({ 
+        name: '', 
+        description: '', 
+        shortDescription: '', 
+        category: {lv1: '', lv2: '', lv3: ''}, 
+        price: '', 
+        colors: [], 
+        sizes: [], 
+        weights: [], 
+        code: '',
+        toBaseMenu: true
+    });
     const [images, setImages] = useState([ { name: 0, image: '' } ]);
     const [error, setError] = useState({ name: '', category: '', price: '', image: '', colors: '', sizes: '', weights: '' });
 
@@ -169,6 +186,12 @@ const AddProduct = () => {
         setInput(input => ({ ...input, [name]: value }));
         setError(error => ({ ...error, [name]: '' }));
     };
+
+    function handleToggleToBaseMenu(e) {
+        const { checked } = e.target;
+        setInput(input => ({ ...input, toBaseMenu: checked }));
+    }
+
 
     const handleSetPrice = (e) => {
         const { value } = e.target;
@@ -271,8 +294,8 @@ const AddProduct = () => {
                     description: input.description,
                     defaultPrice: input.price.replace(/\D/g, ""),
                     systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
-                    image: images.filter(item => item.image !== '').map(item => item.image.split(',')[1])
-                    ,
+                    image: images.filter(item => item.image !== '').map(item => item.image.split(',')[1]),
+                    toBaseMenu: input.toBaseMenu,
                     relatedProducts: 
                         skipRelated ? [] : sizes.map(size => { 
                             return colors.map(color => {
@@ -382,7 +405,7 @@ const AddProduct = () => {
                     </Row>
                     
                     <TextField
-                        fullWidth size="small" placeholder="Ví dụ: AP-001" 
+                        fullWidth placeholder="Ví dụ: AP-001" 
                         inputProps={{ maxLength: 200, style: {fontSize: 14} }}
                         value={input.code ? input.code : ''} name='code'
                         onChange={handleChange}
@@ -462,6 +485,19 @@ const AddProduct = () => {
                     <ProductOption savedData={input.colors} type='colors' saveOption={saveOption} editOption={editOption} />
                     <ProductOption savedData={input.sizes} type='sizes' saveOption={saveOption} editOption={editOption} />
                     <ProductOption savedData={input.weights} type='weights' saveOption={saveOption} editOption={editOption} />
+                </ContainerWrapper>
+
+                <ContainerWrapper pt0>
+                    <FormControlLabel 
+                        checked={input.toBaseMenu} name='toBaseMenu' 
+                        onClick={handleToggleToBaseMenu} 
+                        control={<Checkbox />} 
+                        label={<span style={{ fontSize: '14px' }}>Tự động thêm sản phẩm vào bảng giá cơ bản</span>} 
+                    />
+                    <HelperText>
+                        Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/Th%E1%BB%B1c_ph%E1%BA%A9m_t%C6%B0%C6%A1i_s%E1%BB%91ng"
+                                            target="_blank">các loại bảng giá</StyledLink>
+                    </HelperText>
                 </ContainerWrapper>
 
                 <FooterWrapper>

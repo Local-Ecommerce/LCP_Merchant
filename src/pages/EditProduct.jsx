@@ -152,12 +152,10 @@ const EditProduct = () => {
     const [currentImages, setCurrentImages] = useState([]);
     const [images, setImages] = useState([ { name: 0, image: '' } ]);
 
-    const [type, setType] = useState('Khác');
     const [loading, setLoading] = useState(false);
     const sort = '+syscategoryname';
 
     const [lv1Category, setLv1Category] = useState([]);
-    const [filteredLv1Category, setFilteredLv1Category] = useState([]);
     const [lv2Category, setLv2Category] = useState([]);
     const [lv3Category, setLv3Category] = useState([]);
 
@@ -258,7 +256,6 @@ const EditProduct = () => {
                                             }
                                         }));
                                     }
-                                    setType(res3.data.Data.List[0].Type);
                                     setLoading(false);
                                 }
                             })
@@ -274,13 +271,6 @@ const EditProduct = () => {
         fetchData();
     }, []);
 
-    useEffect(() => {   //filter based on category type
-        const result = lv1Category.filter((item) => {
-            return item.Type === type;
-        })
-        setFilteredLv1Category(result);
-    }, [type, lv1Category]);
-
     const handleChange = (e) => {
         const { name, value } = e.target;
         setInput(input => ({ ...input, [name]: value }));
@@ -294,13 +284,6 @@ const EditProduct = () => {
         }
         setError(error => ({ ...error, price: '' }));
     }
-
-    const handleSetType = (e) => {
-        const { value } = e.target;
-        setType(value);
-        setLv2Category([]);
-        setLv3Category([]);
-    };
 
     const saveOption = (option, data) => {
         setError(error => ({ ...error, [option]: '' }));
@@ -564,6 +547,18 @@ const EditProduct = () => {
                     />
 
                     <Row spacebetween>
+                        <FormLabel>Mã sản phẩm</FormLabel>
+                        <HelperText ml0>{input.code.length}/200 kí tự</HelperText>
+                    </Row>
+                    
+                    <StyledTextFieldMb
+                        fullWidth placeholder="Ví dụ: AP-001" 
+                        inputProps={{ maxLength: 200, style: {fontSize: 14} }}
+                        value={input.code ? input.code : ''} name='code'
+                        onChange={handleChange}
+                    />
+
+                    <Row spacebetween>
                         <FormLabel>Mô tả chi tiết</FormLabel>
                         <HelperText ml0>{input.description.length}/500 kí tự</HelperText>
                     </Row>
@@ -593,32 +588,8 @@ const EditProduct = () => {
                 <ContainerWrapper error={error.category !== ''}>
                     <FormLabel>Danh mục</FormLabel>
 
-                    <RadioGroup value={type} name='type' onChange={handleSetType}>
-                        <FormControlLabel 
-                            value="Tươi sống" 
-                            control={<Radio />} 
-                            label={<RadioLabel>Tươi sống</RadioLabel>} 
-                        />
-                        <HelperText>
-                            Bảng giá thuộc lại tươi sống sẽ nằm bên mục&nbsp;<b>Tươi sống</b>. 
-                            Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/Th%E1%BB%B1c_ph%E1%BA%A9m_t%C6%B0%C6%A1i_s%E1%BB%91ng"
-                                                              target="_blank">danh mục tươi sống</StyledLink>
-                        </HelperText>
-
-                        <FormControlLabel 
-                            value="Khác" 
-                            control={<Radio />} 
-                            label={<RadioLabel>Khác</RadioLabel>} 
-                        />
-                        <HelperText>
-                            Bảng giá thuộc lại khác sẽ nằm bên mục&nbsp;<b>Khác</b>. 
-                            Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/S%E1%BA%A3n_ph%E1%BA%A9m"
-                                                              target="_blank">danh mục khác</StyledLink>
-                        </HelperText>
-                    </RadioGroup>
-
                     <Row spacebetween mt>
-                        <CategoryList currentItems={filteredLv1Category} selected={input.category.lv1} handleGetCategory={handleGetCategoryLv1} />
+                        <CategoryList currentItems={lv1Category} selected={input.category.lv1} handleGetCategory={handleGetCategoryLv1} />
                         <CategoryList currentItems={lv2Category} selected={input.category.lv2} handleGetCategory={handleGetCategoryLv2} />
                         <CategoryList currentItems={lv3Category} selected={input.category.lv3} handleGetCategory={handleGetCategoryLv3} />
                     </Row>
@@ -660,23 +631,6 @@ const EditProduct = () => {
                     <ProductOption passedData={input.colors} savedData={input.colors} type='colors' saveOption={saveOption} editOption={editOption} />
                     <ProductOption passedData={input.sizes} savedData={input.sizes} type='sizes' saveOption={saveOption} editOption={editOption} />
                     <ProductOption passedData={input.weights} savedData={input.weights} type='weights' saveOption={saveOption} editOption={editOption} />
-                </ContainerWrapper>
-
-                <ContainerWrapper>
-                    <Row spacebetween>
-                        <FormLabel>Mã sản phẩm</FormLabel>
-                        <HelperText ml0>{input.code.length}/200 kí tự</HelperText>
-                    </Row>
-                    
-                    <TextField
-                        fullWidth size="small" placeholder="Ví dụ: AP-001" 
-                        inputProps={{ maxLength: 200, style: {fontSize: 14} }}
-                        value={input.code ? input.code : ''} name='code'
-                        onChange={handleChange}
-                    />
-                    <HelperText mt ml0>
-                        Mã sản phẩm giúp người bán dễ dàng quẩn lí sản phẩm của mình. Để trống nếu bạn không rõ.
-                    </HelperText>
                 </ContainerWrapper>
 
                 <FooterWrapper>

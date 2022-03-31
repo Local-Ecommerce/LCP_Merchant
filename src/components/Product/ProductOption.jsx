@@ -165,7 +165,7 @@ const ProductOption = ({ passedData, savedData, type, saveOption, editOption }) 
         const { name, value } = e.target;
         let newValues = [...values];
         let index = newValues.findIndex(obj => parseInt(obj.name) === parseInt(name));
-        let inputValue = value.replace(/[^\d,]+/g,'').replace(/^([^,]*,)|,/g, '$1');
+        let inputValue = value.replace(/[^\d.]+/g,'').replace(/^([^.]*\.)|\./g, '$1');
         let error = (newValues.find(obj => obj.value === inputValue && obj.name !== name && inputValue !== '') ? "Tùy chọn đã tồn tại" : "");
         let old = false;
         newValues[index] = { name, value: inputValue, error, old };
