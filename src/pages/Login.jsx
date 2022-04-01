@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { CircularProgress } from '@mui/material';
 
 import { auth } from "../firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
 const LoginFormContainer = styled.div`
     position: fixed;
@@ -40,14 +40,15 @@ const Title = styled.h1`
 
 const BlueSpan = styled.span`
     color: #3075BA;
-    font-size: 40px;
+    font-size: ${props => props.fontSize};
 `;
 
 const SmallText = styled.h4`
     color: rgba(23,31,35,.64);
     font-weight: 400;
-    margin: 5px 0px 20px 0px;
+    margin: 5px -10px 20px -10px;
     text-align: center;
+    font-size: 14px;
 `;
 
 const ErrorText = styled.div`
@@ -56,6 +57,11 @@ const ErrorText = styled.div`
     color: #762a36;
     background: #f8d7da;
     border-radius: 5px;
+`;
+
+const SuccessText = styled.div`
+    text-align: center;
+    color: green;
 `;
 
 const BottomText = styled.a`
@@ -71,7 +77,7 @@ const BottomText = styled.a`
 const TextFieldWrapper = styled.div`
     display: flex;
     align-items: center;
-    margin-top: ${props => props.mt ? "30px" : "10px"};
+    margin-top: ${props => props.mt ? "30px" : "20px"};
 `;
 
 const Button = styled.button`
@@ -100,14 +106,17 @@ const Login = () => {
     let navigate = useNavigate();
 
     const [loading, setLoading] = useState(false);
+    const [toggle, setToggle] = useState(false);
+    const toggleForm = () => { setToggle(!toggle) }
+
+    const [input, setInput] = useState({ email: '', password: '', forgetEmail: '' });
     const [error, setError] = useState('');
-    const [input, setInput] = useState({
-        username: '',
-        password: ''
-    });
+    const [success, setSuccess] = useState('');
 
     function handleChange(e) {
         const { name, value } = e.target;
+        setError('');
+        setSuccess('');
         setInput(input => ({ ...input, [name]: value }));
     }
 
@@ -116,7 +125,7 @@ const Login = () => {
         setError('');
         setLoading(true);
 
-        signInWithEmailAndPassword(auth, input.username, input.password)
+        signInWithEmailAndPassword(auth, input.email, input.password)
         .then((userCredential) => {
             const firebaseToken = userCredential._tokenResponse.idToken;
             console.log("Firebase Token: " + firebaseToken);
@@ -150,45 +159,97 @@ const Login = () => {
         })
     }
 
+    function handleForgetPassword(e) {
+        e.preventDefault();
+        setError('');
+
+        sendPasswordResetEmail(auth, input.forgetEmail)
+        .then(() => {
+            setSuccess('Gửi thành công. Vui lòng kiểm tra email.');
+        })
+        .catch((error) => {
+            console.log(error);
+        });
+    }
+
     return (
         <LoginFormContainer>
-            <Title>Welcome to <BlueSpan>LCP</BlueSpan> </Title>
-            <SmallText>Trang quản lí dành cho Người bán hàng</SmallText>
-
-            {error !== '' ? <ErrorText>{error}</ErrorText> : null}
-
-            <Form onSubmit={handleLogin}>
-                {
-                loading ?
-                <CenterWrapper>
-                    <CircularProgress /> 
-                </CenterWrapper>
-                :
+            {
+                !toggle ?
                 <>
-                    <TextFieldWrapper mt>
-                        <TextField
-                            fullWidth
-                            value={input.username ? input.username : ''} name="username"
-                            onChange={handleChange}
-                            label="Tài khoản"
-                        />
-                    </TextFieldWrapper>
+                    <Title>Welcome to <BlueSpan fontSize="40px">LCP</BlueSpan> </Title>
+                    <SmallText>Trang quản lí dành cho <b>Người bán hàng</b></SmallText>
 
-                    <TextFieldWrapper>
-                        <TextField
-                            fullWidth
-                            value={input.password ? input.password : ''} name="password"
-                            type="password"
-                            onChange={handleChange}
-                            label="Mật khẩu" 
-                        />
-                    </TextFieldWrapper>
+                    {error !== '' ? <ErrorText>{error}</ErrorText> : null}
+                    {success !== '' ? <ErrorText>{success}</ErrorText> : null}
 
-                    <Button>Đăng nhập</Button>
-                    <BottomText>Quên mật khẩu?</BottomText>
+                    <Form onSubmit={handleLogin}>
+                        {
+                        loading ?
+                        <CenterWrapper>
+                            <CircularProgress /> 
+                        </CenterWrapper>
+                        :
+                        <>
+                            <TextFieldWrapper mt>
+                                <TextField
+                                    fullWidth
+                                    value={input.email ? input.email : ''} name="email"
+                                    onChange={handleChange}
+                                    label="Email"
+                                />
+                            </TextFieldWrapper>
+
+                            <TextFieldWrapper>
+                                <TextField
+                                    fullWidth
+                                    value={input.password ? input.password : ''} name="password"
+                                    type="password"
+                                    onChange={handleChange}
+                                    label="Mật khẩu" 
+                                />
+                            </TextFieldWrapper>
+
+                            <Button>Đăng nhập</Button>
+                            <BottomText onClick={toggleForm}>Quên mật khẩu?</BottomText>
+                        </>
+                        }
+                    </Form>
                 </>
-                }
-            </Form>
+
+                :
+                
+                <>
+                    <Title><BlueSpan fontSize="28px">Quên mật khẩu?</BlueSpan></Title>
+                    <SmallText>Nhập địa chỉ email đã đăng kí cho tài khoản của bạn</SmallText>
+
+                    {error !== '' ? <ErrorText>{error}</ErrorText> : null}
+                    {success !== '' ? <SuccessText>{success}</SuccessText> : null}
+
+                    <Form onSubmit={handleForgetPassword}>
+                        {
+                        loading ?
+                        <CenterWrapper>
+                            <CircularProgress /> 
+                        </CenterWrapper>
+                        :
+                        <>
+                            <TextFieldWrapper mt>
+                                <TextField
+                                    fullWidth
+                                    value={input.forgetEmail ? input.forgetEmail : ''} name="forgetEmail"
+                                    onChange={handleChange}
+                                    label="Email"
+                                />
+                            </TextFieldWrapper>
+
+                            <Button>Gửi</Button>
+                            <BottomText onClick={toggleForm}>Trở về đăng nhập</BottomText>
+                        </>
+                        }
+                    </Form>
+                </>
+            }
         </LoginFormContainer>
     )
 }

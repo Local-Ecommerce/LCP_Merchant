@@ -53,8 +53,13 @@ const TextWrapper = styled.div`
 `;
 
 const TopText = styled.span`
-    margin: 0px 0px 10px 0px;
+    margin: 3px 0px;
     font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 `;
 
 const BottomText = styled.p`

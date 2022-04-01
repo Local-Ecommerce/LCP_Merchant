@@ -387,12 +387,12 @@ const AddProduct = () => {
                 <ContainerWrapper error={error.name !== ''}>
                     <Row spacebetween>
                         <FormLabel>Tên sản phẩm</FormLabel>
-                        <HelperText ml0>{input.name.length}/250 kí tự</HelperText>
+                        <HelperText ml0>{input.name.length}/100 kí tự</HelperText>
                     </Row>
                     
                     <StyledTextFieldMb
                         fullWidth placeholder="Ví dụ: Bánh mì 2 trứng" 
-                        inputProps={{ maxLength: 250, style: {fontSize: 14} }} 
+                        inputProps={{ maxLength: 100, style: {fontSize: 14} }} 
                         value={input.name ? input.name : ''} name='name'
                         onChange={handleChange}
                         error={error.name !== ''}

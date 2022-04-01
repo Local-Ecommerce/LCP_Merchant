@@ -22,6 +22,7 @@ import Menu from './pages/Menu';
 import AddMenu from './pages/AddMenu';
 import EditMenu from './pages/EditMenu';
 
+import UserProfile from './pages/UserProfile';
 import StoreDetail from './pages/StoreDetail';
 
 const HeaderWrapper = styled.div`
@@ -134,6 +135,11 @@ const App = () => {
 				<Route 
 					path="/storeDetail" 
 					element={<RequireLoggedIn> <StoreDetail /> </RequireLoggedIn>} 
+				/>
+
+				<Route 
+					exact path="/userProfile" 
+					element={<RequireLoggedIn> <UserProfile /> </RequireLoggedIn>}
 				/>
 			</Route>
 

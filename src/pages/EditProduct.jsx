@@ -359,16 +359,6 @@ const EditProduct = () => {
         newImages[index] = { name: name, image: '' };
         setImages(newImages);
     };
-    
-    useEffect(() => {
-        console.log(currentImages)
-        console.log(images)
-        let difference = currentImages.filter(o1 => !images.some(o2 => o1.image === o2.image))
-        .concat(images.filter(o1 => !currentImages.some(o2 => o1.image === o2.image)))
-        .filter(item => item.image !== '').map(item => item.image.includes(',') ? item.image.split(',')[1] : item.image)
-        console.log(difference)
-        //console.log(images.filter(item => item.image !== '').map(item => item.image.includes(',') ? item.image.split(',')[1] : item.image))
-    }, [images])
 
     const handleEditItem = (event) => {
         event.preventDefault();
@@ -424,6 +414,7 @@ const EditProduct = () => {
                 || item.ProductName !== input.name 
                 || item.Description !== input.description
                 || item.BriefDescription !== input.shortDescription
+                || item.SystemCategoryId !== (input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1)
                 || item.DefaultPrice.toString().replace(/\D/g, "") !== input.price.replace(/\D/g, "")
                 || imageDifference.length
             ) {
@@ -534,12 +525,12 @@ const EditProduct = () => {
                 <ContainerWrapper error={error.name !== ''}>
                     <Row spacebetween>
                         <FormLabel>Tên sản phẩm</FormLabel>
-                        <HelperText ml0>{input.name.length}/250 kí tự</HelperText>
+                        <HelperText ml0>{input.name.length}/100 kí tự</HelperText>
                     </Row>
                     
                     <StyledTextFieldMb
                         fullWidth placeholder="Ví dụ: Bánh mì 2 trứng" 
-                        inputProps={{ maxLength: 250, style: {fontSize: 14} }} 
+                        inputProps={{ maxLength: 100, style: {fontSize: 14} }} 
                         value={loading ? "Đang tải..." : input.name} name='name'
                         onChange={handleChange}
                         error={error.name !== ''}
@@ -566,7 +557,7 @@ const EditProduct = () => {
                     <StyledTextFieldMb
                         fullWidth multiline rows={4}
                         placeholder="Khách hàng sẽ thấy mô tả này khi họ vào xem chi tiết sản phẩm." 
-                        inputProps={{ maxLength: 250, style: {fontSize: 14} }}
+                        inputProps={{ maxLength: 500, style: {fontSize: 14} }}
                         value={loading ? "Đang tải..." : input.description} name='description'
                         onChange={handleChange}
                     />
@@ -579,7 +570,7 @@ const EditProduct = () => {
                     <TextField
                         fullWidth multiline rows={2}
                         placeholder="Khách hàng sẽ thấy mô tả này khi họ nhấn xem sản phẩm." 
-                        inputProps={{ maxLength: 250, style: {fontSize: 14} }}
+                        inputProps={{ maxLength: 500, style: {fontSize: 14} }}
                         value={loading ? "Đang tải..." : input.shortDescription} name='shortDescription'
                         onChange={handleChange}
                     />

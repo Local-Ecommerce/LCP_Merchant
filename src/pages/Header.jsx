@@ -418,7 +418,7 @@ const Header = () => {
                     </Name>
                     
                     <DropdownList>
-                        <DropdownLink to={"/"}> <StyledPersonIcon /> Thông tin cá nhân </DropdownLink>
+                        <DropdownLink to={"/userProfile"}> <StyledPersonIcon /> Thông tin cá nhân </DropdownLink>
                         <DropdownLink to={"/"}> <StyledHelpIcon /> Trợ giúp </DropdownLink>
                         <DropdownItem onClick={handleLogout}> <StyledLogoutIcon /> Đăng xuất </DropdownItem>
                     </DropdownList>
