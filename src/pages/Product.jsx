@@ -5,9 +5,11 @@ import ProductList from '../components/Product/ProductList';
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import ReactPaginate from "react-paginate";
-import { Search, Error, Logout, ProductionQuantityLimits, AddCircle } from '@mui/icons-material';
+import useClickOutside from "../contexts/useClickOutside";
+import { Search, Error, Logout, ProductionQuantityLimits, AddCircle, ArrowDropDown } from '@mui/icons-material';
 import { CircularProgress } from '@mui/material';
 import { Link } from 'react-router-dom';
+import * as Constant from '../Constant';
 
 import DeleteModal from '../components/Product/DeleteModal';
 
@@ -75,7 +77,7 @@ const StyledSearchIcon = styled(Search)`
 
 const SearchBar = styled.div`
     display: flex;
-    width: 50%;
+    width: 300px;
     justify-content: center;
     align-items: center;
     border-radius: 5px;
@@ -85,7 +87,6 @@ const SearchBar = styled.div`
     height: 44px;
     padding: 0px 3px 0px 8px;
     background-color: #ffffff;
-    margin-right: 10px;
 `;
 
 const Input = styled.input`
@@ -103,7 +104,7 @@ const Input = styled.input`
 
 const Button = styled.button`
     height: 36px;
-    width: 70px;
+    width: 60px;
     background-color: #17a2b8;
     border-style: none;
     border-radius: 5px;
@@ -119,31 +120,6 @@ const Button = styled.button`
 
     &:active {
     transform: translateY(1px);
-    }
-`;
-
-const DropdownWrapper = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 5px;
-    border-color: #D8D8D8;
-    border-style: solid;
-    border-width: thin;
-    height: 44px;
-    padding: 0px 3px 0px 8px;
-    background-color: #ffffff;
-`;
-
-const Select = styled.select`
-    padding: 4px;
-    flex-grow: 1;
-    background-color: transparent;
-    outline: none;
-    border: none;
-
-    &:focus {
-    outline: 0;
     }
 `;
 
@@ -358,12 +334,83 @@ const StyledPaginateContainer = styled.div`
     }
 `;
 
+const Label = styled.div`
+    margin-right: 10px;
+    font-size: 13px;
+`;
+
+const SelectWrapper = styled.div`
+    width: 180px;
+    display: inline-block;
+    background-color: ${props => props.theme.white};
+    border-radius: 5px;
+    border: 1px solid ${props => props.theme.greyBorder};
+    transition: all .5s ease;
+    position: relative;
+    font-size: 14px;
+    color: ${props => props.theme.black};
+    text-align: left;
+
+    &:hover {
+        box-shadow: 0 0 4px rgb(204, 204, 204);
+        border-radius: 2px 2px 0 0;
+    }
+
+    &:active {
+        box-shadow: 0 0 4px rgb(204, 204, 204);
+        border-radius: 2px 2px 0 0;
+    }
+`;
+
+const Select = styled.div`
+    cursor: pointer;
+    display: flex;
+    padding: 8px 10px 8px 15px;
+    justify-content: space-between;
+    align-items: center;
+`;
+
+const DropdownMenu = styled.ul`
+    position: absolute;
+    background-color: #fff;
+    width: 100%;
+    left: 0;
+    margin-top: 1px;
+    box-shadow: 0 1px 2px rgb(204, 204, 204);
+    border-radius: 0 1px 2px 2px;
+    overflow: hidden;
+    display: ${props => props.dropdown === true ? "" : "none"};
+    max-height: 500px;
+    overflow-y: auto;
+    z-index: 9;
+    padding: 0;
+    list-style: none;
+`;
+
+const DropdownList = styled.li`
+    padding: 10px;
+    transition: all .2s ease-in-out;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+
+    &:hover {
+        background-color: ${props => props.theme.hover};
+    }
+`;
+
 const Product = () =>  {
     const [deleteModal, setDeleteModal] = useState(false);
     const toggleDeleteModal = () => { setDeleteModal(!deleteModal) };
     const [deleteItem, setDeleteItem] = useState({id: '', name: ''});
+    const [cateDropdown, setCateDropdown] = useState(false);
+    const toggleCateDropdown = () => { setCateDropdown(!cateDropdown); }
+    const [sortDropdown, setSortDropdown] = useState(false);
+    const toggleSortDropdown = () => { setSortDropdown(!sortDropdown); }
+    const [statusDropdown, setStatusDropdown] = useState(false);
+    const toggleStatusDropdown = () => { setStatusDropdown(!statusDropdown); }
 
     const [APIdata, setAPIdata] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [productExist, setProductExist] = useState({ checked: false, exist: false });
     const [loading, setLoading] = useState(false);
     const [change, setChange] = useState(false);
@@ -372,19 +419,24 @@ const Product = () =>  {
     const [page, setPage] = useState(0);
     const [total, setTotal] = useState(0);
     const [lastPage, setLastPage] = useState(0);
-    const sort = '-createddate';
+    const [category, setCategory] = useState({id: '', name: 'Toàn bộ'});
+    const [sort, setSort] = useState({value: '-createddate', name: 'Ngày tạo tăng dần'});
     const [typing, setTyping] = useState('');
     const [search, setSearch] = useState('');
-    const [status, setStatus] = useState('1001&status=1003&status=1004');
+    const [status, setStatus] = useState({
+        value: Constant.VERIFIED_PRODUCT + "&status=" + Constant.UNVERIFIED_PRODUCT + "&status=" + Constant.REJECTED_PRODUCT,
+        name: 'Toàn bộ'
+    });
 
     useEffect( () => {  //fetch api data
         setLoading(true);
         let url = "products"
                 + "?limit=" + limit 
                 + "&page=" + (page + 1) 
-                + "&sort=" + sort 
+                + "&sort=" + sort.value
+                + "&categoryid=" + category.id
                 + (search !== '' ? ("&search=" + search) : '') 
-                + (status !== '' ? ("&status=" + status) : '');
+                + (status !== '' ? ("&status=" + status.value) : '');
         const fetchData = () => {
             api.get(url)
             .then(function (res) {
@@ -394,7 +446,15 @@ const Product = () =>  {
                 if (productExist.checked === false) {
                     setProductExist({ checked: true, exist: (res.data.Data.Total > 0 ? true : false) })
                 }
-                setLoading(false);
+
+                const url2 = "categories" 
+                    + "?sort=-syscategoryname" 
+                    + "&status=" + Constant.ACTIVE_SYSTEM_CATEGORY;
+                api.get(url2)
+                .then(function (res2) {
+                    setCategories(res2.data.Data.List);
+                    setLoading(false);
+                })
             })
             .catch(function (error) {
                 console.log(error);
@@ -402,7 +462,7 @@ const Product = () =>  {
             });
         }
         fetchData();
-    }, [change, limit, page, sort, status, search]);
+    }, [change, limit, page, sort, status, search, category]);
 
     useEffect(() => {   //timer when search
         const timeOutId = setTimeout(() => setSearch(typing), 500);
@@ -415,16 +475,40 @@ const Product = () =>  {
         setPage(0);
     }
 
+    let clickCateOutside = useClickOutside(() => {
+        setCateDropdown(false);
+    });
+
+    let clickSortOutside = useClickOutside(() => {
+        setSortDropdown(false);
+    });
+
+    let clickStatusOutside = useClickOutside(() => {
+        setStatusDropdown(false);
+    });
+
+    const handleSetCategory = (id, name) => {
+        setCategory({id: id, name: name});
+        toggleCateDropdown();
+        setPage(0);
+    }
+
+    const handleSetSort = (value, name) => {
+        setSort({value: value, name: name});
+        toggleSortDropdown();
+        setPage(0);
+    }
+
+    const handleSetStatus = (value, name) => {
+        setStatus({value: value, name: name});
+        toggleStatusDropdown();
+        setPage(0);
+    }
+
     const clearSearch = () => {
         setTyping('');
         setPage(0);
         document.getElementById("search").value = '';
-    }
-
-    function handleSetStatus(e) {
-        const { value } = e.target;
-        setStatus(value);
-        setPage(0);
     }
 
     const handlePageClick = (event) => {
@@ -484,15 +568,93 @@ const Product = () =>  {
                             </SearchBar>
 
                             <Align>
-                                <small>Trạng thái:&nbsp;</small>
-                                <DropdownWrapper width="16%">
-                                    <Select value={status} onChange={handleSetStatus}>
-                                    <option value='1001&status=1003&status=1004'>Toàn bộ</option>
-                                        <option value={1001}>Hoạt động</option>
-                                        <option value={1003}>Từ chối</option>
-                                        <option value={1004}>Chờ xác thực</option>
+                                <Label>Danh mục:</Label>
+                                <SelectWrapper ref={clickCateOutside}>
+                                    <Select onClick={toggleCateDropdown}>
+                                        {category.name}
+                                        <ArrowDropDown />
                                     </Select>
-                                </DropdownWrapper>
+
+                                    <DropdownMenu dropdown={cateDropdown}>
+                                        <DropdownList onClick={() => handleSetCategory('', 'Toàn bộ')}>Toàn bộ</DropdownList>
+                                        {
+                                            categories.map(category => {
+                                                return <>
+                                                    <DropdownList 
+                                                        key={category.SystemCategoryId}
+                                                        onClick={() => handleSetCategory(category.SystemCategoryId, category.SysCategoryName)}
+                                                    >
+                                                        {category.SysCategoryName}
+                                                    </DropdownList>
+
+                                                    {
+                                                        category.Children ?
+                                                        category.Children.map(category => {
+                                                            return <>
+                                                                <DropdownList 
+                                                                    key={category.SystemCategoryId}
+                                                                    onClick={() => handleSetCategory(category.SystemCategoryId, category.SysCategoryName)}
+                                                                >
+                                                                    {category.SysCategoryName}
+                                                                </DropdownList>
+
+                                                                {
+                                                                    category.Children ?
+                                                                    category.Children.map(category => {
+                                                                        return <>
+                                                                            <DropdownList 
+                                                                                key={category.SystemCategoryId}
+                                                                                onClick={() => handleSetCategory(category.SystemCategoryId, category.SysCategoryName)}
+                                                                            >
+                                                                                {category.SysCategoryName}
+                                                                            </DropdownList>
+                                                                        </>
+                                                                    })
+                                                                    : null
+                                                                }
+                                                            </>
+                                                        })
+                                                        : null
+                                                    }
+                                                </>
+                                            })
+                                        }
+                                    </DropdownMenu>
+                                </SelectWrapper>
+                            </Align>
+
+                            <Align>
+                                <Label>Sắp xếp:</Label>
+                                <SelectWrapper ref={clickSortOutside}>
+                                    <Select onClick={toggleSortDropdown}>
+                                        {sort.name}
+                                        <ArrowDropDown />
+                                    </Select>
+
+                                    <DropdownMenu dropdown={sortDropdown}>
+                                        <DropdownList onClick={() => handleSetSort('-createddate', 'Ngày tạo tăng dần')}>Ngày tạo tăng dần</DropdownList>
+                                        <DropdownList onClick={() => handleSetSort('+createddate', 'Ngày tạo giảm dần')}>Ngày tạo giảm dần</DropdownList>
+                                        <DropdownList onClick={() => handleSetSort('-defaultprice', 'Giá tăng dần')}>Giá tăng dần</DropdownList>
+                                        <DropdownList onClick={() => handleSetSort('+defaultprice', 'Giá giảm dần')}>Giá giảm dần</DropdownList>
+                                    </DropdownMenu>
+                                </SelectWrapper>
+                            </Align>
+
+                            <Align>
+                                <Label>Trạng thái:</Label>
+                                <SelectWrapper ref={clickStatusOutside}>
+                                    <Select onClick={toggleStatusDropdown}>
+                                        {status.name}
+                                        <ArrowDropDown />
+                                    </Select>
+
+                                    <DropdownMenu dropdown={statusDropdown}>
+                                        <DropdownList onClick={() => handleSetStatus(Constant.VERIFIED_PRODUCT + "&status=" + Constant.UNVERIFIED_PRODUCT + "&status=" + Constant.REJECTED_PRODUCT, 'Toàn bộ')}>Toàn bộ</DropdownList>
+                                        <DropdownList onClick={() => handleSetStatus(Constant.VERIFIED_PRODUCT, 'Hoạt động')}>Hoạt động</DropdownList>
+                                        <DropdownList onClick={() => handleSetStatus(Constant.UNVERIFIED_PRODUCT, 'Chờ duyệt')}>Chờ duyệt</DropdownList>
+                                        <DropdownList onClick={() => handleSetStatus(Constant.REJECTED_PRODUCT, 'Từ chối')}>Từ chối</DropdownList>
+                                    </DropdownMenu>
+                                </SelectWrapper>
                             </Align>
                         </Row>
 

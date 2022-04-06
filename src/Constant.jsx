@@ -3,6 +3,10 @@ export const MERCHANT = "Merchant";
 export const CUSTOMER = "Customer";
 export const ADMIN = "Admin";
 
+//captcha google key
+export const CAPTCHA_CLIENT_KEY = '6LdcxxkfAAAAAMWqNDaLPF4A1dI7sKr51S7Qbwth';
+export const CAPTCHA_SECRET_KEY = '6LdcxxkfAAAAALq3NZ0Q5Vg2VvNzB8SB1UU0QD4_';
+
 //poi status
 export const ACTIVE_POI = 8001;
 export const INACTIVE_POI = 8005;
@@ -44,3 +48,8 @@ export const VERIFIED_PRODUCT = 1001;
 export const DELETED_PRODUCT = 1002;
 export const REJECTED_PRODUCT = 1003;
 export const UNVERIFIED_PRODUCT = 1004;
+
+//product in menu status
+export const ACTIVE_PRODUCT_IN_MENU = 10001;
+export const DELETED_PRODUCT_IN_MENU = 10002;
+export const INACTIVE_PRODUCT_IN_MENU = 10005;

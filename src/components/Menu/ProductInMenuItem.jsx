@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Close, HideImage } from '@mui/icons-material';
+import { Close, HideImage, ArrowDropDown, ArrowDropUp } from '@mui/icons-material';
 
 const ContainerWrapper = styled.div`
     font-size: 14px;
@@ -39,6 +39,8 @@ const TextWrapper = styled.div`
     text-overflow: ellipsis;
     white-space: nowrap;
     margin: 0px 20px;
+    display: flex;
+    align-items: center;
 `;
 
 const TooltipText = styled.div`
@@ -81,6 +83,7 @@ const Status = styled.span`
 
 const ImageWrapper = styled.div`
     position: relative;
+    opacity: ${props => props.disabled ? "0" : null};
 `;
 
 const Image = styled.img`
@@ -129,11 +132,19 @@ const StyledCloseIcon = styled(Close)`
     }
 `;
 
+const StyledDisabledCloseIcon = styled(Close)`
+    && {
+        font-size: 22px;
+        opacity: 0;
+    }
+`;
+
 const TextFIeldWrapper = styled.div`
     flex: 3;
     display: flex;
-    align-items: flex-end;
+    justify-content: center;
     margin-right: 15px;
+    opacity: ${props => props.disabled ? "0" : null};
 `;
 
 const Currency = styled.span`
@@ -154,9 +165,34 @@ const TextField = styled.input`
     border-radius: 3px 0 0 3px;
     font-size: 14px;
     background-color: ${props => props.theme.white};
+    color: ${props => props.grey ? "#BEBEBE" : props.theme.black};
 `;
 
-const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice, isBaseMenu }) =>  {
+const StyledDropdownIcon = styled(ArrowDropDown)`
+    && {
+        margin-left: 5px;
+        font-size: 20px;
+    }
+`;
+
+const StyledDropupIcon = styled(ArrowDropUp)`
+    && {
+        margin-left: 5px;
+        font-size: 20px;
+    }
+`;
+
+const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice, handleSetPriceRelated, isBaseMenu, search }) =>  {
+    const [dropdown, setDropdown] = useState(false);
+    const toggleDropdown = () => { setDropdown(!dropdown) };
+
+    if (item === 0) {
+        return null;
+    }
+
+    if (!item.Product.ProductName.includes(search)) {
+        return null;
+    }
 
     let activeCheck = '';
     let activeLabel = '';
@@ -178,62 +214,125 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice, isBa
             activeLabel = 'WRONG STATUS'
             break;
     }
-    
-    if (item === 0) {
-        return null;
+
+    function inputStopPropagation(e) {
+        e.stopPropagation();
     }
 
+    let relatedPrices = item.RelatedProductInMenu.map((item) => (item.Price.replace(/\D/g, "")));
+
     return (
-        <ContainerWrapper>
-            <Index>{index}.</Index>
+        <>
+            <ContainerWrapper onClick={toggleDropdown}>
+                <Index>{index}.</Index>
 
-            <ImageWrapper>
+                <ImageWrapper>
+                        {
+                            item.Product.Image ?
+                            <Image src={item.Product.Image ? item.Product.Image.split("|")[0] : ''} />
+                            : <StyledNoImageIcon />
+                        }
+                        
+                        {
+                            activeCheck === 'active' ?
+                            null :
+                            <Status active={activeCheck}>
+                                <TooltipText>{activeLabel}</TooltipText>
+                            </Status>
+                        }
+                </ImageWrapper>
+
+                <TextWrapper isBaseMenu={isBaseMenu}>
+                    {item.Product.ProductName}
                     {
-                        item.Product.Image ?
-                        <Image src={item.Product.Image ? item.Product.Image.split("|")[0] : ''} />
-                        : <StyledNoImageIcon />
+                        item.RelatedProductInMenu.length && !dropdown ?
+                        <StyledDropdownIcon />
+                        : item.RelatedProductInMenu.length && dropdown ?
+                        <StyledDropupIcon />
+                        : null
                     }
-                    
-                    {
-                        activeCheck === 'active' ?
-                        null :
-                        <Status active={activeCheck}>
-                            <TooltipText>{activeLabel}</TooltipText>
-                        </Status>
-                    }
-            </ImageWrapper>
+                </TextWrapper>
 
-            <TextWrapper isBaseMenu={isBaseMenu}>
-                {item.Product.ProductName}        
-            </TextWrapper>
+                <TextFIeldWrapper>
+                    {item.Product.DefaultPrice.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
+                </TextFIeldWrapper>
 
-            <TextFIeldWrapper>
-                <TextField
-                    type="text" disabled={true}
-                    value={item.Product.DefaultPrice.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                />
-                <Currency>đ</Currency>
-            </TextFIeldWrapper>
+                {
+                    isBaseMenu ?
+                    null :
+                    <TextFIeldWrapper>
+                        <TextField
+                            type="text" grey={
+                                relatedPrices.length > 0 
+                                && (parseInt(item.Price.replace(/\D/g, "")) !== Math.min(...relatedPrices) 
+                                || parseInt(item.Price.replace(/\D/g, "")) !== Math.max(...relatedPrices)) ?
+                                true : false
+                            }
+                            value={item.Price} name='price'
+                            onClick={inputStopPropagation}
+                            onChange={(event) => handleSetPrice(item.Product.ProductId, event.target.value)}
+                        />
+                        <Currency>đ</Currency>
+                    </TextFIeldWrapper>
+                }
+
+                <ButtonWrapper>
+                    <Button type="button" onClick={() => handleDeleteItem(item.Product.ProductId)}>
+                        <StyledCloseIcon />
+                    </Button>
+                </ButtonWrapper>
+            </ContainerWrapper>
 
             {
-                isBaseMenu ?
-                null :
-                <TextFIeldWrapper>
-                    <TextField
-                        type="text" 
-                        value={item.Price} name='price'
-                        onChange={(event) => handleSetPrice(item.Product.ProductId, event.target.value)}
-                    />
-                    <Currency>đ</Currency>
-                </TextFIeldWrapper>
-            }
+                item.RelatedProductInMenu && dropdown ?
+                <>
+                    {item.RelatedProductInMenu.map((related, index2) => {
+                        return <ContainerWrapper key={index2}>
+                            <Index></Index>
+            
+                            <ImageWrapper disabled>
+                                <Image />
+                            </ImageWrapper>
+            
+                            <TextWrapper isBaseMenu={isBaseMenu}>
+                                {related.Product.Color ? related.Product.Color + " / " : ''}
+                                {related.Product.Size ? related.Product.Size + " / " : ''}
+                                {related.Product.Weight ? related.Product.Weight + "kg " : ''}
+                            </TextWrapper>
 
-            <ButtonWrapper>
-                <Button type="button" onClick={() => handleDeleteItem(item.Product.ProductId)}>
-                    <StyledCloseIcon />
-                </Button>
-            </ButtonWrapper>
-        </ContainerWrapper>
+                            <TextFIeldWrapper disabled>
+                                {item.Product.DefaultPrice.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
+                            </TextFIeldWrapper>
+
+                            {
+                                isBaseMenu ?
+                                null :
+                                <TextFIeldWrapper>
+                                    <TextField
+                                        type="text"
+                                        value={related.Price} name='price'
+                                        onClick={inputStopPropagation}
+                                        onChange={(event) => handleSetPriceRelated(
+                                            item.Product.ProductId, 
+                                            related.Product.ProductId, 
+                                            event.target.value
+                                        )}
+                                    />
+                                    <Currency>đ</Currency>
+                                </TextFIeldWrapper>
+                            }
+
+                            <ButtonWrapper>
+                                <Button type="button">
+                                    <StyledDisabledCloseIcon />
+                                </Button>
+                            </ButtonWrapper>
+                        </ContainerWrapper>
+                    })}
+                </>
+                : null
+            }
+        </>
     )
 }
 

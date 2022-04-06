@@ -37,7 +37,7 @@ const ImageWrapper = styled.div`
 const TextFIeldWrapper = styled.div`
     flex: 3;
     display: flex;
-    align-items: flex-end;
+    justify-content: center;
     margin-right: 15px;
 `;
 
@@ -78,7 +78,7 @@ const Tooltip = styled.div`
     }
 `;
 
-const ProductInMenuList = ({ currentItems, handleDeleteItem, handleSetPrice, isBaseMenu }) => {
+const ProductInMenuList = ({ currentItems, handleDeleteItem, handleSetPrice, handleSetPriceRelated, isBaseMenu, search }) => {
 
     if (currentItems.length === 0) {
         return <ProductInMenuItem item={0} />
@@ -97,7 +97,11 @@ const ProductInMenuList = ({ currentItems, handleDeleteItem, handleSetPrice, isB
                 }
                 <Tooltip>
                     <StyledHelpIcon />
-                    <TooltipText>Giá thay đổi sẽ được áp dụng khi bảng giá đến hiệu lực</TooltipText>
+                    <TooltipText>
+                        Giá thay đổi sẽ được áp dụng khi bảng giá đến hiệu lực.
+                        <br/>
+                        *** Thay đổi giá của sản phẩm nền sẽ áp dụng đến toàn bộ tùy chọn nếu có.
+                    </TooltipText>
                 </Tooltip>
             </ContainerWrapper>
 
@@ -107,7 +111,9 @@ const ProductInMenuList = ({ currentItems, handleDeleteItem, handleSetPrice, isB
                         item={item} index={index + 1} key={index}
                         handleDeleteItem={handleDeleteItem}
                         handleSetPrice={handleSetPrice}
+                        handleSetPriceRelated={handleSetPriceRelated}
                         isBaseMenu={isBaseMenu}
+                        search={search}
                     />
                 )
             })}

@@ -359,7 +359,8 @@ const OrderDetail = () => {
                         </Row>
                         <PaymentText>
                             <Grey>Số tiền:</Grey> 
-                            {loading ? '' : order.TotalAmount.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ</PaymentText>
+                            {loading ? '' : order.TotalAmount.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
+                        </PaymentText>
                         <PaymentText>
                             <Grey>Thời gian:</Grey>
                             {loading ? '' : order.CreatedDate}
@@ -373,7 +374,8 @@ const OrderDetail = () => {
                         </Row>
                         <PaymentText>
                             <Grey>Số tiền:</Grey> 
-                            {loading ? '' : order.TotalAmount.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ</PaymentText>
+                            {loading ? '' : order.TotalAmount.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
+                        </PaymentText>
                         <PaymentText>
                             <Grey>Thời gian:</Grey>
                             {loading ? '' : order.CreatedDate}

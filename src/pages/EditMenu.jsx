@@ -10,6 +10,7 @@ import { TextField, CircularProgress, Checkbox, FormControlLabel } from '@mui/ma
 import { TimePicker, LocalizationProvider } from '@mui/lab';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import { DateTime } from 'luxon';
+import * as Constant from '../Constant';
 
 import AddItemModal from '../components/Menu/AddItemModal';
 import ConfirmModal from '../components/Menu/ConfirmModal';
@@ -17,7 +18,7 @@ import ProductInMenuList from '../components/Menu/ProductInMenuList';
 
 const PageWrapper = styled.form`
     min-width: 720px;
-    max-width: 1080px;
+    max-width: 1150px;
     margin: 40px auto;
 `;
 
@@ -28,7 +29,7 @@ const FlexWrapper = styled.div`
 `;
 
 const ProductWrapper = styled.div`
-    flex: 2;
+    flex: 3;
     padding: 0px 20px 30px 20px;
     margin-right: 30px;
     margin-bottom: 20px;
@@ -327,19 +328,16 @@ const EditMenu = () => {
 
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState('');
-    const [sort, setSort] = useState('+productname');
+    const [sort, setSort] = useState('+createddate');
     const [change, setChange] = useState(false);
 
     useEffect(() => {   //get menu
         setLoading(true);
         const fetchData = () => {
-            api.get("menus?id=" + id + "&include=product")
+            api.get("menus?id=" + id)
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
                     setMenu(res.data.Data.List[0]);
-                    console.log(res.data.Data.List[0])
-                    setProducts(res.data.Data.List[0].ProductInMenus);
-                    setNewProducts(res.data.Data.List[0].ProductInMenus.map((item) => ({ ...item, Price: item.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") })));
                     setInput({
                         id: res.data.Data.List[0].MenuId, 
                         name: res.data.Data.List[0].MenuName, 
@@ -358,29 +356,71 @@ const EditMenu = () => {
                         cn: res.data.Data.List[0].RepeatDate.includes('0') ? true : false
                     });
 
-                    let url = "products?"
-                        + "sort=" + sort
-                        + "&status=1001&status=1003&status=1004"
-                        + (search !== '' ? ("&search=" + search) : '');
-                    api.get(url).then(function (res2) {
+                    let url2 = "menu-products" 
+                        + "?menuid=" + id
+                        + "&status=" + Constant.ACTIVE_PRODUCT_IN_MENU
+                        + "&sort=" + sort
+                        + "&include=product";
+                    api.get(url2).then(function (res2) {
                         if (res2.data.ResultMessage === "SUCCESS") {
-                            setStock(res2.data.Data.List.map((item) => (
-                                res.data.Data.List[0].ProductInMenus.some((item2) => item2.Product.ProductId.includes( item.ProductId )) ?
-                                { 
-                                    Product: item, 
-                                    Price: res.data.Data.List[0].ProductInMenus.find((item2) => item2.Product.ProductId.includes( item.ProductId )).Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
-                                    ProductInMenuId: res.data.Data.List[0].ProductInMenus.find((item2) => item2.Product.ProductId.includes( item.ProductId )).ProductInMenuId,
-                                    checked: true
-                                } 
-                                :
-                                {
-                                    Product: item, 
-                                    Price: item.DefaultPrice.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
-                                    ProductInMenuId: null,
-                                    checked: false
+                            setProducts(res2.data.Data);
+                            console.log(res2.data.Data)
+                            setNewProducts(res2.data.Data.map((item) => ({ 
+                                ...item, 
+                                Price: item.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                                RelatedProductInMenu: item.RelatedProductInMenu.map((related) => ({
+                                    ...related,
+                                    Price: related.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                                }))
+                            })));
+                            
+                            let url3 = "menu-products"
+                                + "?menuid=" + id
+                                + "&status=" + Constant.ACTIVE_PRODUCT_IN_MENU;
+                            api.get(url3).then(function (res3) {
+                                if (res3.data.ResultMessage === "SUCCESS") {
+
+                                    let url4 = "products"
+                                        + "?sort=" + sort
+                                        + "&status=1001&status=1003&status=1004"
+                                        + "&include=related";
+                                    api.get(url4).then(function (res4) {
+                                        if (res4.data.ResultMessage === "SUCCESS") {
+                                            setStock(res4.data.Data.List.map((item) => (
+                                                res3.data.Data.some((item2) => item2.ProductId.includes( item.ProductId )) ?
+                                                { 
+                                                    Product: item,
+                                                    RelatedProductInMenu: item.RelatedProducts.map((related) => (
+                                                        {
+                                                            Product: related,
+                                                            Price: res3.data.Data.find((item2) => item2.ProductId.includes( related.ProductId )).Price.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                                                            ProductInMenuId: res3.data.Data.find((item2) => item2.ProductId.includes( related.ProductId )).ProductInMenuId,
+                                                            checked: true
+                                                        }
+                                                    )),
+                                                    Price: res3.data.Data.find((item2) => item2.ProductId.includes( item.ProductId )).Price.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
+                                                    ProductInMenuId: res3.data.Data.find((item2) => item2.ProductId.includes( item.ProductId )).ProductInMenuId,
+                                                    checked: true
+                                                } 
+                                                :
+                                                {
+                                                    Product: item, 
+                                                    RelatedProductInMenu: item.RelatedProducts.map((related) => ({
+                                                        Product: related,
+                                                        Price: related.DefaultPrice.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                                                        ProductInMenuId: null,
+                                                        checked: false
+                                                    })),
+                                                    Price: item.DefaultPrice.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
+                                                    ProductInMenuId: null,
+                                                    checked: false
+                                                }
+                                            )));
+                                            setLoading(false);
+                                        }
+                                    })
                                 }
-                            )));
-                            setLoading(false);
+                            })
                         }
                     })
                 }
@@ -409,6 +449,28 @@ const EditMenu = () => {
         setRepeatDay(date => ({ ...date, [name]: !checked }));
     }
 
+    const handleSetSort = (sort) => {
+        console.log(sort)
+        setSort(sort);
+        if (sort === '+createddate') {
+            console.log(1)
+            newProducts.sort((a, b) => new Date(b.Product.CreatedDate) - new Date(a.Product.CreatedDate));
+            stock.sort((a, b) => new Date(b.Product.CreatedDate) - new Date(a.Product.CreatedDate));
+        } else if (sort === '-createddate') {
+            console.log(2)
+            newProducts.sort((a, b) => new Date(a.Product.CreatedDate) - new Date(b.Product.CreatedDate));
+            stock.sort((a, b) => new Date(a.Product.CreatedDate) - new Date(b.Product.CreatedDate));
+        } else if (sort === '+price') {
+            console.log(3)
+            newProducts.sort((a, b) => parseFloat(b.Price.replace(/\D/g, "")) - parseFloat(a.Price.replace(/\D/g, "")));
+            stock.sort((a, b) => parseFloat(b.Price.replace(/\D/g, "")) - parseFloat(a.Price.replace(/\D/g, "")));
+        } else if (sort === '-price') {
+            console.log(4)
+            newProducts.sort((a, b) => parseFloat(a.Price.replace(/\D/g, "")) - parseFloat(b.Price.replace(/\D/g, "")));
+            stock.sort((a, b) => parseFloat(a.Price.replace(/\D/g, "")) - parseFloat(b.Price.replace(/\D/g, "")));
+        }
+    }
+
     const handleEditItem = (event) => {
         event.preventDefault();
 
@@ -416,9 +478,28 @@ const EditMenu = () => {
             let deleteArray = [];
             let updateArray = [];
             let insertArray = [];
-            let differenceArray = products.filter(
-                o1 => !newProducts.some(o2 => o1.Product.ProductId === o2.Product.ProductId)).concat(newProducts.filter(
-                    o1 => !products.some(o2 => o1.Product.ProductId === o2.Product.ProductId)
+
+            let flattenProducts = [...products];
+            products.forEach((item) => {
+                if (item.RelatedProductInMenu && item.RelatedProductInMenu.length > 0) {
+                    item.RelatedProductInMenu.forEach((related) => {
+                        flattenProducts.push(related);
+                    })
+                }
+            })
+
+            let flattenNewProducts = [...newProducts];
+            newProducts.forEach((item) => {
+                if (item.RelatedProductInMenu && item.RelatedProductInMenu.length > 0) {
+                    item.RelatedProductInMenu.forEach((related) => {
+                        flattenNewProducts.push(related);
+                    })
+                }
+            })
+            let differenceArray = flattenProducts.filter(
+                o1 => !flattenNewProducts.some(o2 => o1.Product.ProductId === o2.Product.ProductId))
+                .concat(flattenNewProducts.filter(
+                    o1 => !flattenProducts.some(o2 => o1.Product.ProductId === o2.Product.ProductId)
                 )
             );
             differenceArray.forEach((item) => {
@@ -431,8 +512,8 @@ const EditMenu = () => {
                     });
                 }
             });
-            updateArray = newProducts.filter(
-                o1 => products.some(o2 => o1.Product.ProductId === o2.Product.ProductId
+            updateArray = flattenNewProducts.filter(
+                o1 => flattenProducts.some(o2 => o1.Product.ProductId === o2.Product.ProductId
                     && o1.Price.toString().replace(/\D/g, "") !== o2.Price.toString().replace(/\D/g, ""))
             ).map((item) => ({
                 productInMenuId: item.ProductInMenuId,
@@ -544,12 +625,24 @@ const EditMenu = () => {
             let index = newProducts.findIndex((item) => item.Product.ProductId === id);
             let newArray = [...newProducts];
             newArray[index].Price = value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            if (newArray[index].RelatedProductInMenu.length) {
+                newArray[index].RelatedProductInMenu.forEach((related) => {
+                    related.Price = value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                })
+            }
             setNewProducts(newArray);
+            setStock(newArray);
         }
+    }
+
+    const handleSetPriceRelated = (belongToId, id, value) => {
+        setError(error => ({ ...error, price: '' }));
         if (value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",").length + 1 <= 12) {
-            let index = stock.findIndex((item) => item.Product.ProductId === id);
-            let newArray = [...stock];
-            newArray[index].Price = value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            let index = newProducts.findIndex((item) => item.Product.ProductId === belongToId);
+            let childIndex = newProducts[index].RelatedProductInMenu.findIndex((item) => item.Product.ProductId === id);
+            let newArray = [...newProducts];
+            newArray[index].RelatedProductInMenu[childIndex].Price = value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            setNewProducts(newArray);
             setStock(newArray);
         }
     }
@@ -591,11 +684,11 @@ const EditMenu = () => {
                         </SearchBar>
 
                         <DropdownWrapper width="30%">
-                            <Select value={sort} onChange={event => setSort(event.target.value)}>
-                                <option value="0">Sắp xếp: Mới nhất</option>
-                                <option value="1">Sắp xếp: Cũ nhất</option>
-                                <option value="2">Sắp xếp: Giá cao nhất</option>
-                                <option value="3">Sắp xếp: Giá thấp nhất</option>
+                            <Select value={sort} onChange={e => handleSetSort(e.target.value)}>
+                                <option value="+createddate">Sắp xếp: Mới nhất</option>
+                                <option value="-createddate">Sắp xếp: Cũ nhất</option>
+                                <option value="+price">Sắp xếp: Giá cao nhất</option>
+                                <option value="-price">Sắp xếp: Giá thấp nhất</option>
                             </Select>
                         </DropdownWrapper>
                     </Row>
@@ -620,7 +713,9 @@ const EditMenu = () => {
                                         currentItems={newProducts} 
                                         handleDeleteItem={handleDeleteItem}
                                         handleSetPrice={handleSetPrice}
+                                        handleSetPriceRelated={handleSetPriceRelated}
                                         isBaseMenu={menu.BaseMenu}
+                                        search={search}
                                     />
                                     : 
                                     <NoProductWrapper>

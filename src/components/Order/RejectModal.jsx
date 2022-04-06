@@ -68,7 +68,7 @@ const customStyles = {
 };
 
 const RejectModal = ({ display, toggle, handleRejectItem }) => {
-    const [reason, setReason] = useState('Tên không hợp lệ');
+    const [reason, setReason] = useState('Hết hàng');
     const [reasonString, setReasonString] = useState('');
     const [error, setError] = useState('');
 

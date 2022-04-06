@@ -5,9 +5,11 @@ import MenuList from '../components/Menu/MenuList';
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import ReactPaginate from "react-paginate";
-import { Search, Error, Logout, Summarize, AddCircle } from '@mui/icons-material';
+import useClickOutside from "../contexts/useClickOutside";
+import { Search, Error, Logout, Summarize, AddCircle, ArrowDropDown } from '@mui/icons-material';
 import { CircularProgress } from '@mui/material';
 import { Link } from 'react-router-dom';
+import * as Constant from '../Constant';
 
 import ToggleStatusModal from '../components/Menu/ToggleStatusModal';
 import DeleteModal from '../components/Menu/DeleteModal';
@@ -120,31 +122,6 @@ const Button = styled.button`
 
     &:active {
     transform: translateY(1px);
-    }
-`;
-
-const DropdownWrapper = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 5px;
-    border-color: #D8D8D8;
-    border-style: solid;
-    border-width: thin;
-    height: 44px;
-    padding: 0px 3px 0px 8px;
-    background-color: #ffffff;
-`;
-
-const Select = styled.select`
-    padding: 4px;
-    flex-grow: 1;
-    background-color: transparent;
-    outline: none;
-    border: none;
-
-    &:focus {
-    outline: 0;
     }
 `;
 
@@ -359,11 +336,77 @@ const StyledPaginateContainer = styled.div`
     }
 `;
 
+const Label = styled.div`
+    margin-right: 10px;
+    font-size: 13px;
+`;
+
+const SelectWrapper = styled.div`
+    width: 180px;
+    display: inline-block;
+    background-color: ${props => props.theme.white};
+    border-radius: 5px;
+    border: 1px solid ${props => props.theme.greyBorder};
+    transition: all .5s ease;
+    position: relative;
+    font-size: 14px;
+    color: ${props => props.theme.black};
+    text-align: left;
+
+    &:hover {
+        box-shadow: 0 0 4px rgb(204, 204, 204);
+        border-radius: 2px 2px 0 0;
+    }
+
+    &:active {
+        box-shadow: 0 0 4px rgb(204, 204, 204);
+        border-radius: 2px 2px 0 0;
+    }
+`;
+
+const Select = styled.div`
+    cursor: pointer;
+    display: flex;
+    padding: 8px 10px 8px 15px;
+    justify-content: space-between;
+    align-items: center;
+`;
+
+const DropdownMenu = styled.ul`
+    position: absolute;
+    background-color: #fff;
+    width: 100%;
+    left: 0;
+    margin-top: 1px;
+    box-shadow: 0 1px 2px rgb(204, 204, 204);
+    border-radius: 0 1px 2px 2px;
+    overflow: hidden;
+    display: ${props => props.dropdown === true ? "" : "none"};
+    max-height: 500px;
+    overflow-y: auto;
+    z-index: 9;
+    padding: 0;
+    list-style: none;
+`;
+
+const DropdownList = styled.li`
+    padding: 10px;
+    transition: all .2s ease-in-out;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+
+    &:hover {
+        background-color: ${props => props.theme.hover};
+    }
+`;
+
 const Menu = () =>  {
     const [deleteModal, setDeleteModal] = useState(false);
     const toggleDeleteModal = () => { setDeleteModal(!deleteModal) };
     const [toggleStatusModal, setToggleStatusModal] = useState(false);
     const toggleToggleStatusModal = () => { setToggleStatusModal(!toggleStatusModal) };
+    const [statusDropdown, setStatusDropdown] = useState(false);
+    const toggleStatusDropdown = () => { setStatusDropdown(!statusDropdown); }
 
     const [deleteItem, setDeleteItem] = useState({id: '', name: ''});
     const [toggleStatusItem, setToggleStatusItem] = useState({ id: '', name: '', status: true });
@@ -380,7 +423,10 @@ const Menu = () =>  {
     const sort = '-createddate';
     const [typing, setTyping] = useState('');
     const [search, setSearch] = useState('');
-    const [status, setStatus] = useState('9001&status=9005');
+    const [status, setStatus] = useState({
+        value: Constant.ACTIVE_MENU + "&status=" + Constant.INACTIVE_MENU,
+        name: 'Toàn bộ'
+    });
 
     useEffect( () => {  //fetch api data
         setLoading(true);
@@ -389,7 +435,7 @@ const Menu = () =>  {
                 + "&page=" + (page + 1) 
                 + "&sort=" + sort 
                 + (search !== '' ? ("&search=" + search) : '') 
-                + (status !== '' ? ("&status=" + status) : '');
+                + (status !== '' ? ("&status=" + status.value) : '');
         const fetchData = () => {
             api.get(url)
             .then(function (res) {
@@ -414,6 +460,16 @@ const Menu = () =>  {
         return () => clearTimeout(timeOutId);
     }, [typing]);
 
+    let clickStatusOutside = useClickOutside(() => {
+        setStatusDropdown(false);
+    });
+
+    const handleSetStatus = (value, name) => {
+        setStatus({value: value, name: name});
+        toggleStatusDropdown();
+        setPage(0);
+    }
+
     function handleSetSearch(e) {
         const { value } = e.target;
         setTyping(value);
@@ -424,12 +480,6 @@ const Menu = () =>  {
         setTyping('');
         setPage(0);
         document.getElementById("search").value = '';
-    }
-
-    function handleSetStatus(e) {
-        const { value } = e.target;
-        setStatus(value);
-        setPage(0);
     }
 
     const handlePageClick = (event) => {
@@ -448,7 +498,7 @@ const Menu = () =>  {
         const url = "menus?id=" + toggleStatusItem.id;
         const editData = async () => {
             api.put(url, {
-                status: toggleStatusItem.status === true ? 9005 : 9001
+                status: toggleStatusItem.status === true ? Constant.INACTIVE_MENU : Constant.ACTIVE_MENU
             })
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
@@ -516,14 +566,19 @@ const Menu = () =>  {
                             </SearchBar>
 
                             <Align>
-                                <small>Trạng thái:&nbsp;</small>
-                                <DropdownWrapper width="16%">
-                                    <Select value={status} onChange={handleSetStatus}>
-                                    <option value='9001&status=9005'>Toàn bộ</option>
-                                        <option value={9001}>Hoạt động</option>
-                                        <option value={9005}>Ngừng hoạt động</option>
+                                <Label>Trạng thái:</Label>
+                                <SelectWrapper ref={clickStatusOutside}>
+                                    <Select onClick={toggleStatusDropdown}>
+                                        {status.name}
+                                        <ArrowDropDown />
                                     </Select>
-                                </DropdownWrapper>
+
+                                    <DropdownMenu dropdown={statusDropdown}>
+                                        <DropdownList onClick={() => handleSetStatus(Constant.ACTIVE_MENU + "&status=" + Constant.INACTIVE_MENU, 'Toàn bộ')}>Toàn bộ</DropdownList>
+                                        <DropdownList onClick={() => handleSetStatus(Constant.ACTIVE_MENU, 'Hoạt động')}>Hoạt động</DropdownList>
+                                        <DropdownList onClick={() => handleSetStatus(Constant.INACTIVE_MENU, 'Chờ duyệt')}>Ngừng hoạt động</DropdownList>
+                                    </DropdownMenu>
+                                </SelectWrapper>
                             </Align>
                         </Row>
 
