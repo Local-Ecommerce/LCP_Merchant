@@ -298,8 +298,8 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice, hand
                                 {related.Product.Color ? related.Product.Color : ''}
                                 {related.Product.Color && (related.Product.Size || related.Product.Weight) ? " / " : ''}
                                 {related.Product.Size ? related.Product.Size + " / " : ''}
-                                {related.Product.Size && related.Product.Weight ? " / " : ''}
-                                {related.Product.Weight ? related.Product.Weight + "kg " : ''}
+                                {related.Product.Size && related.Product.Weight !== 0  ? " / " : ''}
+                                {related.Product.Weight !== 0 ? related.Product.Weight + "kg " : ''}
                             </TextWrapper>
 
                             <TextFIeldWrapper disabled>
