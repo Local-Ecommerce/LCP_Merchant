@@ -301,15 +301,10 @@ const AddProduct = () => {
                             return colors.map(color => {
                                 return weights.map(weight => {
                                     return {
-                                        productCode: input.code,
-                                        productName: input.name,
-                                        briefDescription: input.shortDescription,
-                                        description: input.description,
                                         defaultPrice: input.price.replace(/\D/g, ""),
                                         size: size.value,
                                         color: color.value,
                                         weight: weight.value,
-                                        systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
                                         image: []
                                     }
                                 })

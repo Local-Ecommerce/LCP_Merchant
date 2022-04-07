@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Modal from 'react-modal';
 import { Link } from "react-router-dom";
 import { Search, ProductionQuantityLimits } from '@mui/icons-material';
+import { CircularProgress } from '@mui/material';
 
 import ProductInAddModalList from './ProductInAddModalList';
 
@@ -161,6 +162,12 @@ const NoProductButton = styled(Link)`
     }
 `;
 
+const StyledCircularProgress = styled(CircularProgress)`
+    && {
+        margin: 50px 30px 30px 30px;
+    }
+`;
+
 const customStyles = {
     content: {
         top: '50%',
@@ -173,7 +180,7 @@ const customStyles = {
     },
 };
 
-const AddItemModal = ({ display, toggle, stock, saveItem, handleToggleChecked }) => {
+const AddItemModal = ({ display, toggle, productLoading, stock, saveItem, handleToggleChecked }) => {
     const [search, setSearch] = useState('');
 
     const handleClearSearch = () => {
@@ -198,7 +205,12 @@ const AddItemModal = ({ display, toggle, stock, saveItem, handleToggleChecked })
 
                 <ModalContentWrapper>
                    {
-                       stock && stock.length ?
+                        productLoading ?
+                        <NoProductWrapper>
+                            <StyledCircularProgress />
+                        </NoProductWrapper>
+                        :
+                        stock && stock.length ?
                         <>
                             <Row mb>
                                 <SearchBar>

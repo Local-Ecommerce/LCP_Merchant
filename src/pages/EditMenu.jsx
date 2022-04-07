@@ -326,13 +326,18 @@ const EditMenu = () => {
     const [repeatDay, setRepeatDay] = useState({ t2:true, t3:true, t4:true, t5:true, t6:true, t7:true, cn:true });
     const [error, setError] = useState({ 'name': '', 'time': '', price: '' });
 
-    const [loading, setLoading] = useState(false);
+    const [pimLoading, setPimLoading] = useState(false);
+    const [menuLoading, setMenuLoading] = useState(false);
+    const [productLoading, setProductLoading] = useState(false);
     const [search, setSearch] = useState('');
     const [sort, setSort] = useState('+createddate');
     const [change, setChange] = useState(false);
 
     useEffect(() => {   //get menu
-        setLoading(true);
+        setPimLoading(true);
+        setMenuLoading(true);
+        setProductLoading(true);
+
         const fetchData = () => {
             api.get("menus?id=" + id)
             .then(function (res) {
@@ -340,8 +345,8 @@ const EditMenu = () => {
                     setMenu(res.data.Data.List[0]);
                     setInput({
                         id: res.data.Data.List[0].MenuId, 
-                        name: res.data.Data.List[0].MenuName, 
-                        description: res.data.Data.List[0].MenuDescription, 
+                        name: res.data.Data.List[0].MenuName || '', 
+                        description: res.data.Data.List[0].MenuDescription || '', 
                         includeBaseMenu: res.data.Data.List[0].IncludeBaseMenu,
                         startTime: DateTime.fromFormat(res.data.Data.List[0].TimeStart, 'TT').toUTC().toISO(),
                         endTime: DateTime.fromFormat(res.data.Data.List[0].TimeEnd, 'TT').toUTC().toISO()
@@ -355,6 +360,7 @@ const EditMenu = () => {
                         t7: res.data.Data.List[0].RepeatDate.includes('6') ? true : false,
                         cn: res.data.Data.List[0].RepeatDate.includes('0') ? true : false
                     });
+                    setMenuLoading(false);
 
                     let url2 = "menu-products" 
                         + "?menuid=" + id
@@ -364,7 +370,6 @@ const EditMenu = () => {
                     api.get(url2).then(function (res2) {
                         if (res2.data.ResultMessage === "SUCCESS") {
                             setProducts(res2.data.Data);
-                            console.log(res2.data.Data)
                             setNewProducts(res2.data.Data.map((item) => ({ 
                                 ...item, 
                                 Price: item.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
@@ -373,6 +378,7 @@ const EditMenu = () => {
                                     Price: related.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                                 }))
                             })));
+                            setPimLoading(false);
                             
                             let url3 = "menu-products"
                                 + "?menuid=" + id
@@ -416,7 +422,7 @@ const EditMenu = () => {
                                                     checked: false
                                                 }
                                             )));
-                                            setLoading(false);
+                                            setProductLoading(false);
                                         }
                                     })
                                 }
@@ -427,7 +433,9 @@ const EditMenu = () => {
             })
             .catch(function (error) {
                 console.log(error);
-                setLoading(false);
+                setPimLoading(false);
+                setMenuLoading(false);
+                setProductLoading(false);
             });
         }
         fetchData();
@@ -659,7 +667,7 @@ const EditMenu = () => {
         <PageWrapper>
             <Row>
                 <Link to="/menus"><StyledBackIcon /></Link>
-                <Title><TitleGrey>Bảng giá </TitleGrey>/ {loading ? '' : menu.MenuName}</Title>
+                <Title><TitleGrey>Bảng giá </TitleGrey>/ {menuLoading ? '' : menu.MenuName}</Title>
             </Row>
 
             <FlexWrapper>
@@ -667,13 +675,12 @@ const EditMenu = () => {
                     <SpaceBetween>
                         <FormLabel>Sản phẩm</FormLabel>
                         {
-                            !loading && newProducts && newProducts.length ?
+                            newProducts.length && newProducts.length ?
                             <AddButton type="button" onClick={toggleAddItemModal}> 
                                 <StyledAddIcon />
                                 Thêm sản phẩm 
                             </AddButton>
-                            : 
-                            null
+                            : null
                         }
                     </SpaceBetween>
 
@@ -695,7 +702,7 @@ const EditMenu = () => {
                     
                     <ProductListWrapper>
                         {
-                            loading ? 
+                            pimLoading ? 
                             <NoProductWrapper>
                                 <StyledCircularProgress />
                             </NoProductWrapper>
@@ -737,7 +744,7 @@ const EditMenu = () => {
                     <TextField
                         fullWidth size="small" placeholder="Ví dụ: Thịt cá các loại, đồ gia dụng, etc" 
                         inputProps={{ maxLength: 250, style: {fontSize: 14} }}
-                        value={loading ? 'Đang tải...' : input.name} name='name'
+                        value={menuLoading ? 'Đang tải...' : input.name} name='name'
                         onChange={handleChange}
                         error={error.name !== ''}
                         helperText={error.name}
@@ -751,7 +758,7 @@ const EditMenu = () => {
                     <StyledTextFieldMb20px
                         fullWidth size="small" multiline rows={3} placeholder="Mô tả giúp khách hàng hình dung và hiểu rõ hơn sản phẩm thuộc bảng giá."
                         inputProps={{ maxLength: 500, style: {fontSize: 14} }}
-                        value={loading ? 'Đang tải...' : input.description} name='description'
+                        value={menuLoading ? 'Đang tải...' : input.description} name='description'
                         onChange={handleChange}
                     />
 
@@ -805,6 +812,7 @@ const EditMenu = () => {
             <AddItemModal 
                 display={addItemModal} 
                 toggle={toggleAddItemModal}
+                productLoading={productLoading}
                 stock={stock}
                 saveItem={handleSaveItem}
                 handleToggleChecked={handleToggleChecked}

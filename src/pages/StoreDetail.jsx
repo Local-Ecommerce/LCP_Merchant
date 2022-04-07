@@ -262,7 +262,6 @@ const StoreDetail = () => {
             const notification = toast.loading("Đang xử lí yêu cầu...");
 
             const editItem = async () => {
-                console.log(input.image.split(',')[1])
                 api.put("stores?id=" + item.MerchantStoreId, {
                     storeName: input.name,
                     storeImage: input.image.split(',')[1]
