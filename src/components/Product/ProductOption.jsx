@@ -52,7 +52,7 @@ const StyledDeleteIcon = styled(Delete)`
     && {
         color: grey;
         margin-left: 10px;
-        margin-bottom: ${props => props.mb ? "7px" : "0px"};
+        margin-bottom: ${props => props.mb === "true" ? "7px" : "0px"};
     }
 `;
 
@@ -204,6 +204,12 @@ const ProductOption = ({ passedData, savedData, type, saveOption, editOption }) 
         }
     }
 
+    const handleRemoveAllOption = () => {
+        setValues([]);
+        saveOption(type, []);
+        setDisplay(false);
+    }
+
     const checkValid = () => {
         let check = false;
 
@@ -266,7 +272,7 @@ const ProductOption = ({ passedData, savedData, type, saveOption, editOption }) 
                             </InputAdornment>
                         ),
                     }}/>
-                    <StyledDeleteIcon onClick={toggleDisplay} />
+                    <StyledDeleteIcon onClick={handleRemoveAllOption} />
                 </Row>
 
                 <OptionLabel mt>Giá trị tùy chọn</OptionLabel>
@@ -293,10 +299,10 @@ const ProductOption = ({ passedData, savedData, type, saveOption, editOption }) 
                     <>
                         {values.map((item, index) => {
                             return (
-                                <Row>
+                                <Row key={index}>
                                     {
                                         type === 'weights' ?
-                                        <StyledOptionTextField key={index}
+                                        <StyledOptionTextField
                                             size="small"
                                             InputProps={{ 
                                                 style: {fontSize: 14},
@@ -317,7 +323,7 @@ const ProductOption = ({ passedData, savedData, type, saveOption, editOption }) 
                                             helperText={item.error}
                                         /> 
                                     }
-                                    <StyledDeleteIcon mb onClick={() => removeValue(item.name)} />
+                                    <StyledDeleteIcon mb="true" onClick={() => removeValue(item.name)} />
                                 </Row>
                             )
                         })}

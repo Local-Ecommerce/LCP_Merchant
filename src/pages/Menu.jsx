@@ -435,7 +435,7 @@ const Menu = () =>  {
                 + "&page=" + (page + 1) 
                 + "&sort=" + sort 
                 + (search !== '' ? ("&search=" + search) : '') 
-                + (status !== '' ? ("&status=" + status.value) : '');
+                + (status.value !== '' ? ("&status=" + status.value) : '');
         const fetchData = () => {
             api.get(url)
             .then(function (res) {

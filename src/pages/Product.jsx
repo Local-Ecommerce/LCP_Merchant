@@ -424,7 +424,7 @@ const Product = () =>  {
     const [typing, setTyping] = useState('');
     const [search, setSearch] = useState('');
     const [status, setStatus] = useState({
-        value: Constant.VERIFIED_PRODUCT + "&status=" + Constant.UNVERIFIED_PRODUCT + "&status=" + Constant.REJECTED_PRODUCT,
+        value: '',
         name: 'Toàn bộ'
     });
 
@@ -436,7 +436,7 @@ const Product = () =>  {
                 + "&sort=" + sort.value
                 + "&categoryid=" + category.id
                 + (search !== '' ? ("&search=" + search) : '') 
-                + (status !== '' ? ("&status=" + status.value) : '');
+                + (status.value !== '' ? ("&status=" + status.value) : '');
         const fetchData = () => {
             api.get(url)
             .then(function (res) {
@@ -578,8 +578,8 @@ const Product = () =>  {
                                     <DropdownMenu dropdown={cateDropdown}>
                                         <DropdownList onClick={() => handleSetCategory('', 'Toàn bộ')}>Toàn bộ</DropdownList>
                                         {
-                                            categories.map(category => {
-                                                return <>
+                                            categories.map((category, index) => {
+                                                return <div index={index}>
                                                     <DropdownList 
                                                         key={category.SystemCategoryId}
                                                         onClick={() => handleSetCategory(category.SystemCategoryId, category.SysCategoryName)}
@@ -589,8 +589,8 @@ const Product = () =>  {
 
                                                     {
                                                         category.Children ?
-                                                        category.Children.map(category => {
-                                                            return <>
+                                                        category.Children.map((category, index) => {
+                                                            return <div index={index}>
                                                                 <DropdownList 
                                                                     key={category.SystemCategoryId}
                                                                     onClick={() => handleSetCategory(category.SystemCategoryId, category.SysCategoryName)}
@@ -600,23 +600,23 @@ const Product = () =>  {
 
                                                                 {
                                                                     category.Children ?
-                                                                    category.Children.map(category => {
-                                                                        return <>
+                                                                    category.Children.map((category, index) => {
+                                                                        return <div index={index}>
                                                                             <DropdownList 
                                                                                 key={category.SystemCategoryId}
                                                                                 onClick={() => handleSetCategory(category.SystemCategoryId, category.SysCategoryName)}
                                                                             >
                                                                                 {category.SysCategoryName}
                                                                             </DropdownList>
-                                                                        </>
+                                                                        </div>
                                                                     })
                                                                     : null
                                                                 }
-                                                            </>
+                                                            </div>
                                                         })
                                                         : null
                                                     }
-                                                </>
+                                                </div>
                                             })
                                         }
                                     </DropdownMenu>
@@ -649,7 +649,7 @@ const Product = () =>  {
                                     </Select>
 
                                     <DropdownMenu dropdown={statusDropdown}>
-                                        <DropdownList onClick={() => handleSetStatus(Constant.VERIFIED_PRODUCT + "&status=" + Constant.UNVERIFIED_PRODUCT + "&status=" + Constant.REJECTED_PRODUCT, 'Toàn bộ')}>Toàn bộ</DropdownList>
+                                        <DropdownList onClick={() => handleSetStatus('', 'Toàn bộ')}>Toàn bộ</DropdownList>
                                         <DropdownList onClick={() => handleSetStatus(Constant.VERIFIED_PRODUCT, 'Hoạt động')}>Hoạt động</DropdownList>
                                         <DropdownList onClick={() => handleSetStatus(Constant.UNVERIFIED_PRODUCT, 'Chờ duyệt')}>Chờ duyệt</DropdownList>
                                         <DropdownList onClick={() => handleSetStatus(Constant.REJECTED_PRODUCT, 'Từ chối')}>Từ chối</DropdownList>

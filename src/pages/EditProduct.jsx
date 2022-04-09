@@ -5,7 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, Warning } from '@mui/icons-material';
-import { TextField, InputAdornment, FormControlLabel, Radio, RadioGroup, Checkbox } from '@mui/material';
+import { TextField, InputAdornment, FormControlLabel, Checkbox } from '@mui/material';
 import imageCompression from 'browser-image-compression';
 import ProductOption from '../components/Product/ProductOption';
 import ImageUpload from '../components/Product/ImageUpload';
@@ -64,15 +64,6 @@ const StyledTextFieldMb = styled(TextField)`
 const FormLabel = styled.div`
     font-weight: 700;
     margin-bottom: 10px;
-`;
-
-const RadioLabel = styled.span`
-    font-size: 14px;
-`;
-
-const StyledLink = styled.a`
-    color: #007bff;
-    cursor: pointer;
 `;
 
 const FooterWrapper = styled.div`
@@ -140,17 +131,90 @@ const OptionLabel = styled.div`
     font-size: 14px;
 `;
 
+const VariantWrapper = styled.div`
+    font-size: 14px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #dee2e6;
+    text-decoration: none;
+    cursor: pointer;
+    background-color: #fff;
+
+    &:hover {
+    opacity: 0.9;
+    background-color: #F5F5F5;
+    }
+
+    &:focus {
+    outline: 0;
+    }
+
+    &:active {
+    transform: translateY(1px);
+    }
+`;
+
+const CombinationListWrapper = styled.div`
+    margin-top 20px;
+    width: 65%;
+`;
+
+const TextWrapper = styled.div`
+    flex: ${props => props.isBaseMenu ? "11" : "8"};
+    width: 1px; //constraint width
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 0px 20px;
+    display: flex;
+    align-items: center;
+`;
+
+const PriceWrapper = styled.div`
+    flex: 3;
+    display: flex;
+    justify-content: center;
+    margin-right: 15px;
+    opacity: ${props => props.disabled ? "0" : null};
+`;
+
+const Currency = styled.span`
+    font-size: 14px;
+    padding: 5px;
+    color: #999;
+    border: 1px solid ${props => props.error ? props.theme.red : "#ccc"};
+    border-radius: 0 3px 3px 0;
+    background: rgba(0,0,0,0.01);
+`;
+
+const PriceField = styled.input`
+    width: 100%;
+    padding: 5px;
+    outline: none;
+    border: 1px solid ${props => props.error ? props.theme.red : props.theme.greyBorder};
+    border-right: 0;
+    border-radius: 3px 0 0 3px;
+    font-size: 14px;
+    background-color: ${props => props.theme.white};
+    color: ${props => props.grey ? "#BEBEBE" : props.theme.black};
+`;
+
 const EditProduct = () => {
     const { id } = useParams();
     const user = JSON.parse(localStorage.getItem('USER'));
 
     const [item, setItem] = useState({});
     const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: 0, colors: [], sizes: [],  weights: [], code: '' });
-    const [error, setError] = useState({ name: '', category: '', price: '', colors: '', image: '', sizes: '', weights: ''});
+    const [error, setError] = useState({ name: '', category: '', price: '', colors: '', image: '', sizes: '', weights: '', optionPrice: '' });
 
-    const [combination, setCombination] = useState([ { id: '', color: null, size: null, weight: null } ]);
+    const [currentCombination, setCurrentCombination] = useState([]);
+    const [combination, setCombination] = useState([]);
+    const [combiChange, setcombiChange] = useState(false);
     const [currentImages, setCurrentImages] = useState([]);
     const [images, setImages] = useState([ { name: 0, image: '' } ]);
+    const [change, setChange] = useState(false);
 
     const [loading, setLoading] = useState(false);
     const sort = '+syscategoryname';
@@ -190,8 +254,12 @@ const EditProduct = () => {
                             })).map(item => [item['value'], item])).values()].filter(item => (item.value))
                             .map((item, index) => ({ name: index, ...item }));
 
+                            setCurrentCombination(res2.data.Data.List[0].RelatedProducts.map((item) => ({ 
+                                id: item.ProductId, edit: false, color: item.Color, size: item.Size, weight: item.Weight, price: item.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), error: ''
+                            })));
+
                             setCombination(res2.data.Data.List[0].RelatedProducts.map((item) => ({ 
-                                id: item.ProductId, color: item.Color, size: item.Size, weight: item.Weight
+                                id: item.ProductId, edit: false, color: item.Color, size: item.Size, weight: item.Weight, price: item.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), error: ''
                             })));
 
                             let images = res2.data.Data.List[0].Image.split("|").map((item, index) => (
@@ -269,7 +337,7 @@ const EditProduct = () => {
             });
         }
         fetchData();
-    }, []);
+    }, [change]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -277,18 +345,99 @@ const EditProduct = () => {
         setError(error => ({ ...error, [name]: '' }));
     };
 
+    const saveOption = (option, data) => {
+        setError(error => ({ ...error, [option]: '' }));
+        setError(error => ({ ...error, optionPrice: '' }));
+        setInput(input => ({ ...input, [option]: data }));
+        setcombiChange(!combiChange);
+    }
+
     const handleSetPrice = (e) => {
+        setError(error => ({ ...error, price: '' }));
         const { value } = e.target;
         if (value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",").length + 1 <= 12) {
             setInput(input => ({ ...input, price: value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }));
         }
-        setError(error => ({ ...error, price: '' }));
+        if (input.applyBasePrice) {
+            setCombination(combination.map((combination) => {
+                return Object.assign({}, combination, {
+                    price: input.price
+                })
+            }));
+        }
     }
 
-    const saveOption = (option, data) => {
-        setError(error => ({ ...error, [option]: '' }));
-        setInput(input => ({ ...input, [option]: data }));
+    const handleSetOptionPrice = (e, id, color, size, weight) => {
+        setError(error => ({ ...error, optionPrice: '' }));
+        const { value } = e.target;
+        let newCombination = [...combination];
+        let index = newCombination.findIndex(obj => obj.color === color && obj.size === size && obj.weight === weight);
+        let inputPrice = value.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        newCombination[index] = { id: id, edit: true, color: color, size: size, weight: weight, price: inputPrice, error: '' };
+        setCombination(newCombination);
     }
+
+    useEffect(() => {
+        const colors = input.colors.length ? input.colors : [{ value: null }];
+        const sizes = input.sizes.length ? input.sizes : [{ value: null }];
+        const weights = input.weights.length ? input.weights : [{ value: 0 }];
+
+        if (!(colors.length === 1 && colors[0].value === null 
+        && sizes.length === 1 && sizes[0].value === null 
+        && weights.length === 1 && weights[0].value === 0)) {
+            const newCombination = sizes.map(size => { 
+                return colors.map(color => {
+                    return weights.map(weight => {
+                        return {
+                            id: null, edit: false, color: color.value, size: size.value, weight: weight.value, price: '', error: ''
+                        }
+                    })
+                }).reduce((total, value) => {
+                    return total.concat(value);
+                }, [])
+            }).reduce((total, value) => {
+                return total.concat(value);
+            }, []);
+
+            const sameCombination = combination.filter(
+                o1 => newCombination.some(o2 => o1.color === o2.color && o1.size === o2.size && o1.weight === o2.weight));
+
+            sameCombination.forEach((item) => {
+                let index = newCombination.findIndex(obj => obj.color === item.color && obj.size === item.size && obj.weight === item.weight);
+                newCombination[index] = { id: item.id, edit: item.edit, color: item.color, size: item.size, weight: item.weight, price: item.price, error: '' };
+            });
+            setCombination(newCombination);
+        } else {
+            setCombination([]);
+        };
+        setInput(input => ({ ...input, applyBasePrice: false }));
+    }, [combiChange]);
+
+    function handleToggleApplyBasePrice(e) {
+        const { checked } = e.target;
+        setInput(input => ({ ...input, applyBasePrice: checked }));
+    }
+
+    useEffect(() => {
+        if (input.applyBasePrice && combination && combination.length) {
+            const newCombination = combination.map((combination) => {
+                return Object.assign({}, combination, {
+                    price: input.price
+                })
+            });
+
+            const sameCombination = combination.filter(
+                o1 => newCombination.some(o2 => o1.color === o2.color && o1.size === o2.size && o1.weight === o2.weight));
+
+            sameCombination.forEach((item) => {
+                let index = newCombination.findIndex(obj => obj.color === item.color && obj.size === item.size && obj.weight === item.weight);
+                let price = newCombination[index].price;
+                newCombination[index] = { id: item.id, edit: true, color: item.color, size: item.size, weight: item.weight, price: price, error: '' };
+            });
+
+            setCombination(newCombination);
+        }
+    }, [input.price, input.applyBasePrice]);
 
     const editOption = (option, display) => {
         if (display) {
@@ -364,48 +513,44 @@ const EditProduct = () => {
         event.preventDefault();
 
         if (checkValid()) {
-            let newCombination = [];
-            const arrayColors = input.colors.length ? input.colors : [{ value: null }];
-            const arraySizes = input.sizes.length ? input.sizes : [{ value: null }];
-            const arrayWeights = input.weights.length ? input.weights : [{ value: 0 }];
-            
-            arrayColors.forEach((color) => {
-                arraySizes.forEach((size) => {
-                    arrayWeights.forEach((weight) => {
-                        newCombination.push({ id: null, color: color.value, size: size.value, weight: parseInt(weight.value) })
-                    })
-                })
-            })
-            const combinationDifference = newCombination.filter(
-                    o1 => !combination.some(o2 => o1.color === o2.color && o1.size === o2.size && o1.weight === o2.weight))
-                .concat(combination.filter(
-                    o1 => !newCombination.some(o2 => o1.color === o2.color && o1.size === o2.size && o1.weight === o2.weight)
-                )
-            );
+            setLoading(true);
 
-            let deleteArray = [];
+            const combinationDifference = currentCombination.filter(
+                o1 => !combination.some(o2 => o1.color === o2.color && o1.size === o2.size && o1.weight === o2.weight))
+            .concat(combination.filter(
+                o1 => !currentCombination.some(o2 => o1.color === o2.color && o1.size === o2.size && o1.weight === o2.weight && o1.price === o2.price)
+            ))
+
+            let updateArray = [];
             let insertArray = [];
+            let deleteArray = [];
 
             combinationDifference.forEach((item) => {
                 if (item.id !== null) {
-                    deleteArray.push(item.id);
+                    if (item.edit) {
+                        updateArray.push({
+                            defaultPrice: item.price.replace(/\D/g, ""),
+                            size: item.size,
+                            color: item.color,
+                            weight: item.weight,
+                            productId: item.id
+                        });
+                    } else {
+                        deleteArray.push(item.id);
+                    }
                 } else {
                     insertArray.push({
-                        productCode: input.code,
-                        productName: input.name,
-                        briefDescription: input.shortDescription,
-                        description: input.description,
-                        defaultPrice: input.price.replace(/\D/g, ""),
+                        defaultPrice: item.price.replace(/\D/g, ""),
                         size: item.size,
                         color: item.color,
                         weight: item.weight,
-                        systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
                         image: []
                     });
                 }
             });
 
-            const imageDifference = currentImages.filter(o1 => !images.some(o2 => o1.image === o2.image))
+            let imageDifference = [];
+            imageDifference = currentImages.filter(o1 => !images.some(o2 => o1.image === o2.image))
             .concat(images.filter(o1 => !currentImages.some(o2 => o1.image === o2.image)))
             .filter(item => item.image !== '').map(item => item.image.includes(',') ? item.image.split(',')[1] : item.image);
 
@@ -417,38 +562,21 @@ const EditProduct = () => {
                 || item.SystemCategoryId !== (input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1)
                 || item.DefaultPrice.toString().replace(/\D/g, "") !== input.price.replace(/\D/g, "")
                 || imageDifference.length
+                || updateArray.length
             ) {
-                if (imageDifference.length) {
-                    APIarray.push(api.put("products", {
-                        products: [
-                            {
-                                productCode: input.code,
-                                productName: input.name,
-                                briefDescription: input.shortDescription,
-                                description: input.description,
-                                defaultPrice: input.price.replace(/\D/g, ""),
-                                systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
-                                image: imageDifference,
-                                productId: id
-                            }
-                        ]
-                    }));
-                } else {
-                    APIarray.push(api.put("products", {
-                        products: [
-                            {
-                                productCode: input.code,
-                                productName: input.name,
-                                briefDescription: input.shortDescription,
-                                description: input.description,
-                                defaultPrice: input.price.replace(/\D/g, ""),
-                                systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
-                                image: [],
-                                productId: id
-                            }
-                        ]
-                    }));
-                }
+                updateArray.push({
+                    productCode: input.code,
+                    productName: input.name,
+                    briefDescription: input.shortDescription,
+                    description: input.description,
+                    defaultPrice: input.price.replace(/\D/g, ""),
+                    systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
+                    image: imageDifference,
+                    productId: id
+                })
+                APIarray.push(api.put("products", {
+                    products: updateArray
+                }));
             }
             if (deleteArray.length) {
                 APIarray.push(api.delete("products", {
@@ -475,13 +603,17 @@ const EditProduct = () => {
                         senderId: user.Residents[0].ResidentId,
                         type: '003'
                     });
+                    setLoading(false);
+                    setChange(!change);
                     toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
                 })
                 .catch(function (error) {
                     console.log(error);
+                    setLoading(false);
                     toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
                 });
             } else {
+                setLoading(false);
                 toast.update(notification, { render: "Vui lòng chỉnh sửa sản phẩm trước khi chọn cập nhật.", type: "info", autoClose: 5000, isLoading: false });
             }
         }
@@ -489,7 +621,7 @@ const EditProduct = () => {
 
     const checkValid = () => {
         let check = false;
-        setError(error => ({ ...error, name: '', colors: '', sizes: '', weights: '', category: '', price: '' }));
+        setError(error => ({ ...error, name: '', colors: '', sizes: '', weights: '', category: '', price: '', optionPrice: '' }));
 
         if (input.name === null || input.name === '') {
             setError(error => ({ ...error, name: 'Vui lòng nhập tên sản phẩm' }));
@@ -507,6 +639,18 @@ const EditProduct = () => {
             setError(error => ({ ...error, image: 'Xin hãy chọn ảnh bìa cho sản phẩm' }));
             check = true;
         }
+        combination.forEach((item) => {
+            if (item.price === '' || item.price === null || item.price < 500) {
+                let newCombination = [...combination];
+                let index = newCombination.findIndex(obj => obj.color === item.color && obj.size === item.size && obj.weight === item.weight);
+                let error = "Vui lòng không để trống tùy chọn";
+                newCombination[index] = { color: item.color, size: item.size, weight: item.weight, price: item.price, error: error };
+                setCombination(newCombination);
+
+                setError(error => ({ ...error, optionPrice: 'Vui lòng nhập giá tùy chọn trên 500 vnđ' }));
+                check = true;
+            }
+        })
         if (check) {
             return false;
         }
@@ -522,7 +666,7 @@ const EditProduct = () => {
             </Row>
             
             <form onSubmit={handleEditItem} id="form">
-                <ContainerWrapper error={error.name !== ''}>
+                <ContainerWrapper>
                     <Row spacebetween>
                         <FormLabel>Tên sản phẩm</FormLabel>
                         <HelperText ml0>{input.name.length}/100 kí tự</HelperText>
@@ -576,7 +720,7 @@ const EditProduct = () => {
                     />
                 </ContainerWrapper>
 
-                <ContainerWrapper error={error.category !== ''}>
+                <ContainerWrapper>
                     <FormLabel>Danh mục</FormLabel>
 
                     <Row spacebetween mt>
@@ -587,17 +731,7 @@ const EditProduct = () => {
                     <HelperText error> {error.category} </HelperText>
                 </ContainerWrapper>
 
-                <ContainerWrapper p0 error={error.price !== '' || error.image !== ''}>
-                    <FormLabel>Giá mặc định</FormLabel>
-                    <StyledTextFieldMb
-                        fullWidth
-                        InputProps={{ inputMode: 'numeric', pattern: '[0-9]*', startAdornment: <InputAdornment position="start">vnđ</InputAdornment> }}
-                        value={input.price} name='price'
-                        onChange={handleSetPrice}
-                        error={error.name !== ''}
-                        helperText={error.name}
-                    />
-
+                <ContainerWrapper p0>
                     <FormLabel>Hình ảnh</FormLabel>
                     <HelperText ml0 mb>Chỉ hình ảnh đầu tiên được lưu nếu trùng lặp.</HelperText>
                     <HelperText ml0 mb error>{error.image}</HelperText>
@@ -624,6 +758,57 @@ const EditProduct = () => {
                     <ProductOption passedData={input.weights} savedData={input.weights} type='weights' saveOption={saveOption} editOption={editOption} />
                 </ContainerWrapper>
 
+                <ContainerWrapper>
+                <FormLabel>Giá mặc định</FormLabel>
+
+                <TextField
+                    fullWidth
+                    InputProps={{ inputMode: 'numeric', pattern: '[0-9]*', startAdornment: <InputAdornment position="start">vnđ</InputAdornment> }}
+                    value={input.price} name='price'
+                    onChange={handleSetPrice}
+                    error={error.price !== ''}
+                    helperText={error.price}
+                />
+
+                {
+                    combination && combination.length ?
+                    <CombinationListWrapper>
+                        
+                        <FormControlLabel 
+                            checked={input.applyBasePrice} name='applyBasePrice' 
+                            onChange={handleToggleApplyBasePrice} 
+                            control={<Checkbox />} 
+                            label={<span style={{ fontSize: '14px' }}>Áp dụng giá mặc định vào toàn bộ tùy chọn sản phẩm.</span>} 
+                        />
+
+                        <HelperText error> {error.optionPrice} </HelperText>
+                        {combination.map((item, index) => {
+                            return <VariantWrapper key={index}>
+                                <TextWrapper>
+                                    {item.color ? item.color : ''}
+                                    {item.color && (item.size || item.weight) ? " / " : ''}
+                                    {item.size ? item.size : ''}
+                                    {item.size && item.weight ? " / " : ''}
+                                    {item.weight ? item.weight + "kg " : ''}
+                                </TextWrapper>
+
+                                <PriceWrapper>
+                                    <PriceField 
+                                        type="text" disabled={input.applyBasePrice}
+                                        value={item.price} name='price'
+                                        onChange={(e) => handleSetOptionPrice(e, item.id, item.color, item.size, item.weight)}
+                                        error={item.error !== ''}
+                                    />
+                                    <Currency error={item.error !== ''}>đ</Currency>
+                                </PriceWrapper>
+                            </VariantWrapper>
+                        })}
+                    </CombinationListWrapper>
+                    :
+                    null
+                }
+                </ContainerWrapper>
+
                 <FooterWrapper>
                     <FloatRight>
                         {
@@ -633,14 +818,14 @@ const EditProduct = () => {
                                 <WarningText>Bạn có tùy chọn chưa lưu!</WarningText>
                                 <Button disabled>Cập nhật</Button>
                             </>
-                            : (error.name !== '' || error.category !== '' || error.price !== '') ?
+                            : (error.name !== '' || error.category !== '' || error.price !== '' || error.optionPrice) ?
                             <>
                                 <StyledWarningIcon error />
                                 <WarningText error>Bạn có thông tin chưa điền!</WarningText>
                                 <Button disabled>Cập nhật</Button>
                             </>
                             :
-                            <Button>Cập nhật</Button>
+                            <Button disabled={loading}>Cập nhật</Button>
                         }
                     </FloatRight>
                 </FooterWrapper>

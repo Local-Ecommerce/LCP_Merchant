@@ -37,7 +37,9 @@ const TextWrapper = styled.div`
     width: 1px; //constraint width
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     margin: 0px 20px;
     display: flex;
     align-items: center;
@@ -288,7 +290,7 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice, hand
                 <>
                     {item.RelatedProductInMenu.map((related, index2) => {
                         return <ContainerWrapper key={index2}>
-                            <Index></Index>
+                            <Index>{index}.{index2 + 1}</Index>
             
                             <ImageWrapper disabled>
                                 <Image />
@@ -302,8 +304,8 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice, hand
                                 {related.Product.Weight ? related.Product.Weight + "kg " : ''}
                             </TextWrapper>
 
-                            <TextFIeldWrapper disabled>
-                                {item.Product.DefaultPrice.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
+                            <TextFIeldWrapper>
+                                {related.Product.DefaultPrice.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
                             </TextFIeldWrapper>
 
                             {

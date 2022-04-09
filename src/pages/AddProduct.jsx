@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate } from "react-router-dom";
@@ -136,6 +137,76 @@ const StyledLink = styled.a`
     cursor: pointer;
 `;
 
+const VariantWrapper = styled.div`
+    font-size: 14px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #dee2e6;
+    text-decoration: none;
+    cursor: pointer;
+    background-color: #fff;
+
+    &:hover {
+    opacity: 0.9;
+    background-color: #F5F5F5;
+    }
+
+    &:focus {
+    outline: 0;
+    }
+
+    &:active {
+    transform: translateY(1px);
+    }
+`;
+
+const CombinationListWrapper = styled.div`
+    margin-top 20px;
+    width: 65%;
+`;
+
+const TextWrapper = styled.div`
+    flex: ${props => props.isBaseMenu ? "11" : "8"};
+    width: 1px; //constraint width
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 0px 20px;
+    display: flex;
+    align-items: center;
+`;
+
+const PriceWrapper = styled.div`
+    flex: 3;
+    display: flex;
+    justify-content: center;
+    margin-right: 15px;
+    opacity: ${props => props.disabled ? "0" : null};
+`;
+
+const Currency = styled.span`
+    font-size: 14px;
+    padding: 5px;
+    color: #999;
+    border: 1px solid ${props => props.error ? props.theme.red : "#ccc"};
+    border-radius: 0 3px 3px 0;
+    background: rgba(0,0,0,0.01);
+`;
+
+const PriceField = styled.input`
+    width: 100%;
+    padding: 5px;
+    outline: none;
+    border: 1px solid ${props => props.error ? props.theme.red : props.theme.greyBorder};
+    border-right: 0;
+    border-radius: 3px 0 0 3px;
+    font-size: 14px;
+    background-color: ${props => props.theme.white};
+    color: ${props => props.grey ? "#BEBEBE" : props.theme.black};
+`;
+
 const AddProduct = () => {    
     let navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem('USER'));
@@ -151,10 +222,13 @@ const AddProduct = () => {
         sizes: [], 
         weights: [], 
         code: '',
-        toBaseMenu: true
+        toBaseMenu: true,
+        applyBasePrice: false
     });
+    const [combination, setCombination] = useState([]);
+    const [combiChange, setcombiChange] = useState(false);
     const [images, setImages] = useState([ { name: 0, image: '' } ]);
-    const [error, setError] = useState({ name: '', category: '', price: '', image: '', colors: '', sizes: '', weights: '' });
+    const [error, setError] = useState({ name: '', category: '', price: '', image: '', colors: '', sizes: '', weights: '', optionPrice: '' });
 
     const sort = '+syscategoryname';
     const [lv1Category, setLv1Category] = useState([]);
@@ -192,19 +266,88 @@ const AddProduct = () => {
         setInput(input => ({ ...input, toBaseMenu: checked }));
     }
 
+    const saveOption = (option, data) => {
+        setError(error => ({ ...error, [option]: '' }));
+        setError(error => ({ ...error, optionPrice: '' }));
+        setInput(input => ({ ...input, [option]: data }));
+        setcombiChange(!combiChange);
+    }
 
     const handleSetPrice = (e) => {
+        setError(error => ({ ...error, price: '' }));
         const { value } = e.target;
         if (value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",").length + 1 <= 12) {
             setInput(input => ({ ...input, price: value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }));
         }
-        setError(error => ({ ...error, price: '' }));
+        if (input.applyBasePrice) {
+            setCombination(combination.map((combination) => {
+                return Object.assign({}, combination, {
+                    price: input.price
+                })
+            }));
+        }
     }
 
-    const saveOption = (option, data) => {
-        setError(error => ({ ...error, [option]: '' }));
-        setInput(input => ({ ...input, [option]: data }));
+    const handleSetOptionPrice = (e, color, size, weight) => {
+        setError(error => ({ ...error, optionPrice: '' }));
+        const { value } = e.target;
+        let newCombination = [...combination];
+        let index = newCombination.findIndex(obj => obj.color === color && obj.size === size && obj.weight === weight);
+        let inputPrice = value.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        newCombination[index] = { color: color, size: size, weight: weight, price: inputPrice, error: '' };
+        setCombination(newCombination);
     }
+
+    useEffect(() => {
+        const colors = input.colors.length ? input.colors : [{ value: null }];
+        const sizes = input.sizes.length ? input.sizes : [{ value: null }];
+        const weights = input.weights.length ? input.weights : [{ value: 0 }];
+
+        if (!(colors.length === 1 && colors[0].value === null 
+        && sizes.length === 1 && sizes[0].value === null 
+        && weights.length === 1 && weights[0].value === 0)) {
+            const newCombination = sizes.map(size => { 
+                return colors.map(color => {
+                    return weights.map(weight => {
+                        return {
+                            color: color.value, size: size.value, weight: weight.value, price: '', error: ''
+                        }
+                    })
+                }).reduce((total, value) => {
+                    return total.concat(value);
+                }, [])
+            }).reduce((total, value) => {
+                return total.concat(value);
+            }, []);
+
+            const sameCombination = combination.filter(
+                o1 => newCombination.some(o2 => o1.color === o2.color && o1.size === o2.size && o1.weight === o2.weight));
+
+            sameCombination.forEach((item) => {
+                let index = newCombination.findIndex(obj => obj.color === item.color && obj.size === item.size && obj.weight === item.weight);
+                newCombination[index] = { color: item.color, size: item.size, weight: item.weight, price: item.price, error: '' };
+            });
+            setCombination(newCombination);
+        } else {
+            setCombination([]);
+        };
+        setInput(input => ({ ...input, applyBasePrice: false }));
+    }, [combiChange]);
+
+    function handleToggleApplyBasePrice(e) {
+        const { checked } = e.target;
+        setInput(input => ({ ...input, applyBasePrice: checked }));
+    }
+
+    useEffect(() => {
+        if (input.applyBasePrice && combination && combination.length) {
+            setCombination(combination.map((combination) => {
+                return Object.assign({}, combination, {
+                    price: input.price
+                })
+            }));
+        }
+    }, [input.price, input.applyBasePrice]);
 
     const editOption = (option, display) => {
         if (display) {
@@ -276,17 +419,7 @@ const AddProduct = () => {
         setProcessing(true);
         if (checkValid()) {
             const notification = toast.loading("Đang xử lí yêu cầu...");
-            const addData = async () => {
-                const colors = input.colors.length ? input.colors : [{ value: null }];
-                const sizes = input.sizes.length ? input.sizes : [{ value: null }];
-                const weights = input.weights.length ? input.weights : [{ value: 0 }];
-                let skipRelated = false;
-                if (colors.length === 1 && colors[0].value === null 
-                    && sizes.length === 1 && sizes[0].value === null 
-                    && weights.length === 1 && weights[0].value === 0 ) {
-                        skipRelated = true;
-                };
-
+            const addData = async () => {                
                 api.post("products", {
                     productCode: input.code,
                     productName: input.name,
@@ -297,23 +430,15 @@ const AddProduct = () => {
                     image: images.filter(item => item.image !== '').map(item => item.image.split(',')[1]),
                     toBaseMenu: input.toBaseMenu,
                     relatedProducts: 
-                        skipRelated ? [] : sizes.map(size => { 
-                            return colors.map(color => {
-                                return weights.map(weight => {
-                                    return {
-                                        defaultPrice: input.price.replace(/\D/g, ""),
-                                        size: size.value,
-                                        color: color.value,
-                                        weight: weight.value,
-                                        image: []
-                                    }
-                                })
-                            }).reduce((total, value) => {
-                                return total.concat(value);
-                            }, [])
-                        }).reduce((total, value) => {
-                            return total.concat(value);
-                        }, [])
+                        combination.length === 0 ? [] : combination.map(combination => {
+                            return {
+                                defaultPrice: combination.price.replace(/\D/g, ""),
+                                size: combination.size,
+                                color: combination.color,
+                                weight: combination.weight,
+                                image: []
+                            }
+                        })
                     ,
                 })
                 .then(function (res) {
@@ -346,7 +471,7 @@ const AddProduct = () => {
 
     const checkValid = () => {
         let check = false;
-        setError(error => ({ ...error, name: '', colors: '', sizes: '', weights: '', category: '', price: '' }));
+        setError(error => ({ ...error, name: '', colors: '', sizes: '', weights: '', category: '', price: '', optionPrice: '' }));
 
         if (input.name === null || input.name === '') {
             setError(error => ({ ...error, name: 'Vui lòng nhập tên sản phẩm' }));
@@ -364,6 +489,18 @@ const AddProduct = () => {
             setError(error => ({ ...error, image: 'Xin hãy chọn ảnh bìa cho sản phẩm' }));
             check = true;
         }
+        combination.forEach((item) => {
+            if (item.price === '' || item.price === null || item.price < 500) {
+                let newCombination = [...combination];
+                let index = newCombination.findIndex(obj => obj.color === item.color && obj.size === item.size && obj.weight === item.weight);
+                let error = "Vui lòng không để trống tùy chọn";
+                newCombination[index] = { color: item.color, size: item.size, weight: item.weight, price: item.price, error: error };
+                setCombination(newCombination);
+
+                setError(error => ({ ...error, optionPrice: 'Vui lòng nhập giá tùy chọn trên 500 vnđ' }));
+                check = true;
+            }
+        })
         if (check) {
             return false;
         }
@@ -379,7 +516,7 @@ const AddProduct = () => {
             </Row>
             
             <form onSubmit={handleAddItem} id="form">
-                <ContainerWrapper error={error.name !== ''}>
+                <ContainerWrapper>
                     <Row spacebetween>
                         <FormLabel>Tên sản phẩm</FormLabel>
                         <HelperText ml0>{input.name.length}/100 kí tự</HelperText>
@@ -436,7 +573,7 @@ const AddProduct = () => {
                     />
                 </ContainerWrapper>
 
-                <ContainerWrapper error={error.category !== ''}>
+                <ContainerWrapper>
                     <FormLabel>Danh mục</FormLabel>
 
                     <Row spacebetween mt>
@@ -448,18 +585,7 @@ const AddProduct = () => {
                 </ContainerWrapper>
 
 
-                <ContainerWrapper p0 error={error.price !== '' || error.image !== ''}>
-                    <FormLabel>Giá mặc định</FormLabel>
-
-                    <StyledTextFieldMb
-                        fullWidth
-                        InputProps={{ inputMode: 'numeric', pattern: '[0-9]*', startAdornment: <InputAdornment position="start">vnđ</InputAdornment> }}
-                        value={input.price} name='price'
-                        onChange={handleSetPrice}
-                        error={error.price !== ''}
-                        helperText={error.price}
-                    />
-
+                <ContainerWrapper p0>
                     <FormLabel>Hình ảnh</FormLabel>
                     <HelperText ml0 mb>Chỉ hình ảnh đầu tiên được lưu nếu trùng lặp.</HelperText>
                     <HelperText ml0 mb error>{error.image}</HelperText>
@@ -482,10 +608,61 @@ const AddProduct = () => {
                     <ProductOption savedData={input.weights} type='weights' saveOption={saveOption} editOption={editOption} />
                 </ContainerWrapper>
 
+                <ContainerWrapper>
+                    <FormLabel>Giá mặc định</FormLabel>
+
+                    <TextField
+                        fullWidth
+                        InputProps={{ inputMode: 'numeric', pattern: '[0-9]*', startAdornment: <InputAdornment position="start">vnđ</InputAdornment> }}
+                        value={input.price} name='price'
+                        onChange={handleSetPrice}
+                        error={error.price !== ''}
+                        helperText={error.price}
+                    />
+
+                    {
+                        combination && combination.length ?
+                        <CombinationListWrapper>
+                            
+                            <FormControlLabel 
+                                checked={input.applyBasePrice} name='applyBasePrice' 
+                                onChange={handleToggleApplyBasePrice} 
+                                control={<Checkbox />} 
+                                label={<span style={{ fontSize: '14px' }}>Áp dụng giá mặc định vào toàn bộ tùy chọn sản phẩm.</span>} 
+                            />
+
+                            <HelperText error> {error.optionPrice} </HelperText>
+                            {combination.map((item, index) => {
+                                return <VariantWrapper key={index}>
+                                    <TextWrapper>
+                                        {item.color ? item.color : ''}
+                                        {item.color && (item.size || item.weight) ? " / " : ''}
+                                        {item.size ? item.size : ''}
+                                        {item.size && item.weight ? " / " : ''}
+                                        {item.weight ? item.weight + "kg " : ''}
+                                    </TextWrapper>
+
+                                    <PriceWrapper>
+                                        <PriceField 
+                                            type="text" disabled={input.applyBasePrice}
+                                            value={item.price} name='price'
+                                            onChange={(e) => handleSetOptionPrice(e, item.color, item.size, item.weight)}
+                                            error={item.error !== ''}
+                                        />
+                                        <Currency error={item.error !== ''}>đ</Currency>
+                                    </PriceWrapper>
+                                </VariantWrapper>
+                            })}
+                        </CombinationListWrapper>
+                        :
+                        null
+                    }
+                </ContainerWrapper>
+
                 <ContainerWrapper pt0>
                     <FormControlLabel 
                         checked={input.toBaseMenu} name='toBaseMenu' 
-                        onClick={handleToggleToBaseMenu} 
+                        onChange={handleToggleToBaseMenu} 
                         control={<Checkbox />} 
                         label={<span style={{ fontSize: '14px' }}>Tự động thêm sản phẩm vào bảng giá cơ bản</span>} 
                     />
@@ -504,7 +681,7 @@ const AddProduct = () => {
                                 <WarningText>Bạn có tùy chọn chưa lưu!</WarningText>
                                 <Button disabled>Tạo mới</Button>
                             </>
-                            : (error.name !== '' || error.category !== '' || error.price !== '') ?
+                            : (error.name !== '' || error.category !== '' || error.price !== '' || error.optionPrice) ?
                             <>
                                 <StyledWarningIcon error />
                                 <WarningText error>Bạn có thông tin chưa điền!</WarningText>

@@ -196,10 +196,6 @@ const AddMenu = () => {
         setTwentyfour(!twentyfour);
     }
 
-    useEffect(() => {
-        console.log(input)
-    }, [input])
-
     const handleAddMenu = (event) => {
         event.preventDefault();
 
@@ -223,7 +219,6 @@ const AddMenu = () => {
                     merchantStoreId: storeId
                 })
                 .then(function (res) {
-                    console.log(res)
                     if (res.data.ResultMessage === "SUCCESS") {
                         navigate("/menus");
                         toast.update(notification, { render: "Tạo bảng giá thành công!", type: "success", autoClose: 5000, isLoading: false });

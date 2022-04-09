@@ -379,52 +379,50 @@ const EditMenu = () => {
                                 }))
                             })));
                             setPimLoading(false);
-                            
-                            let url3 = "menu-products"
-                                + "?menuid=" + id
-                                + "&status=" + Constant.ACTIVE_PRODUCT_IN_MENU;
+                    
+                            let url3 = "products"
+                                + "?sort=" + sort
+                                + "&status=" + Constant.VERIFIED_PRODUCT
+                                + "&status=" + Constant.UNVERIFIED_PRODUCT
+                                + "&status=" + Constant.REJECTED_PRODUCT
+                                + "&include=related";
                             api.get(url3).then(function (res3) {
                                 if (res3.data.ResultMessage === "SUCCESS") {
-
-                                    let url4 = "products"
-                                        + "?sort=" + sort
-                                        + "&status=1001&status=1003&status=1004"
-                                        + "&include=related";
-                                    api.get(url4).then(function (res4) {
-                                        if (res4.data.ResultMessage === "SUCCESS") {
-                                            setStock(res4.data.Data.List.map((item) => (
-                                                res3.data.Data.some((item2) => item2.ProductId.includes( item.ProductId )) ?
-                                                { 
-                                                    Product: item,
-                                                    RelatedProductInMenu: item.RelatedProducts.map((related) => (
-                                                        {
-                                                            Product: related,
-                                                            Price: res3.data.Data.find((item2) => item2.ProductId.includes( related.ProductId )).Price.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-                                                            ProductInMenuId: res3.data.Data.find((item2) => item2.ProductId.includes( related.ProductId )).ProductInMenuId,
-                                                            checked: true
-                                                        }
-                                                    )),
-                                                    Price: res3.data.Data.find((item2) => item2.ProductId.includes( item.ProductId )).Price.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
-                                                    ProductInMenuId: res3.data.Data.find((item2) => item2.ProductId.includes( item.ProductId )).ProductInMenuId,
-                                                    checked: true
-                                                } 
-                                                :
-                                                {
-                                                    Product: item, 
-                                                    RelatedProductInMenu: item.RelatedProducts.map((related) => ({
-                                                        Product: related,
-                                                        Price: related.DefaultPrice.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-                                                        ProductInMenuId: null,
-                                                        checked: false
-                                                    })),
-                                                    Price: item.DefaultPrice.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
-                                                    ProductInMenuId: null,
-                                                    checked: false
-                                                }
-                                            )));
-                                            setProductLoading(false);
+                                    const tempStock = res3.data.Data.List.map((item) => (
+                                        {
+                                            Product: item, 
+                                            RelatedProductInMenu: item.RelatedProducts.map((related) => ({
+                                                Product: related,
+                                                Price: related.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                                                ProductInMenuId: null,
+                                                checked: false
+                                            })),
+                                            Price: item.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
+                                            ProductInMenuId: null,
+                                            checked: false
                                         }
-                                    })
+                                    ));
+                                    const productExistInStock = res2.data.Data.filter(o1 => tempStock.some(o2 => o1.ProductId === o2.Product.ProductId));
+                                    productExistInStock.forEach((item) => {
+                                        let index = tempStock.findIndex(obj => item.ProductId === obj.Product.ProductId);
+                                        let product = tempStock[index].Product;
+                                        tempStock[index] = {
+                                            Product: product,
+                                            RelatedProductInMenu: product.RelatedProducts.map((related) => (
+                                                {
+                                                    Product: related,
+                                                    Price: item.Price.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                                                    ProductInMenuId: item.ProductInMenuId,
+                                                    checked: true
+                                                }
+                                            )),
+                                            Price: item.Price.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
+                                            ProductInMenuId: item.ProductInMenuId,
+                                            checked: true
+                                        };
+                                    });
+                                    setStock(tempStock);
+                                    setProductLoading(false);
                                 }
                             })
                         }
