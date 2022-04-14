@@ -8,6 +8,22 @@ import { CircularProgress } from '@mui/material';
 import { auth } from "../firebase";
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
+const PageWrapper = styled.div`
+    width: 100vw;
+    height: 100vh;
+`;
+
+const BackgroundImage = styled.img`
+    width: 100%;
+    height: auto;
+    
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    opacity: 0.3;
+`;
+
 const LoginFormContainer = styled.div`
     position: fixed;
     top: 50%;
@@ -19,6 +35,7 @@ const LoginFormContainer = styled.div`
     width: 350px;
     border-radius: 5px;
     box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
+    opacity: 0.95;
 `;
 
 const Form = styled.form``;
@@ -173,84 +190,87 @@ const Login = () => {
     }
 
     return (
-        <LoginFormContainer>
-            {
-                !toggle ?
-                <>
-                    <Title>Welcome to <BlueSpan fontSize="40px">LCP</BlueSpan> </Title>
-                    <SmallText>Trang quản lí dành cho <b>Người bán hàng</b></SmallText>
+        <PageWrapper>
+            <BackgroundImage src="https://media.istockphoto.com/photos/old-messy-bad-condition-apartment-in-chua-boc-street-hanoi-picture-id641835106"></BackgroundImage>
+            <LoginFormContainer>
+                {
+                    !toggle ?
+                    <>
+                        <Title>Welcome to <BlueSpan fontSize="40px">LCP</BlueSpan> </Title>
+                        <SmallText>Trang quản lí dành cho <b>Người bán hàng</b></SmallText>
 
-                    {error !== '' ? <ErrorText>{error}</ErrorText> : null}
-                    {success !== '' ? <ErrorText>{success}</ErrorText> : null}
+                        {error !== '' ? <ErrorText>{error}</ErrorText> : null}
+                        {success !== '' ? <ErrorText>{success}</ErrorText> : null}
 
-                    <Form onSubmit={handleLogin}>
-                        {
-                        loading ?
-                        <CenterWrapper>
-                            <CircularProgress /> 
-                        </CenterWrapper>
-                        :
-                        <>
-                            <TextFieldWrapper mt>
-                                <TextField
-                                    fullWidth
-                                    value={input.email ? input.email : ''} name="email"
-                                    onChange={handleChange}
-                                    label="Email"
-                                />
-                            </TextFieldWrapper>
+                        <Form onSubmit={handleLogin}>
+                            {
+                            loading ?
+                            <CenterWrapper>
+                                <CircularProgress /> 
+                            </CenterWrapper>
+                            :
+                            <>
+                                <TextFieldWrapper mt>
+                                    <TextField
+                                        fullWidth
+                                        value={input.email ? input.email : ''} name="email"
+                                        onChange={handleChange}
+                                        label="Email"
+                                    />
+                                </TextFieldWrapper>
 
-                            <TextFieldWrapper>
-                                <TextField
-                                    fullWidth
-                                    value={input.password ? input.password : ''} name="password"
-                                    type="password"
-                                    onChange={handleChange}
-                                    label="Mật khẩu" 
-                                />
-                            </TextFieldWrapper>
+                                <TextFieldWrapper>
+                                    <TextField
+                                        fullWidth
+                                        value={input.password ? input.password : ''} name="password"
+                                        type="password"
+                                        onChange={handleChange}
+                                        label="Mật khẩu" 
+                                    />
+                                </TextFieldWrapper>
 
-                            <Button>Đăng nhập</Button>
-                            <BottomText onClick={toggleForm}>Quên mật khẩu?</BottomText>
-                        </>
-                        }
-                    </Form>
-                </>
+                                <Button>Đăng nhập</Button>
+                                <BottomText onClick={toggleForm}>Quên mật khẩu?</BottomText>
+                            </>
+                            }
+                        </Form>
+                    </>
 
-                :
-                
-                <>
-                    <Title><BlueSpan fontSize="28px">Quên mật khẩu?</BlueSpan></Title>
-                    <SmallText>Nhập địa chỉ email đã đăng kí cho tài khoản của bạn</SmallText>
+                    :
+                    
+                    <>
+                        <Title><BlueSpan fontSize="28px">Quên mật khẩu?</BlueSpan></Title>
+                        <SmallText>Nhập địa chỉ email đã đăng kí cho tài khoản của bạn</SmallText>
 
-                    {error !== '' ? <ErrorText>{error}</ErrorText> : null}
-                    {success !== '' ? <SuccessText>{success}</SuccessText> : null}
+                        {error !== '' ? <ErrorText>{error}</ErrorText> : null}
+                        {success !== '' ? <SuccessText>{success}</SuccessText> : null}
 
-                    <Form onSubmit={handleForgetPassword}>
-                        {
-                        loading ?
-                        <CenterWrapper>
-                            <CircularProgress /> 
-                        </CenterWrapper>
-                        :
-                        <>
-                            <TextFieldWrapper mt>
-                                <TextField
-                                    fullWidth
-                                    value={input.forgetEmail ? input.forgetEmail : ''} name="forgetEmail"
-                                    onChange={handleChange}
-                                    label="Email"
-                                />
-                            </TextFieldWrapper>
+                        <Form onSubmit={handleForgetPassword}>
+                            {
+                            loading ?
+                            <CenterWrapper>
+                                <CircularProgress /> 
+                            </CenterWrapper>
+                            :
+                            <>
+                                <TextFieldWrapper mt>
+                                    <TextField
+                                        fullWidth
+                                        value={input.forgetEmail ? input.forgetEmail : ''} name="forgetEmail"
+                                        onChange={handleChange}
+                                        label="Email"
+                                    />
+                                </TextFieldWrapper>
 
-                            <Button>Gửi</Button>
-                            <BottomText onClick={toggleForm}>Trở về đăng nhập</BottomText>
-                        </>
-                        }
-                    </Form>
-                </>
-            }
-        </LoginFormContainer>
+                                <Button>Gửi</Button>
+                                <BottomText onClick={toggleForm}>Trở về đăng nhập</BottomText>
+                            </>
+                            }
+                        </Form>
+                    </>
+                }
+            </LoginFormContainer>
+        </PageWrapper>
     )
 }
 

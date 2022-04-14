@@ -1,10 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { api } from "../RequestMethod";
 import OrderList from '../components/Order/OrderList';
 import ReactPaginate from "react-paginate";
 import { Search, Error, Logout, Summarize } from '@mui/icons-material';
 import { CircularProgress } from '@mui/material';
+import * as Constant from '../Constant';
 
 const PageWrapper = styled.div`
     margin: 50px;
@@ -303,7 +305,6 @@ const StyledPaginateContainer = styled.div`
 const Order = () =>  {
     const [APIdata, setAPIdata] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [change, setChange] = useState(false);
 
     const limit = 10;
     const [page, setPage] = useState(0);
@@ -312,16 +313,39 @@ const Order = () =>  {
     const sort = '-createddate';
     const [typing, setTyping] = useState('');
     const [search, setSearch] = useState('');
-    const [status, setStatus] = useState('9001&status=9005');
+    const [status, setStatus] = useState('');
 
     useEffect( () => {  //fetch api data
+        const fetchData = () => {
+            setLoading(true);
+            let url = "orders"
+                + "?limit=" + limit 
+                + "&page=" + (page + 1)
+                + "&include=resident"
+                + (status !== '' ? ("&status=" + status) : '')
+                + (search !== '' ? ("&search=" + search) : '');
+            api.get(url)
+            .then(function (res) {
+                //console.log(res.data.Data);
+                //setAPIdata(res.data.Data.List);
+                setTotal(res.data.Data.Total);
+                setLastPage(res.data.Data.LastPage);
+                setLoading(false);
+            })
+            .catch(function (error) {
+                console.log(error);
+                setLoading(false);
+            });
+        }
+        fetchData();
+
         setAPIdata([
             {
                 OrderId: 'ID001',
                 DeliveryAddress: 'Tầng 2A',
                 CreatedDate: '29/3/2022 13:00 PM',
                 TotalAmount: 520000,
-                Status: 0,
+                Status: Constant.OPEN,
                 Resident: { ResidentName: 'Lê Văn Tám', PhoneNumber: '0901234567', DeliveryAddress: 'Tầng 2A' },
             },
             {
@@ -329,27 +353,27 @@ const Order = () =>  {
                 DeliveryAddress: 'Tầng 3B',
                 CreatedDate: '29/3/2022 9:00 AM',
                 TotalAmount: 42000,
-                Status: 1,
+                Status: Constant.CANCELED_ORDER,
+                Resident: { ResidentName: 'Ngọn Đuốc Sống', PhoneNumber: '0901231234', DeliveryAddress: 'Tầng 3B' },
+            },
+            {
+                OrderId: 'ID003',
+                DeliveryAddress: 'Tầng 3B',
+                CreatedDate: '29/3/2022 9:00 AM',
+                TotalAmount: 42000,
+                Status: Constant.CONFIRMED,
+                Resident: { ResidentName: 'Ngọn Đuốc Sống', PhoneNumber: '0901231234', DeliveryAddress: 'Tầng 3B' },
+            },
+            {
+                OrderId: 'ID004',
+                DeliveryAddress: 'Tầng 3B',
+                CreatedDate: '29/3/2022 9:00 AM',
+                TotalAmount: 42000,
+                Status: Constant.COMPLETED,
                 Resident: { ResidentName: 'Ngọn Đuốc Sống', PhoneNumber: '0901231234', DeliveryAddress: 'Tầng 3B' },
             }
         ]);
-        // setLoading(true);
-        // let url = "orders";
-        // const fetchData = () => {
-        //     api.get(url)
-        //     .then(function (res) {                
-        //         //setAPIdata(res.data.Data.List);
-        //         setTotal(res.data.Data.Total);
-        //         setLastPage(res.data.Data.LastPage);
-        //         setLoading(false);
-        //     })
-        //     .catch(function (error) {
-        //         console.log(error);
-        //         setLoading(false);
-        //     });
-        // }
-        // fetchData();
-    }, [change, limit, page, sort, status, search]);
+    }, [limit, page, sort, status, search]);
 
     useEffect(() => {   //timer when search
         const timeOutId = setTimeout(() => setSearch(typing), 500);
@@ -397,9 +421,11 @@ const Order = () =>  {
                                 <small>Trạng thái:&nbsp;</small>
                                 <DropdownWrapper width="16%">
                                     <Select value={status} onChange={handleSetStatus}>
-                                    <option value='9001&status=9005'>Toàn bộ</option>
-                                        <option value={9001}>Hoạt động</option>
-                                        <option value={9005}>Ngừng hoạt động</option>
+                                        <option value=''>Toàn bộ</option>
+                                        <option value={Constant.OPEN}>Chờ duyệt</option>
+                                        <option value={Constant.CONFIRMED}>Đang hoạt động</option>
+                                        <option value={Constant.COMPLETED}>Hoàn thành</option>
+                                        <option value={Constant.CANCELED_ORDER}>Hủy</option>
                                     </Select>
                                 </DropdownWrapper>
                             </Align>

@@ -436,6 +436,7 @@ const AddProduct = () => {
                                 size: combination.size,
                                 color: combination.color,
                                 weight: combination.weight,
+                                systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
                                 image: []
                             }
                         })

@@ -324,6 +324,7 @@ const EditMenu = () => {
 
     const [input, setInput] = useState({ id: '', name: '', description: '', includeBaseMenu: false, startTime: '', endTime: '' });
     const [repeatDay, setRepeatDay] = useState({ t2:true, t3:true, t4:true, t5:true, t6:true, t7:true, cn:true });
+    const [twentyfour, setTwentyfour] = useState(false);
     const [error, setError] = useState({ 'name': '', 'time': '', price: '' });
 
     const [pimLoading, setPimLoading] = useState(false);
@@ -360,6 +361,11 @@ const EditMenu = () => {
                         t7: res.data.Data.List[0].RepeatDate.includes('6') ? true : false,
                         cn: res.data.Data.List[0].RepeatDate.includes('0') ? true : false
                     });
+                    setTwentyfour(
+                        res.data.Data.List[0].TimeStart === '00:00:00'
+                        && res.data.Data.List[0].TimeEnd === '23:59:59' ?
+                        true : false
+                    );
                     setMenuLoading(false);
 
                     let url2 = "menu-products" 
@@ -455,6 +461,11 @@ const EditMenu = () => {
         setRepeatDay(date => ({ ...date, [name]: !checked }));
     }
 
+    const handleSetTime = () => {
+        setError(error => ({ ...error, time: '' }));
+        setTwentyfour(!twentyfour);
+    }
+
     const handleSetSort = (sort) => {
         console.log(sort)
         setSort(sort);
@@ -535,12 +546,14 @@ const EditMenu = () => {
                 || menu.TimeStart !== DateTime.fromISO(input.startTime).toFormat('TT')
                 || menu.TimeEnd !== DateTime.fromISO(input.endTime).toFormat('TT')
                 || menu.IncludeBaseMenu !== input.includeBaseMenu
+                || (twentyfour && (menu.TimeStart !== '00:00:00' || menu.TimeEnd !== '23:59:59'))
             ) {
                 APIarray.push(api.put("menus?id=" + id, {
                     menuName: input.name,
                     menuDescription: input.description,
-                    timeStart: DateTime.fromISO(input.startTime).toFormat('TT'),
-                    timeEnd: DateTime.fromISO(input.endTime).toFormat('TT'),
+                    timeStart: twentyfour ? '00:00:00' : DateTime.fromISO(input.startTime).toFormat('TT'),
+                    timeEnd: twentyfour || DateTime.fromISO(input.endTime).toFormat('TT') === '00:00:00' ?
+                            '23:59:59': DateTime.fromISO(input.endTime).toFormat('TT'),
                     repeatDate: (repeatDay.cn ? '0' : '')
                                 + (repeatDay.t2 ? '1' : '') 
                                 + (repeatDay.t3 ? '2' : '') 
@@ -567,8 +580,8 @@ const EditMenu = () => {
                 ));
             }
 
+            const notification = toast.loading("Đang xử lí yêu cầu...");
             if (APIarray.length) {
-                const notification = toast.loading("Đang xử lí yêu cầu...");
                 Promise.all(APIarray)
                 .then(function (results) {
                     setChange(!change);
@@ -578,6 +591,8 @@ const EditMenu = () => {
                     console.log(error);
                     toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
                 });
+            } else {
+                toast.update(notification, { render: "Vui lòng chỉnh sửa bảng giá trước khi chọn cập nhật.", type: "info", autoClose: 5000, isLoading: false });
             }
             toggleConfirmModal();
         }
@@ -783,19 +798,38 @@ const EditMenu = () => {
                     </DatePickerWrapper>
 
                     <FormLabel>Thời gian hoạt động</FormLabel>
+
+                    <FormControlLabel 
+                        style={{ pointerEvents: "none" }}
+                        control={
+                            <Checkbox
+                                onClick={handleSetTime}
+                                style={{ pointerEvents: "auto" }}
+                                checked={twentyfour}
+                            />
+                        }
+                        label={<span style={{ fontSize: '14px' }}>Hoạt động 24h</span>} 
+                    />
+
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <TimePickerWrapper>
                             <TimePicker 
-                                value={input.startTime} ampm={false}
+                                disabled={twentyfour ? true : false} ampm={false}
+                                label={twentyfour ? "00:00:00" : "Thời gian bắt đầu"}
+                                value={twentyfour ? null : input.startTime}
                                 onChange={time => handleChange({ target: { value: time.toISOString(), name: 'startTime' } })} 
-                                renderInput={(params) => <TextField {...params} size="small" error={error.time !== ''} helperText={error.time} />} />
+                                renderInput={(params) => <TextField disabled {...params} error={error.time !== ''} helperText={error.time} />} 
+                            />
 
                             <StyledArrowIcon />
 
                             <TimePicker 
-                                value={input.endTime} ampm={false}
+                                disabled={twentyfour ? true : false} ampm={false}
+                                label={twentyfour ? "00:00:00" : "Thời gian kết thúc"}
+                                value={twentyfour ? null : input.endTime}
                                 onChange={time => handleChange({ target: { value: time.toISOString(), name: 'endTime' } })} 
-                                renderInput={(params) => <TextField {...params} size="small" error={error.time !== ''} helperText={error.time} />} />
+                                renderInput={(params) => <TextField disabled {...params} error={error.time !== ''} helperText={error.time} />} 
+                            />
                         </TimePickerWrapper>
                     </LocalizationProvider>
                 </MenuWrapper>

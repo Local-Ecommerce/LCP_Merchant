@@ -4,11 +4,12 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Link, useParams } from "react-router-dom";
 import { KeyboardBackspace, CreditCard, CreditCardOff, Person, LocationOn, CalendarToday } from '@mui/icons-material';
+import * as Constant from '../Constant';
 
+import ProductInOrderList from '../components/Order/ProductInOrderList';
 import ConfirmModal from '../components/Order/ConfirmModal';
 import RejectModal from '../components/Order/RejectModal';
 import ResidentDetailModal from '../components/Order/ResidentDetailModal';
-import ProductInOrderList from '../components/Order/ProductInOrderList';
 
 const PageWrapper = styled.form`
     min-width: 720px;
@@ -260,7 +261,7 @@ const OrderDetail = () => {
             DeliveryAddress: 'Tầng 2A',
             CreatedDate: '29/3/2022 13:00 PM',
             TotalAmount: 520000,
-            Status: 0,
+            Status: Constant.OPEN,
             Resident: { 
                 ResidentName: 'Lê Văn Tám', 
                 PhoneNumber: '0901234567',
@@ -384,12 +385,16 @@ const OrderDetail = () => {
                 </RightWrapper>
             </FlexWrapper>
             
-            <FooterWrapper>
-                <FloatRight>
-                    <Button onClick={toggleRejectModal} type="button" mr>Từ chối</Button>
-                    <Button onClick={toggleConfirmModal} blue type="button">Duyệt</Button>
-                </FloatRight>
-            </FooterWrapper>
+            {
+                order.Status === Constant.OPEN ?
+                <FooterWrapper>
+                    <FloatRight>
+                        <Button onClick={toggleRejectModal} type="button" mr>Từ chối</Button>
+                        <Button onClick={toggleConfirmModal} blue type="button">Duyệt</Button>
+                    </FloatRight>
+                </FooterWrapper>
+                : null
+            }
 
             <ResidentDetailModal
                 display={residentModal} 

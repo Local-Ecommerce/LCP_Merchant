@@ -296,10 +296,10 @@ const AddMenu = () => {
                         checked={input.includeBaseMenu} name='includeBaseMenu' 
                         onClick={handleToggleIncludeBaseMenu} 
                         control={<Checkbox />} 
-                        label={<span style={{ fontSize: '14px' }}>Tích hợp bảng giá cơ bản</span>} 
+                        label={<span style={{ fontSize: '14px' }}>Tích hợp bảng giá nền</span>} 
                     />
                     <HelperText>
-                        Các sản phẩm thuộc bảng giá cơ bản vẫn sẽ tiếp tục bán khi đến giờ hoạt động của bảng giá này.<br/>
+                        Các sản phẩm thuộc bảng giá nền vẫn sẽ tiếp tục bán khi đến giờ hoạt động của bảng giá này.<br/>
                         Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/Th%E1%BB%B1c_ph%E1%BA%A9m_t%C6%B0%C6%A1i_s%E1%BB%91ng"
                                             target="_blank">các loại bảng giá</StyledLink>
                     </HelperText>
@@ -330,6 +330,7 @@ const AddMenu = () => {
                             <Checkbox
                                 onClick={handleSetTime}
                                 style={{ pointerEvents: "auto" }}
+                                checked={twentyfour}
                             />
                         }
                         label={<span style={{ fontSize: '14px' }}>Hoạt động 24h</span>} 

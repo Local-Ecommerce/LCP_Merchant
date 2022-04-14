@@ -36,10 +36,29 @@ const TableData = styled.td`
     height: 50px;
 `;
 
+const BaseTag = styled.span`
+    margin-left: 6px;
+    display: inline-block;
+    padding: 3px 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 20px;
+    color: ${props => props.theme.white};
+    background-color: ${props => props.theme.blue};
+`;
+
+const HourSpan = styled.div`
+    font-size: 14px;
+    margin-bottom: 5px;
+`;
+
 const DaySpan = styled.span`
     display: inline-block;
     padding: 4px;
-    font-size: 0.8em;
+    font-size: 13px;
     font-weight: 700;
     text-align: center;
     white-space: nowrap;
@@ -81,6 +100,31 @@ const StyledDeleteIcon = styled(Delete)`
     }
 `;
 
+const TooltipText = styled.div`
+    visibility: hidden;
+    width: 250px;
+    font-size: 13px;
+    font-weight: 400;
+    background-color: ${props => props.theme.dark};
+    color: ${props => props.theme.white};
+    padding: 8px 12px;
+    border-radius: 6px;
+
+    position: absolute;
+    left: 110%;
+    top: -20px;
+    z-index: 1;
+`;
+
+const Tooltip = styled.div`
+    position: relative;
+    display: inline-block;
+
+    &:hover ${TooltipText} {
+        visibility: visible;
+    }
+`;
+
 const MenuItem = ({ item, handleGetToggleStatusItem, handleGetDeleteItem, index }) =>  {
     const navigate = useNavigate();
 
@@ -107,15 +151,30 @@ const MenuItem = ({ item, handleGetToggleStatusItem, handleGetDeleteItem, index 
     return (
         <TableRow onClick={() => navigate("/menu/" + item.MenuId)}>
             <TableData grey>{index + 1}</TableData>
-            <TableData>{item.MenuName}</TableData>
-            <TableData center>
-                {
-                    item.TimeStart === '00:00:00' && item.TimeEnd === '23:59:59' ?
-                    "Cả ngày" :
-                    item.TimeStart.slice(0,5) + " - " + item.TimeEnd.slice(0,5)
-                }
+            <TableData>
+                {item.MenuName}
+                <Tooltip>
+                    {
+                        item.BaseMenu ?
+                        <BaseTag>Bảng giá nền</BaseTag>
+                        : null
+                    }
+                    <TooltipText>
+                        Là bảng giá cơ bản của cửa hàng.
+                        <br/>Các sản phẩm mới tạo sẽ được đưa vào bảng giá này 
+                        và bán với giá mặc định.
+                    </TooltipText>
+                </Tooltip>
             </TableData>
+
             <TableData center>
+                <HourSpan>
+                    {
+                        item.TimeStart === '00:00:00' && item.TimeEnd === '23:59:59' ?
+                        "Cả ngày" :
+                        item.TimeStart.slice(0,5) + " - " + item.TimeEnd.slice(0,5)
+                    }
+                </HourSpan>
                 {item.RepeatDate.includes('1') ? <DaySpan green>2</DaySpan> : <DaySpan>2</DaySpan>}
                 {item.RepeatDate.includes('2') ? <DaySpan green>3</DaySpan> : <DaySpan>3</DaySpan>}
                 {item.RepeatDate.includes('3') ? <DaySpan green>4</DaySpan> : <DaySpan>4</DaySpan>}
@@ -136,8 +195,8 @@ const MenuItem = ({ item, handleGetToggleStatusItem, handleGetDeleteItem, index 
             </TableData>
 
             <TableData center>
-                <Button disabled={item.Status === 14004 ? true : false} onClick={handleSetDeleteItem}>
-                    <StyledDeleteIcon disabled={item.Status === 14004 ? true : false} />
+                <Button disabled={item.BaseMenu} onClick={handleSetDeleteItem}>
+                    <StyledDeleteIcon />
                 </Button>
             </TableData>
         </TableRow>

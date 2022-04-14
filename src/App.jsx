@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import styled from "styled-components";
 import 'react-toastify/dist/ReactToastify.css';
+import { DateTime } from 'luxon';
 import { ToastContainer } from 'react-toastify';
 import { useAuth } from "./contexts/AuthContext";
 import { Route, Routes, Outlet, Navigate } from "react-router-dom";
@@ -76,7 +77,8 @@ const RequireLoggedIn = ({ children }) => {
 	 ||	typeof user === 'undefined' || user === null 
      || typeof accessToken === 'undefined' || accessToken === null 
      || typeof refreshToken === 'undefined' || refreshToken === null 
-     || typeof expiredTime === 'undefined' || expiredTime === null) {
+     || typeof expiredTime === 'undefined' || expiredTime === null
+	 || DateTime.fromISO(expiredTime).diffNow().toObject().milliseconds < 0) {
         logout();
         return <Navigate to="/login" />;
     };

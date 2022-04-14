@@ -1,7 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Delete, ToggleOff, ToggleOn } from '@mui/icons-material';
+import { Timer } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
+import * as Constant from '../../Constant';
 
 const TableRow = styled.tr`
     &:hover {
@@ -23,7 +24,8 @@ const TableData = styled.td`
 `;
 
 const Status = styled.span`
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     padding: 4px 6px;
     font-size: 0.8em;
     font-weight: 700;
@@ -32,13 +34,23 @@ const Status = styled.span`
     vertical-align: baseline;
     border-radius: 20px;
     color: ${props => props.active === "inactive" ? "grey" : "#fff"};
-    background-color: ${props => props.active === "active" ? "#28a745"
+    background-color: ${props => 
+        props.active === "active" ? "#28a745"
+        :
+        props.active === "inprogress" ? props.theme.blue
         :
         props.active === "unverified" ? "#FF8800"
-            :
-            props.active === "deleted" ? "#dc3545"
-                :
-                "#dc3545"};
+        :
+        props.active === "deleted" ? "#dc3545"
+        :
+        "#dc3545"};
+`;
+
+const LoadingIcon = styled(Timer)`
+    && {
+        font-size: 14px;
+        margin-right: 3px;
+    }
 `;
 
 const OrderItem = ({ item, index }) =>  {
@@ -57,17 +69,21 @@ const OrderItem = ({ item, index }) =>  {
     let activeCheck = '';
     let activeLabel = '';
     switch (item.Status) {
-        case 0:
+        case Constant.OPEN:
             activeCheck = 'unverified';
             activeLabel = 'Chờ duyệt';
             break;
-        case 1:
-            activeCheck = 'active';
-            activeLabel = 'Duyệt';
+        case Constant.CONFIRMED:
+            activeCheck = 'inprogress';
+            activeLabel = 'Đang hoạt động';
             break;
-        case 2:
+        case Constant.COMPLETED:
+            activeCheck = 'active';
+            activeLabel = 'Hoàn thành';
+            break;
+        case Constant.CANCELED_ORDER:
             activeCheck = 'deleted';
-            activeLabel = 'Từ chối';
+            activeLabel = 'Hủy';
             break;
         default:
             activeCheck = 'inactive';
@@ -76,7 +92,9 @@ const OrderItem = ({ item, index }) =>  {
     }
 
     let phoneNumber = item.Resident.PhoneNumber || '';
-    phoneNumber = phoneNumber.slice(0, 4) + " " + phoneNumber.slice(4, 7) + " " + phoneNumber.slice(7);
+    if (phoneNumber.length > 0) {
+        phoneNumber = phoneNumber.slice(0, 4) + " " + phoneNumber.slice(4, 7) + " " + phoneNumber.slice(7);
+    }
 
     return (
         <TableRow onClick={() => navigate("/order/" + item.OrderId)}>
@@ -88,7 +106,14 @@ const OrderItem = ({ item, index }) =>  {
             <TableData center>{item.TotalAmount.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ</TableData>
 
             <TableData center>
-                <Status active={activeCheck}>{activeLabel}</Status>
+                <Status active={activeCheck}>
+                    {
+                        item.Status === Constant.CONFIRMED || item.Status === Constant.OPEN ?
+                        <LoadingIcon />
+                        : null
+                    }
+                    {activeLabel}
+                </Status>
             </TableData>
         </TableRow>
     )

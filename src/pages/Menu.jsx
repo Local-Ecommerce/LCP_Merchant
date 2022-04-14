@@ -6,7 +6,7 @@ import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import ReactPaginate from "react-paginate";
 import useClickOutside from "../contexts/useClickOutside";
-import { Search, Error, Logout, Summarize, AddCircle, ArrowDropDown } from '@mui/icons-material';
+import { Search, Error, Logout, Summarize, AddCircle, ArrowDropDown, Help } from '@mui/icons-material';
 import { CircularProgress } from '@mui/material';
 import { Link } from 'react-router-dom';
 import * as Constant from '../Constant';
@@ -21,7 +21,7 @@ const PageWrapper = styled.div`
 const Title = styled.h1`
     font-size: 16px;
     color: #383838;
-    margin: 15px 15px ${props => props.mb ? "-5px" : "15px"} 15px;
+    margin: 15px 10px -5px 15px;
 `;
 
 const AddButton = styled(Link)`
@@ -400,6 +400,44 @@ const DropdownList = styled.li`
     }
 `;
 
+const StyledHelpIcon = styled(Help)`
+    && {
+        font-size: 18px;
+        margin-right: 7px;
+        color: ${props => props.theme.grey};
+        opacity: 0.5;
+        cursor: pointer;
+
+        &:hover {
+            opacity: 1.0;
+        }
+    }
+`;
+
+const TooltipText = styled.div`
+    visibility: hidden;
+    width: 255px;
+    font-size: 13px;
+    font-weight: 400;
+    background-color: ${props => props.theme.dark};
+    color: ${props => props.theme.white};
+    padding: 8px 12px;
+    border-radius: 6px;
+
+    position: absolute;
+    z-index: 1;
+`;
+
+const Tooltip = styled.div`
+    position: relative;
+    display: inline-block;
+    margin: 0px 0px -24px 0px;
+
+    &:hover ${TooltipText} {
+        visibility: visible;
+    }
+`;
+
 const Menu = () =>  {
     const [deleteModal, setDeleteModal] = useState(false);
     const toggleDeleteModal = () => { setDeleteModal(!deleteModal) };
@@ -550,7 +588,15 @@ const Menu = () =>  {
                 loading || menuExist.exist ?
                 <>
                     <Row mb>
-                        <Title mb>Bảng giá</Title>
+                        <Align>
+                            <Title>Bảng giá</Title>
+                            <Tooltip>
+                                <StyledHelpIcon />
+                                <TooltipText>
+                                    Các sản phẩm của cửa hàng sẽ được hiển thị dựa trên bảng giá đang hoạt động.
+                                </TooltipText>
+                            </Tooltip>
+                        </Align>
 
                         <AddButton to={"/addMenu"}>
                             <AddIcon /> Tạo bảng giá mới
@@ -576,7 +622,7 @@ const Menu = () =>  {
                                     <DropdownMenu dropdown={statusDropdown}>
                                         <DropdownList onClick={() => handleSetStatus(Constant.ACTIVE_MENU + "&status=" + Constant.INACTIVE_MENU, 'Toàn bộ')}>Toàn bộ</DropdownList>
                                         <DropdownList onClick={() => handleSetStatus(Constant.ACTIVE_MENU, 'Hoạt động')}>Hoạt động</DropdownList>
-                                        <DropdownList onClick={() => handleSetStatus(Constant.INACTIVE_MENU, 'Chờ duyệt')}>Ngừng hoạt động</DropdownList>
+                                        <DropdownList onClick={() => handleSetStatus(Constant.INACTIVE_MENU, 'Ngừng hoạt động')}>Ngừng hoạt động</DropdownList>
                                     </DropdownMenu>
                                 </SelectWrapper>
                             </Align>
@@ -586,9 +632,8 @@ const Menu = () =>  {
                             <TableHead>
                                 <TableRow>
                                     <TableHeader width="3%" grey>#</TableHeader>
-                                    <TableHeader width="37%">Tiêu đề</TableHeader>
+                                    <TableHeader width="52%">Tiêu đề</TableHeader>
                                     <TableHeader width="15%" center>Giờ hoạt động</TableHeader>
-                                    <TableHeader width="15%" center>Ngày hoạt động</TableHeader>
                                     <TableHeader width="15%" center>Trạng thái</TableHeader>
                                     <TableHeader width="15%" center>Hành động</TableHeader>
                                 </TableRow>

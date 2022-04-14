@@ -53,3 +53,9 @@ export const UNVERIFIED_PRODUCT = 1004;
 export const ACTIVE_PRODUCT_IN_MENU = 10001;
 export const DELETED_PRODUCT_IN_MENU = 10002;
 export const INACTIVE_PRODUCT_IN_MENU = 10005;
+
+//order status
+export const OPEN = 5001;
+export const CANCELED_ORDER = 5002;
+export const CONFIRMED = 5006;
+export const COMPLETED = 5007;
