@@ -42,7 +42,20 @@ const Row = styled.div`
     align-items: center;
 `;
 
-const SidebarItem = ({ item }) => {
+const Status = styled.span`
+    margin-left: 5px;
+    padding: 3px 5px;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 3px;
+    color: ${props => props.theme.white};
+    background-color: #dc3545;
+`;
+
+const SidebarItem = ({ item, openOrder }) => {
     const [subnav, setSubnav] = useState(false);
     const showSubnav = () => setSubnav(!subnav);
 
@@ -54,6 +67,12 @@ const SidebarItem = ({ item }) => {
                 <Row>
                     {item.icon}
                     {item.title}
+                    
+                    {
+                        item.title === 'Đơn hàng' && openOrder > 0 ?
+                        <Status>{openOrder}</Status>
+                        : null
+                    }
                 </Row>
                 <div>
                     {item.subNav && subnav

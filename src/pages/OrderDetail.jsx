@@ -174,14 +174,14 @@ const Grey = styled.span`
     margin-right: 7px;
 `;
 
-const StyledCreditIcon = styled(CreditCard)`
-    && {
-        font-size: 24px;
-        margin-right: 5px;
-        color: #af2070;
-        margin-bottom: 5px;
-    }
-`;
+// const StyledCreditIcon = styled(CreditCard)`
+//     && {
+//         font-size: 24px;
+//         margin-right: 5px;
+//         color: #af2070;
+//         margin-bottom: 5px;
+//     }
+// `;
 
 const StyledNoCreditIcon = styled(CreditCardOff)`
     && {
@@ -242,7 +242,7 @@ const Button = styled.button`
     }
 `;
 
-const OrderDetail = () => {
+const OrderDetail = ({ refresh, toggleRefresh }) => {
     const { id } = useParams();
     let navigate = useNavigate();
 
@@ -295,6 +295,7 @@ const OrderDetail = () => {
             api.put("orders?id=" + id + "&status=" + Constant.CONFIRMED)
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
+                    toggleRefresh();
                     navigate("/orders");
                     toast.update(notification, { render: "Duyệt đơn hàng thành công!", type: "success", autoClose: 5000, isLoading: false });
                 }
@@ -316,6 +317,7 @@ const OrderDetail = () => {
             api.put("orders?id=" + id + "&status=" + Constant.CANCELED_ORDER)
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
+                    toggleRefresh();
                     navigate("/orders");
                     toast.update(notification, { render: "Từ chối đơn hàng thành công!", type: "success", autoClose: 5000, isLoading: false });
                 }
@@ -355,7 +357,7 @@ const OrderDetail = () => {
                             <DetailWrapper>
                                 <DetailLabel>Khách hàng</DetailLabel>
                                 <DetailText>{loading ? '' : order.Resident.ResidentName}</DetailText>
-                                <DetailText>{loading ? '' : order.Resident.PhoneNumber.slice(0, 4) + " " + order.Resident.PhoneNumber.slice(4, 7) + " " + order.Resident.PhoneNumber.slice(7)}</DetailText>
+                                <DetailText>{loading ? '' : order.Resident.PhoneNumber ? order.Resident.PhoneNumber.slice(0, 4) + " " + order.Resident.PhoneNumber.slice(4, 7) + " " + order.Resident.PhoneNumber.slice(7) : '-'}</DetailText>
                                 <DetailHyperlink onClick={toggleResidentModal}>Xem chi tiết</DetailHyperlink>
                             </DetailWrapper>
                         </CustomerWrapper>
@@ -399,7 +401,7 @@ const OrderDetail = () => {
                         </PaymentText>
                     </PaymentWrapper>
 
-                    <PaymentWrapper mt>
+                    {/* <PaymentWrapper mt>
                         <Row mb>
                             <StyledCreditIcon />
                             <PaymentText mb0>MoMo</PaymentText>
@@ -412,7 +414,7 @@ const OrderDetail = () => {
                             <Grey>Thời gian:</Grey>
                             {loading ? '' : DateTime.fromISO(order.CreatedDate).toFormat('dd/MM/yyyy t')}
                         </PaymentText>
-                    </PaymentWrapper>
+                    </PaymentWrapper> */}
                 </RightWrapper>
             </FlexWrapper>
             

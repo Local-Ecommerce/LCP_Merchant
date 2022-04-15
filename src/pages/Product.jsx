@@ -649,7 +649,7 @@ const Product = () =>  {
                                     </Select>
 
                                     <DropdownMenu dropdown={statusDropdown}>
-                                        <DropdownList onClick={() => handleSetStatus('', 'Toàn bộ')}>Toàn bộ</DropdownList>
+                                        <DropdownList onClick={() => handleSetStatus(Constant.VERIFIED_PRODUCT + "&status=" + Constant.UNVERIFIED_PRODUCT + "&status=" + Constant.REJECTED_PRODUCT, 'Toàn bộ')}>Toàn bộ</DropdownList>
                                         <DropdownList onClick={() => handleSetStatus(Constant.VERIFIED_PRODUCT, 'Hoạt động')}>Hoạt động</DropdownList>
                                         <DropdownList onClick={() => handleSetStatus(Constant.UNVERIFIED_PRODUCT, 'Chờ duyệt')}>Chờ duyệt</DropdownList>
                                         <DropdownList onClick={() => handleSetStatus(Constant.REJECTED_PRODUCT, 'Từ chối')}>Từ chối</DropdownList>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from "styled-components";
 import 'react-toastify/dist/ReactToastify.css';
 import { DateTime } from 'luxon';
@@ -43,7 +43,7 @@ const ContentWrapper = styled.div`
     left:245px; top:62px; right:0; bottom:0;
 `;
 
-const SidebarLayout = () => (
+const SidebarLayout = ({ refresh, toggleRefresh }) => (
 	<>
         <ToastContainer 
 			style={{ width: "320px" }}
@@ -57,7 +57,7 @@ const SidebarLayout = () => (
 		</ContentWrapper>
 
 		<SidebarWrapper>
-			<Sidebar />
+			<Sidebar refresh={refresh} toggleRefresh={toggleRefresh} />
 		</SidebarWrapper>
 
 		<HeaderWrapper>
@@ -86,9 +86,12 @@ const RequireLoggedIn = ({ children }) => {
 }
 
 const App = () => {
+	const [refresh, setRefresh] = useState(false);
+    const toggleRefresh = () => { setRefresh(!refresh) };
+
     return (
 		<Routes>
-			<Route element={<RequireLoggedIn> <SidebarLayout/> </RequireLoggedIn>}>
+			<Route element={<RequireLoggedIn> <SidebarLayout refresh={refresh} toggleRefresh={toggleRefresh}/> </RequireLoggedIn>}>
 				<Route 
 					exact path="/" 
 					element={<RequireLoggedIn> <Home /> </RequireLoggedIn>} 
@@ -101,7 +104,7 @@ const App = () => {
 
 				<Route 
 					path="/order/:id" 
-					element={<RequireLoggedIn> <OrderDetail /> </RequireLoggedIn>} 
+					element={<RequireLoggedIn> <OrderDetail refresh={refresh} toggleRefresh={toggleRefresh} /> </RequireLoggedIn>} 
 				/>
 
 				<Route 

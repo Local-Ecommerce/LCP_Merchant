@@ -1,14 +1,18 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import { Link } from 'react-router-dom';
+import { api } from "../RequestMethod";
 import { Notifications, Search, AccountCircleOutlined, HelpOutlineOutlined, Logout } from '@mui/icons-material';
 import { Badge } from '@mui/material';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import useClickOutside from "../contexts/useClickOutside";
-import NotificationList from '../components/Notification/NotificationList';
 import * as Constant from '../Constant';
 import _ from 'lodash';
+
+import NotificationList from '../components/Notification/NotificationList';
+import NotificationOrderList from '../components/Notification/NotificationOrderList';
 
 import { db } from "../firebase";
 import { ref, onValue, update, query, limitToLast, orderByChild, equalTo } from "firebase/database";
@@ -294,6 +298,8 @@ const Header = () => {
     const [productRead, setProductRead] = useState(0);
     const [stores, setStores] = useState([]);
     const [storeRead, setStoreRead] = useState(0);
+    const [orders, setOrders] = useState([]);
+    const [orderRead, setOrderRead] = useState(0);
     const [idList, setIdList] = useState([]);
 
     useEffect(() => {  //fetch api data
@@ -303,10 +309,16 @@ const Header = () => {
                 const data = _.reverse(_.toArray(snapshot.val()));
                 const productList = data.filter(item => item.type === '001' || item.type === '002');
                 const storeList = data.filter(item => item.type === '101' || item.type === '102');
+                const orderList = data.filter(item => item.type === '301');
+
                 setProducts(productList);
                 setStores(storeList);
+                setOrders(orderList);
                 setProductRead(productList.filter(item => item.read === 0).length);
                 setStoreRead(storeList.filter(item => item.read === 0).length);
+                setOrderRead(orderList.filter(item => item.read === 0).length);
+
+
                 setIdList(Object.entries(snapshot.toJSON()).map(item => { return item[0] }));
             })
         }
@@ -352,7 +364,7 @@ const Header = () => {
 
             <div>
                 <IconButton onClick={() => toggleNotificationDropdown(!notificationDropdown)}>
-                    <StyledBadge badgeContent={productRead + storeRead} overlap="circular">
+                    <StyledBadge badgeContent={productRead + storeRead + orderRead} overlap="circular">
                         <StyledNotificationIcon />
                     </StyledBadge>
                 </IconButton>
@@ -381,6 +393,15 @@ const Header = () => {
                                 : null
                             }
                         </Tab>
+
+                        <Tab br active={activeTab === 3 ? true : false} onClick={() => setActiveTab(3)}>
+                            Đơn hàng 
+                            {
+                                orderRead > 0 ?
+                                <NotificationSpan> {orderRead} </NotificationSpan>
+                                : null
+                            }
+                        </Tab>
                     </Row>
 
                     {
@@ -397,6 +418,14 @@ const Header = () => {
                             <NotificationWrapper>
                                 <NotificationList 
                                     currentItems={stores} 
+                                />
+                            </NotificationWrapper>
+                        </>
+                        : activeTab === 3 && orders.length ?
+                        <>
+                            <NotificationWrapper>
+                                <NotificationList 
+                                    currentItems={orders} 
                                 />
                             </NotificationWrapper>
                         </>

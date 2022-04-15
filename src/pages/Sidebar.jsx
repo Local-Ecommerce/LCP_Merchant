@@ -1,7 +1,10 @@
-import React from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import SidebarData from '../components/Sidebar/SidebarData';
 import SidebarItem from '../components/Sidebar/SidebarItem';
+import { api } from "../RequestMethod";
+import * as Constant from '../Constant';
 
 const SidebarWrapper = styled.div`
     background-color: #fff;
@@ -56,8 +59,28 @@ const Hello = styled.span`
     font-weight: 400;
 `;
 
-const Sidebar = () => {
+const Sidebar = ({ refresh, toggleRefresh }) => {
     const user = JSON.parse(localStorage.getItem('USER'));
+    const [openOrder, setOpenOrder] = useState(0);
+
+    useEffect(() => {  //fetch api data
+        let url = "orders"
+            + "?limit=100"
+            + "&sort=-createddate"
+            + "&include=product"
+            + "&include=resident"
+            + "&status=" + Constant.OPEN;
+        const fetchData = () => {
+            api.get(url)
+            .then(function (res) {
+                setOpenOrder(res.data.Data.List.length);
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        }
+        fetchData();
+    }, [refresh]);
 
     return (
         <SidebarWrapper>
@@ -71,7 +94,7 @@ const Sidebar = () => {
             </AvatarWrapper>
 
             {SidebarData.map((item, index) => {
-                return <SidebarItem item={item} key={index} />;
+                return <SidebarItem item={item} key={index} openOrder={openOrder} />;
             })}
 
             <PaddingBlock />

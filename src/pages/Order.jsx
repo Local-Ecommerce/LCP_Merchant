@@ -305,6 +305,7 @@ const StyledPaginateContainer = styled.div`
 const Order = () =>  {
     const [APIdata, setAPIdata] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [orderExist, setOrderExist] = useState({ checked: false, exist: false });
 
     const limit = 10;
     const [page, setPage] = useState(0);
@@ -321,6 +322,7 @@ const Order = () =>  {
             let url = "orders"
                 + "?limit=" + limit 
                 + "&page=" + (page + 1)
+                + "&sort=-createddate"
                 + "&include=product"
                 + "&include=resident"
                 + (status !== '' ? ("&status=" + status) : '')
@@ -330,6 +332,9 @@ const Order = () =>  {
                 setAPIdata(res.data.Data.List);
                 setTotal(res.data.Data.Total);
                 setLastPage(res.data.Data.LastPage);
+                if (orderExist.checked === false) {
+                    setOrderExist({ checked: true, exist: (res.data.Data.Total > 0 ? true : false) })
+                }
                 setLoading(false);
             })
             .catch(function (error) {
@@ -370,7 +375,7 @@ const Order = () =>  {
     return (
         <PageWrapper>
             {
-                loading || APIdata.length ?
+                loading || orderExist ?
                 <>
                     <Title>Đơn hàng</Title>
 

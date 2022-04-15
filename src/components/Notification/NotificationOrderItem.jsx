@@ -72,19 +72,9 @@ const BottomText = styled.p`
     font-weight: 400;
 `;
 
-const SeenWrapper = styled.div`
-    margin-left: auto;
-`;
-
-const StyledSeenCircle = styled(Circle)`
-    && {
-        font-size: 16px;
-        color: ${props => props.checked === 0 ? "#1976d2" : props.theme.white};
-    }
-`;
-
-const NotificationItem = ({ item }) => {
-    const date = DateTime.fromMillis(item.createdDate)
+const NotificationOrderItem = ({ item }) => {
+    console.log(item)
+    const date = DateTime.fromISO(item.CreatedDate)
     const diff = date.diffNow(["years", "months", "days", "hours", "minutes"])
     let timeLabel = '';
 
@@ -107,46 +97,24 @@ const NotificationItem = ({ item }) => {
     }
 
     return (
-            <NotificationWrapper to={
-                item.type === '001' || item.type === '002' ?
-                "/product/" + item.data.id
-                : item.type === '101' || item.type === '102' ?
-                "/storeDetail"
-                : item.type === '301' ?
-                "/orders"
-                : "/"
-            }>
+            <NotificationWrapper to={"/order/" + item.OrderId}>
                 {
-                    item.data.image ?
-                    <Image src={item.data.image} />
+                    item.OrderDetails && item.OrderDetails[0].Product.BaseProduct !== null ?
+                    <Image src={item.OrderDetails[0].Product.BaseProduct.Image} />
+                    : item.OrderDetails[0].Product.BaseProduct === null ?
+                    <Image src={item.OrderDetails[0].Product.Image} />
                     : <StyledNoImageIcon />
                 }
 
                 <TextWrapper>
                     <TopText>
-                        <b>{item.data.name} </b> 
-                        {
-                            item.type === '001' ? "đã được duyệt."
-                            : item.type === '101' ? "cập nhật đã được duyệt."
-                            : item.type === '002' ? <>đã bị từ chối với lí do: <u>{item.data.reason}</u>.</>
-                            : item.type === '102' ? <>cập nhật đã bị từ chối với lí do: <u>{item.data.reason}</u>.</>
-                            : item.type === '301' ? <b>{"Cửa hàng nhận được 1 đơn hàng mới."}</b>
-                            : null
-                        }
+                        Cửa hàng đang có 1 <b>đơn hàng chờ duyệt</b>.
                     </TopText>
 
                     <BottomText>{timeLabel}</BottomText>
                 </TextWrapper>
-
-                <SeenWrapper>
-                    {
-                        item.read === 0 ?
-                        <StyledSeenCircle checked={item.read} />
-                        : null
-                    }
-                </SeenWrapper>
             </NotificationWrapper>
     );
 };
 
-export default NotificationItem;
+export default NotificationOrderItem;

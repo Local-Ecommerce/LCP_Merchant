@@ -85,8 +85,10 @@ const ProductInOrderItem = ({ item }) =>  {
     return (
         <ContainerWrapper>
             {
-                item.Image ?
-                <Image src={item.Image ? item.Image.split("|")[0] : ''} />
+                item.Product.BaseProduct !== null ?
+                <Image src={item.Product.BaseProduct.Image} />
+                : item.Product.BaseProduct === null ?
+                <Image src={item.Product.Image} />
                 : <StyledNoImageIcon />
             }
 

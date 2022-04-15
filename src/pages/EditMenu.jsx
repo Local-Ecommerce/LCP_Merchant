@@ -584,6 +584,7 @@ const EditMenu = () => {
             if (APIarray.length) {
                 Promise.all(APIarray)
                 .then(function (results) {
+                    console.log(results)
                     setChange(!change);
                     toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
                 })
