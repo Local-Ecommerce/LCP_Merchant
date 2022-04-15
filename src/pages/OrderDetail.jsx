@@ -2,7 +2,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Link, useParams } from "react-router-dom";
+import { api } from "../RequestMethod";
+import { DateTime } from 'luxon';
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { toast } from 'react-toastify';
 import { KeyboardBackspace, CreditCard, CreditCardOff, Person, LocationOn, CalendarToday } from '@mui/icons-material';
 import * as Constant from '../Constant';
 
@@ -241,6 +244,7 @@ const Button = styled.button`
 
 const OrderDetail = () => {
     const { id } = useParams();
+    let navigate = useNavigate();
 
     const [residentModal, setResidentModal] = useState(false);
     const toggleResidentModal = () => { setResidentModal(!residentModal); }
@@ -249,54 +253,81 @@ const OrderDetail = () => {
     const [rejectModal, setRejectModal] = useState(false);
     const toggleRejectModal = () => { setRejectModal(!rejectModal); }
 
-    const [order, setOrder] = useState({});
+    const [order, setOrder] = useState({
+        Resident: {
+            ResidentName: '',
+            PhoneNumber: '',
+            DeliveryAddress: ''
+        },
+        TotalAmount: 0
+    });
     const [products, setProducts] = useState([]);
 
     const [loading, setLoading] = useState(true);
-    const [change, setChange] = useState(false);
 
     useEffect(() => {   //get menu
-        setOrder({
-            OrderId: 'ID001',
-            DeliveryAddress: 'Tầng 2A',
-            CreatedDate: '29/3/2022 13:00 PM',
-            TotalAmount: 520000,
-            Status: Constant.OPEN,
-            Resident: { 
-                ResidentName: 'Lê Văn Tám', 
-                PhoneNumber: '0901234567',
-                DeliveryAddress: 'Tầng 2A',
-                DateOfBirth: '01/01/1995',
-                Account: { AvatarImage: '' },
-                Gender: 'Nam'
-            }
-        })
+        const fetchData = () => {
+            setLoading(true);
+            let url = "orders"
+                + "?id=" + id
+                + "&include=product"
+                + "&include=resident";
+            api.get(url)
+            .then(function (res) {
+                console.log(res.data.Data.List[0])
+                setOrder(res.data.Data.List[0]);
+                setProducts(res.data.Data.List[0].OrderDetails);
+                setLoading(false);
+            })
+            .catch(function (error) {
+                console.log(error);
+                setLoading(false);
+            });
+        }
+        fetchData();
+    }, []);
 
-        setProducts([
-            {
-                Image: '',
-                ProductName: 'Bánh mì 2 trứng',
-                Quantity: 2,
-                UnitPrice: 15000,
-                FinalAmount: 30000
-            },
-            {
-                Image: '',
-                ProductName: 'Bánh mì 2 trứng',
-                Quantity: 2,
-                UnitPrice: 1500000,
-                FinalAmount: 3000000
-            },
-            {
-                Image: '',
-                ProductName: 'Bánh mì 2 trứng',
-                Quantity: 2,
-                UnitPrice: 15000,
-                FinalAmount: 30000
-            }
-        ])
-        setLoading(false);
-    }, [change]);
+    const handleApproveItem = (e) => {
+        e.preventDefault();
+
+        const approveItem = async () => {
+            const notification = toast.loading("Đang xử lí yêu cầu...");
+            api.put("orders?id=" + id + "&status=" + Constant.CONFIRMED)
+            .then(function (res) {
+                if (res.data.ResultMessage === "SUCCESS") {
+                    navigate("/orders");
+                    toast.update(notification, { render: "Duyệt đơn hàng thành công!", type: "success", autoClose: 5000, isLoading: false });
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+                toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
+            });
+        }
+        approveItem();
+        toggleConfirmModal();
+    }
+
+    const handleRejectItem = (e) => {
+        e.preventDefault();
+
+        const rejectItem = async () => {
+            const notification = toast.loading("Đang xử lí yêu cầu...");
+            api.put("orders?id=" + id + "&status=" + Constant.CANCELED_ORDER)
+            .then(function (res) {
+                if (res.data.ResultMessage === "SUCCESS") {
+                    navigate("/orders");
+                    toast.update(notification, { render: "Từ chối đơn hàng thành công!", type: "success", autoClose: 5000, isLoading: false });
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+                toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
+            });
+        }
+        rejectItem();
+        toggleRejectModal();
+    }
 
     return (
         <PageWrapper>
@@ -311,8 +342,8 @@ const OrderDetail = () => {
                         <Row>
                             <StyledCalendarIcon />
                             <div>
-                                <HeaderTop>{order.CreatedDate}</HeaderTop>
-                                <HeaderBottom>{order.OrderId}</HeaderBottom>
+                                <HeaderTop>{loading ? '' : DateTime.fromISO(order.CreatedDate).toFormat('dd/MM/yyyy t')}</HeaderTop>
+                                <HeaderBottom>{loading ? '' : order.OrderId}</HeaderBottom>
                             </div>
                         </Row>
                     </HeaderWrapper>
@@ -334,7 +365,7 @@ const OrderDetail = () => {
 
                             <DetailWrapper>
                                 <DetailLabel>Địa chỉ nhận hàng</DetailLabel>
-                                <DetailText>{loading ? '' : order.DeliveryAddress}</DetailText>
+                                <DetailText>{loading ? '' : order.Resident.DeliveryAddress}</DetailText>
                             </DetailWrapper>
                         </AddressWrapper>
                     </FlexWrapper>
@@ -344,7 +375,7 @@ const OrderDetail = () => {
                         <TotalPriceWrapper>
                             <Row>
                                 <TotalPriceLabel>Tổng cộng</TotalPriceLabel>
-                                <TotalPriceText>{loading ? '' : order.TotalAmount.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ</TotalPriceText>
+                                <TotalPriceText>{loading ? '' : order.TotalAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ</TotalPriceText>
                             </Row>
                         </TotalPriceWrapper>
                     </ProductListWrapper>
@@ -360,11 +391,11 @@ const OrderDetail = () => {
                         </Row>
                         <PaymentText>
                             <Grey>Số tiền:</Grey> 
-                            {loading ? '' : order.TotalAmount.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
+                            {loading ? '' : order.TotalAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
                         </PaymentText>
                         <PaymentText>
                             <Grey>Thời gian:</Grey>
-                            {loading ? '' : order.CreatedDate}
+                            {loading ? '' : DateTime.fromISO(order.CreatedDate).toFormat('dd/MM/yyyy t')}
                         </PaymentText>
                     </PaymentWrapper>
 
@@ -375,11 +406,11 @@ const OrderDetail = () => {
                         </Row>
                         <PaymentText>
                             <Grey>Số tiền:</Grey> 
-                            {loading ? '' : order.TotalAmount.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
+                            {loading ? '' : order.TotalAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
                         </PaymentText>
                         <PaymentText>
                             <Grey>Thời gian:</Grey>
-                            {loading ? '' : order.CreatedDate}
+                            {loading ? '' : DateTime.fromISO(order.CreatedDate).toFormat('dd/MM/yyyy t')}
                         </PaymentText>
                     </PaymentWrapper>
                 </RightWrapper>
@@ -404,12 +435,14 @@ const OrderDetail = () => {
 
             <ConfirmModal
                 display={confirmModal} 
-                toggle={toggleConfirmModal} 
+                toggle={toggleConfirmModal}
+                handleApproveItem={handleApproveItem}
             />
 
             <RejectModal
                 display={rejectModal} 
-                toggle={toggleRejectModal} 
+                toggle={toggleRejectModal}
+                handleRejectItem={handleRejectItem}
             />
         </PageWrapper>
     )

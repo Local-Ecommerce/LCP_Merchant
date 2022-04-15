@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Timer } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
+import { DateTime } from 'luxon';
 import * as Constant from '../../Constant';
 
 const TableRow = styled.tr`
@@ -92,17 +93,20 @@ const OrderItem = ({ item, index }) =>  {
     }
 
     let phoneNumber = item.Resident.PhoneNumber || '';
-    if (phoneNumber.length > 0) {
-        phoneNumber = phoneNumber.slice(0, 4) + " " + phoneNumber.slice(4, 7) + " " + phoneNumber.slice(7);
-    }
+    phoneNumber = phoneNumber.slice(0, 4) + " " + phoneNumber.slice(4, 7) + " " + phoneNumber.slice(7);
 
     return (
         <TableRow onClick={() => navigate("/order/" + item.OrderId)}>
             <TableData grey>{index + 1}</TableData>
             <TableData>{item.Resident.ResidentName}</TableData>
-            <TableData>{item.DeliveryAddress}</TableData>
+            <TableData>{item.Resident.DeliveryAddress}</TableData>
             <TableData center>{phoneNumber}</TableData>
-            <TableData center>{item.CreatedDate}</TableData>
+            <TableData center>
+                <small>
+                    {DateTime.fromISO(item.CreatedDate).toFormat('t')}<br/>
+                    {DateTime.fromISO(item.CreatedDate).toFormat('dd/MM/yyyy')}
+                </small>
+            </TableData>
             <TableData center>{item.TotalAmount.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ</TableData>
 
             <TableData center>

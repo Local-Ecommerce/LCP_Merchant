@@ -18,10 +18,7 @@ const ContainerWrapper = styled.div`
 const Flex2Wrapper = styled.div`
     flex: 2;
     width: 1px; //constraint width
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    margin: 0px 20px;
+    margin: 0px 15px;
 `;
 
 const Flex1Wrapper = styled.div`

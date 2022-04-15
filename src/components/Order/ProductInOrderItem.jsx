@@ -30,10 +30,7 @@ const ContainerWrapper = styled.div`
 const Flex2Wrapper = styled.div`
     flex: 2;
     width: 1px; //constraint width
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    margin: 0px 20px;
+    margin: 0px 15px;
 `;
 
 const Flex1Wrapper = styled.div`
@@ -59,11 +56,31 @@ const StyledNoImageIcon = styled(HideImage)`
     }
 `;
 
+const Text = styled.span`
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+`;
+
+const Option = styled.div`
+    font-size: 13px;
+    color: ${props => props.theme.grey};
+`;
+
 const ProductInOrderItem = ({ item }) =>  {
 
     if (item === 0) {
         return null;
     }
+
+    let option = 
+          (item.Product.Color ? item.Product.Color : '')
+        + (item.Product.Color && (item.Product.Size || item.Product.Weight) ? " / " : '')
+        + (item.Product.Size ? item.Product.Size : '')
+        + (item.Product.Size && item.Product.Weight ? " / " : '')
+        + (item.Product.weight ? item.Product.Weight + "kg " : '');
 
     return (
         <ContainerWrapper>
@@ -73,7 +90,14 @@ const ProductInOrderItem = ({ item }) =>  {
                 : <StyledNoImageIcon />
             }
 
-            <Flex2Wrapper>{item.ProductName}</Flex2Wrapper>
+            <Flex2Wrapper>
+                {
+                    item.Product.BaseProduct !== null ?
+                    <Text>{item.Product.BaseProduct.ProductName}</Text>
+                    : <Text>{item.Product.ProductName}</Text>
+                }
+                <Option>{option}</Option>
+            </Flex2Wrapper>
             <Flex1Wrapper>{item.Quantity}</Flex1Wrapper>
             <Flex1Wrapper>{item.UnitPrice.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ</Flex1Wrapper>
             <Flex1Wrapper>{item.FinalAmount.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ</Flex1Wrapper>

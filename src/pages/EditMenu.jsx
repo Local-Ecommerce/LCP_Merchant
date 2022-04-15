@@ -813,7 +813,8 @@ const EditMenu = () => {
 
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <TimePickerWrapper>
-                            <TimePicker 
+                            <TimePicker
+                                minutesStep={5}
                                 disabled={twentyfour ? true : false} ampm={false}
                                 label={twentyfour ? "00:00:00" : "Thời gian bắt đầu"}
                                 value={twentyfour ? null : input.startTime}
@@ -823,7 +824,8 @@ const EditMenu = () => {
 
                             <StyledArrowIcon />
 
-                            <TimePicker 
+                            <TimePicker
+                                minutesStep={5}
                                 disabled={twentyfour ? true : false} ampm={false}
                                 label={twentyfour ? "00:00:00" : "Thời gian kết thúc"}
                                 value={twentyfour ? null : input.endTime}

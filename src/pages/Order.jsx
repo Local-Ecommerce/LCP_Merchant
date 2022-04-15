@@ -321,13 +321,13 @@ const Order = () =>  {
             let url = "orders"
                 + "?limit=" + limit 
                 + "&page=" + (page + 1)
+                + "&include=product"
                 + "&include=resident"
                 + (status !== '' ? ("&status=" + status) : '')
                 + (search !== '' ? ("&search=" + search) : '');
             api.get(url)
             .then(function (res) {
-                //console.log(res.data.Data);
-                //setAPIdata(res.data.Data.List);
+                setAPIdata(res.data.Data.List);
                 setTotal(res.data.Data.Total);
                 setLastPage(res.data.Data.LastPage);
                 setLoading(false);
@@ -338,41 +338,6 @@ const Order = () =>  {
             });
         }
         fetchData();
-
-        setAPIdata([
-            {
-                OrderId: 'ID001',
-                DeliveryAddress: 'Tầng 2A',
-                CreatedDate: '29/3/2022 13:00 PM',
-                TotalAmount: 520000,
-                Status: Constant.OPEN,
-                Resident: { ResidentName: 'Lê Văn Tám', PhoneNumber: '0901234567', DeliveryAddress: 'Tầng 2A' },
-            },
-            {
-                OrderId: 'ID002',
-                DeliveryAddress: 'Tầng 3B',
-                CreatedDate: '29/3/2022 9:00 AM',
-                TotalAmount: 42000,
-                Status: Constant.CANCELED_ORDER,
-                Resident: { ResidentName: 'Ngọn Đuốc Sống', PhoneNumber: '0901231234', DeliveryAddress: 'Tầng 3B' },
-            },
-            {
-                OrderId: 'ID003',
-                DeliveryAddress: 'Tầng 3B',
-                CreatedDate: '29/3/2022 9:00 AM',
-                TotalAmount: 42000,
-                Status: Constant.CONFIRMED,
-                Resident: { ResidentName: 'Ngọn Đuốc Sống', PhoneNumber: '0901231234', DeliveryAddress: 'Tầng 3B' },
-            },
-            {
-                OrderId: 'ID004',
-                DeliveryAddress: 'Tầng 3B',
-                CreatedDate: '29/3/2022 9:00 AM',
-                TotalAmount: 42000,
-                Status: Constant.COMPLETED,
-                Resident: { ResidentName: 'Ngọn Đuốc Sống', PhoneNumber: '0901231234', DeliveryAddress: 'Tầng 3B' },
-            }
-        ]);
     }, [limit, page, sort, status, search]);
 
     useEffect(() => {   //timer when search

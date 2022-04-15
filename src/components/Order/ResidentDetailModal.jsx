@@ -1,8 +1,9 @@
 
 /* eslint-disable react-hooks/exhaustive-deps */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from "styled-components";
 import Modal from 'react-modal';
+import { api } from "../../RequestMethod";
 
 const ModalTitle = styled.div`
     border-bottom: 1px solid #cfd2d4;
@@ -113,6 +114,19 @@ const customStyles = {
 };
 
 const ResidentDetailModal = ({ display, toggle, resident }) => {
+    const [account, setAccount] = useState({});
+
+    useEffect(() => {
+        if (display) {
+            api.get("accounts?id=" + resident.AccountId)
+            .then(function (res) {
+                setAccount(res.data.Data.List[0]);
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        }
+    }, [display])
 
     return (
         <Modal isOpen={display} onRequestClose={toggle} style={customStyles} ariaHideApp={false}>
@@ -123,7 +137,7 @@ const ResidentDetailModal = ({ display, toggle, resident }) => {
                 <ModalContentWrapper>
                     <LeftWrapper>
                         <FieldLabel mt>Ảnh</FieldLabel>
-                        <Image src={resident.Account.AvatarImage} />         
+                        <Image src={account.AvatarImage} />         
                     </LeftWrapper>
 
                     <RightWrapper>

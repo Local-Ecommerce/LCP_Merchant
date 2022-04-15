@@ -6,7 +6,7 @@ import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import ReactPaginate from "react-paginate";
 import useClickOutside from "../contexts/useClickOutside";
-import { Search, Error, Logout, Summarize, AddCircle, ArrowDropDown, Help } from '@mui/icons-material';
+import { Search, Error, Logout, Summarize, AddCircle, ArrowDropDown, Help, CalendarToday, FormatListBulleted } from '@mui/icons-material';
 import { CircularProgress } from '@mui/material';
 import { Link } from 'react-router-dom';
 import * as Constant from '../Constant';
@@ -438,6 +438,26 @@ const Tooltip = styled.div`
     }
 `;
 
+const StyledListIcon = styled(FormatListBulleted)`
+    && {
+        font-size: 20px;
+        padding: 8px;
+        border: 1px solid rgba(0,0,0,0.1);
+        color: ${props => props.active ? props.theme.black : "rgba(0,0,0,0.2)"};
+        background-color: ${props => props.active ? "rgba(0,0,0,0.1)" : null};
+    }
+`;
+
+const StyledCalendarIcon = styled(CalendarToday)`
+    && {
+        font-size: 20px;
+        padding: 8px;
+        border: 1px solid rgba(0,0,0,0.1);
+        color: ${props => props.active ? props.theme.black : "rgba(0,0,0,0.2)"};
+        background-color: ${props => props.active ? "rgba(0,0,0,0.1)" : null};
+    }
+`;
+
 const Menu = () =>  {
     const [deleteModal, setDeleteModal] = useState(false);
     const toggleDeleteModal = () => { setDeleteModal(!deleteModal) };
@@ -465,6 +485,7 @@ const Menu = () =>  {
         value: Constant.ACTIVE_MENU + "&status=" + Constant.INACTIVE_MENU,
         name: 'Toàn bộ'
     });
+    const [view, setView] = useState(1);
 
     useEffect( () => {  //fetch api data
         setLoading(true);
@@ -604,86 +625,129 @@ const Menu = () =>  {
                     </Row>
 
                     <TableWrapper>
-                        <Row mb>
-                            <SearchBar>
-                                <StyledSearchIcon />
-                                <Input id="search" placeholder="Tìm kiếm bảng giá" onChange={handleSetSearch} />
-                                <Button type="button" onClick={clearSearch}>Xóa</Button>
-                            </SearchBar>
-
-                            <Align>
-                                <Label>Trạng thái:</Label>
-                                <SelectWrapper ref={clickStatusOutside}>
-                                    <Select onClick={toggleStatusDropdown}>
-                                        {status.name}
-                                        <ArrowDropDown />
-                                    </Select>
-
-                                    <DropdownMenu dropdown={statusDropdown}>
-                                        <DropdownList onClick={() => handleSetStatus(Constant.ACTIVE_MENU + "&status=" + Constant.INACTIVE_MENU, 'Toàn bộ')}>Toàn bộ</DropdownList>
-                                        <DropdownList onClick={() => handleSetStatus(Constant.ACTIVE_MENU, 'Hoạt động')}>Hoạt động</DropdownList>
-                                        <DropdownList onClick={() => handleSetStatus(Constant.INACTIVE_MENU, 'Ngừng hoạt động')}>Ngừng hoạt động</DropdownList>
-                                    </DropdownMenu>
-                                </SelectWrapper>
-                            </Align>
-                        </Row>
-
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableHeader width="3%" grey>#</TableHeader>
-                                    <TableHeader width="52%">Tiêu đề</TableHeader>
-                                    <TableHeader width="15%" center>Giờ hoạt động</TableHeader>
-                                    <TableHeader width="15%" center>Trạng thái</TableHeader>
-                                    <TableHeader width="15%" center>Hành động</TableHeader>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {
-                                    loading ? 
-                                    <tr>
-                                        <TableData center colSpan={100}> <CircularProgress /> </TableData>
-                                    </tr>
-                                    : 
-                                    <MenuList 
-                                        currentItems={APIdata} 
-                                        handleGetToggleStatusItem={handleGetToggleStatusItem}
-                                        handleGetDeleteItem={handleGetDeleteItem} 
-                                    />
-                                }
-                            </TableBody>
-                        </Table>
-
                         {
-                            loading || APIdata.length === 0 || total <= 10 ?
-                            null :
-                            <Row mt>
-                                <small>Hiển thị {page * limit + 1} - {page * limit + APIdata.length} trong tổng số {total} bảng giá.</small>
+                            view === 1 ?
+                            <>
+                                <Row mb>
+                                    <SearchBar>
+                                        <StyledSearchIcon />
+                                        <Input id="search" placeholder="Tìm kiếm bảng giá" onChange={handleSetSearch} />
+                                        <Button type="button" onClick={clearSearch}>Xóa</Button>
+                                    </SearchBar>
 
-                                <StyledPaginateContainer>
-                                    <ReactPaginate
-                                        nextLabel="Next >"
-                                        onPageChange={handlePageClick}
-                                        pageRangeDisplayed={3}
-                                        marginPagesDisplayed={2}
-                                        pageCount={lastPage}
-                                        previousLabel="< Prev"
-                                        pageClassName="page-item"
-                                        pageLinkClassName="page-link"
-                                        previousClassName="page-item"
-                                        previousLinkClassName="page-link"
-                                        nextClassName="page-item"
-                                        nextLinkClassName="page-link"
-                                        breakLabel="..."
-                                        breakClassName="page-item"
-                                        breakLinkClassName="page-link"
-                                        containerClassName="pagination"
-                                        activeClassName="active"
-                                        forcePage={page}
-                                        renderOnZeroPageCount={null}
-                                    />
-                                </StyledPaginateContainer>
-                            </Row>
+                                    <Align>
+                                        <Label>Trạng thái:</Label>
+                                        <SelectWrapper ref={clickStatusOutside}>
+                                            <Select onClick={toggleStatusDropdown}>
+                                                {status.name}
+                                                <ArrowDropDown />
+                                            </Select>
+
+                                            <DropdownMenu dropdown={statusDropdown}>
+                                                <DropdownList onClick={() => handleSetStatus(Constant.ACTIVE_MENU + "&status=" + Constant.INACTIVE_MENU, 'Toàn bộ')}>Toàn bộ</DropdownList>
+                                                <DropdownList onClick={() => handleSetStatus(Constant.ACTIVE_MENU, 'Hoạt động')}>Hoạt động</DropdownList>
+                                                <DropdownList onClick={() => handleSetStatus(Constant.INACTIVE_MENU, 'Ngừng hoạt động')}>Ngừng hoạt động</DropdownList>
+                                            </DropdownMenu>
+                                        </SelectWrapper>
+                                    </Align>
+
+                                    <Align>
+                                        <StyledListIcon active={view === 1} onClick={() => setView(1)} />
+                                        <StyledCalendarIcon active={view === 2} onClick={() => setView(2)} />
+                                    </Align>
+                                </Row>
+
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableHeader width="3%" grey>#</TableHeader>
+                                            <TableHeader width="52%">Tiêu đề</TableHeader>
+                                            <TableHeader width="15%" center>Giờ hoạt động</TableHeader>
+                                            <TableHeader width="15%" center>Trạng thái</TableHeader>
+                                            <TableHeader width="15%" center>Hành động</TableHeader>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {
+                                            loading ? 
+                                            <tr>
+                                                <TableData center colSpan={100}> <CircularProgress /> </TableData>
+                                            </tr>
+                                            : 
+                                            <MenuList 
+                                                currentItems={APIdata} 
+                                                handleGetToggleStatusItem={handleGetToggleStatusItem}
+                                                handleGetDeleteItem={handleGetDeleteItem} 
+                                            />
+                                        }
+                                    </TableBody>
+                                </Table>
+
+                                {
+                                    loading || APIdata.length === 0 || total <= 10 ?
+                                    null :
+                                    <Row mt>
+                                        <small>Hiển thị {page * limit + 1} - {page * limit + APIdata.length} trong tổng số {total} bảng giá.</small>
+
+                                        <StyledPaginateContainer>
+                                            <ReactPaginate
+                                                nextLabel="Next >"
+                                                onPageChange={handlePageClick}
+                                                pageRangeDisplayed={3}
+                                                marginPagesDisplayed={2}
+                                                pageCount={lastPage}
+                                                previousLabel="< Prev"
+                                                pageClassName="page-item"
+                                                pageLinkClassName="page-link"
+                                                previousClassName="page-item"
+                                                previousLinkClassName="page-link"
+                                                nextClassName="page-item"
+                                                nextLinkClassName="page-link"
+                                                breakLabel="..."
+                                                breakClassName="page-item"
+                                                breakLinkClassName="page-link"
+                                                containerClassName="pagination"
+                                                activeClassName="active"
+                                                forcePage={page}
+                                                renderOnZeroPageCount={null}
+                                            />
+                                        </StyledPaginateContainer>
+                                    </Row>
+                                }
+                            </>
+                            :
+                            view === 2 ?
+                            <>
+                                <Row mb>
+                                    <SearchBar>
+                                        <StyledSearchIcon />
+                                        <Input id="search" placeholder="Tìm kiếm bảng giá" onChange={handleSetSearch} />
+                                        <Button type="button" onClick={clearSearch}>Xóa</Button>
+                                    </SearchBar>
+
+                                    <Align>
+                                        <Label>Trạng thái:</Label>
+                                        <SelectWrapper ref={clickStatusOutside}>
+                                            <Select onClick={toggleStatusDropdown}>
+                                                {status.name}
+                                                <ArrowDropDown />
+                                            </Select>
+
+                                            <DropdownMenu dropdown={statusDropdown}>
+                                                <DropdownList onClick={() => handleSetStatus(Constant.ACTIVE_MENU + "&status=" + Constant.INACTIVE_MENU, 'Toàn bộ')}>Toàn bộ</DropdownList>
+                                                <DropdownList onClick={() => handleSetStatus(Constant.ACTIVE_MENU, 'Hoạt động')}>Hoạt động</DropdownList>
+                                                <DropdownList onClick={() => handleSetStatus(Constant.INACTIVE_MENU, 'Ngừng hoạt động')}>Ngừng hoạt động</DropdownList>
+                                            </DropdownMenu>
+                                        </SelectWrapper>
+                                    </Align>
+
+                                    <Align>
+                                        <StyledListIcon active={view === 1} onClick={() => setView(1)} />
+                                        <StyledCalendarIcon active={view === 2} onClick={() => setView(2)} />
+                                    </Align>
+                                </Row>
+                            </>
+                            : null
                         }
                     </TableWrapper>
                 </>

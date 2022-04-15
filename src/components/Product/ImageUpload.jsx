@@ -121,7 +121,7 @@ const ImageUpload = ({ images, setImages, handleSetImage, handleRemoveImage }) =
 			})
 		);
 	};
-
+	
   return (
 		<ImageListWrapper>
 			<ImageWrapper>
