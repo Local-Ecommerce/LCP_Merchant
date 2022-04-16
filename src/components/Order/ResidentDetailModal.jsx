@@ -154,7 +154,7 @@ const ResidentDetailModal = ({ display, toggle, resident }) => {
                                 <FieldLabel mt>Số điện thoại</FieldLabel>
                                 <TextField
                                     disabled={true}
-                                    type="text" value={resident && resident.PhoneNumber.slice(0, 4) + " " + resident.PhoneNumber.slice(4, 7) + " " + resident.PhoneNumber.slice(7)}
+                                    type="text" value={resident && resident.PhoneNumber && resident.PhoneNumber.slice(0, 4) + " " + resident.PhoneNumber.slice(4, 7) + " " + resident.PhoneNumber.slice(7)}
                                 />
                             </FlexChild>
                         </Flex>
