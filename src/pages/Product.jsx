@@ -424,7 +424,7 @@ const Product = () =>  {
     const [typing, setTyping] = useState('');
     const [search, setSearch] = useState('');
     const [status, setStatus] = useState({
-        value: '',
+        value: Constant.VERIFIED_PRODUCT + "&status=" + Constant.UNVERIFIED_PRODUCT + "&status=" + Constant.REJECTED_PRODUCT,
         name: 'Toàn bộ'
     });
 
