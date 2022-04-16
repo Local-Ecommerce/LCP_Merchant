@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from "styled-components";
 import Modal from 'react-modal';
+import { DateTime } from 'luxon';
 import { api } from "../../RequestMethod";
 
 const ModalTitle = styled.div`
@@ -172,7 +173,7 @@ const ResidentDetailModal = ({ display, toggle, resident }) => {
                                 <FieldLabel mt>Ngày sinh</FieldLabel>
                                 <TextField
                                     disabled={true}
-                                    type="text" value={resident.DateOfBirth}
+                                    type="text" value={resident && resident.DateOfBirth && DateTime.fromISO(resident.DateOfBirth).toFormat('dd/MM/yyyy')}
                                 />
                             </FlexChild>
                         </Flex>
