@@ -336,6 +336,7 @@ const AddProduct = () => {
 
     function handleToggleApplyBasePrice(e) {
         const { checked } = e.target;
+        setError(error => ({ ...error, optionPrice: '' }));
         setInput(input => ({ ...input, applyBasePrice: checked }));
     }
 
