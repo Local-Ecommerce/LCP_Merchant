@@ -5,7 +5,7 @@ import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, ArrowRight } from '@mui/icons-material';
 import { TextField, Checkbox, FormControlLabel } from '@mui/material';
-import { TimePicker, LocalizationProvider } from '@mui/lab';
+import { MobileTimePicker, LocalizationProvider } from '@mui/lab';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import { DateTime } from 'luxon';
 
@@ -199,7 +199,7 @@ const AddMenu = () => {
     const handleAddMenu = (event) => {
         event.preventDefault();
 
-        if (checkValid()) {
+        if (validCheck()) {
             const notification = toast.loading("Đang xử lí yêu cầu...");
             const addData = async () => {
                 api.post("menus", {
@@ -233,7 +233,7 @@ const AddMenu = () => {
         }
     }
 
-    const checkValid = () => {
+    const validCheck = () => {
         let check = false;
         setError(error => ({ ...error, name: '', time: '', repeatDay: '' }));
 
@@ -246,10 +246,31 @@ const AddMenu = () => {
             setError(error => ({ ...error, repeatDay: 'Không được để trống ngày hoạt động' }));
             check = true;
         }
-        if (!twentyfour && DateTime.fromISO(input.endTime).toFormat('TT') !== '00:00:00' && input.startTime >= input.endTime) {
-            setError(error => ({ ...error, time: 'Giờ bắt đầu không được lớn hơn giờ kết thúc' }));
-            check = true;
+        
+        let startTime = DateTime.fromISO(input.startTime).toFormat('T');
+        let endTime = DateTime.fromISO(input.endTime).toFormat('T');
+
+        if (!twentyfour) {
+            if (endTime === '00:00') {
+                if (DateTime.fromFormat(endTime, 'T').toMillis() + 86400000 - DateTime.fromFormat(startTime, 'T').toMillis() >= 0
+                && DateTime.fromFormat(endTime, 'T').toMillis() + 86400000 - DateTime.fromFormat(startTime, 'T').toMillis() < 3600000) {
+                    setError(error => ({ ...error, time: 'Giờ bắt đầu và giờ kết thúc phải cách nhau ít nhất 1 giờ' }));
+                    check = true;
+                } else if (DateTime.fromFormat(endTime, 'T').toMillis() + 86400000 - DateTime.fromFormat(startTime, 'T').toMillis() < 0) {
+                    setError(error => ({ ...error, time: 'Giờ bắt đầu không được lớn hơn giờ kết thúc' }));
+                    check = true;
+                }
+            } 
+            else if (DateTime.fromFormat(endTime, 'T').toMillis() - DateTime.fromFormat(startTime, 'T').toMillis() >= 0
+            && DateTime.fromFormat(endTime, 'T').toMillis() - DateTime.fromFormat(startTime, 'T').toMillis() < 3600000) {
+                setError(error => ({ ...error, time: 'Giờ bắt đầu và giờ kết thúc phải cách nhau ít nhất 1 giờ' }));
+                check = true;
+            } else if (DateTime.fromFormat(endTime, 'T').toMillis() - DateTime.fromFormat(startTime, 'T').toMillis() < 0) {
+                setError(error => ({ ...error, time: 'Giờ bắt đầu không được lớn hơn giờ kết thúc' }));
+                check = true;
+            }
         }
+
         if (check) {
             return false;
         }
@@ -338,8 +359,8 @@ const AddMenu = () => {
 
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <TimePickerWrapper>
-                            <TimePicker
-                                minutesStep={15}
+                            <MobileTimePicker
+                                minutesStep={15} disableCloseOnSelect={false} showToolbar={false}
                                 disabled={twentyfour ? true : false} ampm={false}
                                 label={twentyfour ? "00:00:00" : "Thời gian bắt đầu"}
                                 value={twentyfour ? null :input.startTime}
@@ -349,8 +370,8 @@ const AddMenu = () => {
 
                             <StyledArrowIcon />
 
-                            <TimePicker
-                                minutesStep={15}
+                            <MobileTimePicker
+                                minutesStep={15} disableCloseOnSelect={false} showToolbar={false}
                                 disabled={twentyfour ? true : false} ampm={false}
                                 label={twentyfour ? "00:00:00" : "Thời gian kết thúc"}
                                 value={twentyfour ? null :input.endTime}
