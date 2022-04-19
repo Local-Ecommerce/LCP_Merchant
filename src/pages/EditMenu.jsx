@@ -7,7 +7,7 @@ import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, ArrowRight, Search, AddBox } from '@mui/icons-material';
 import { TextField, CircularProgress, Checkbox, FormControlLabel } from '@mui/material';
-import { TimePicker, LocalizationProvider } from '@mui/lab';
+import { MobileTimePicker, LocalizationProvider } from '@mui/lab';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import { DateTime } from 'luxon';
 import * as Constant from '../Constant';
@@ -179,8 +179,8 @@ const DatePickerWrapper = styled.div`
 const WeekDayCheckbox = styled.button`
     padding: 7px 13px;
     margin-right: 1px;
-    border: 1px solid ${props => props.checked === true ? "#c7c7c7" : "#c7c7c7"};
-    background-color: ${props => props.checked === true ? "#E0E0E0" : "#fff"};
+    border: 1px solid ${props => props.checked === true ? props.theme.blue : "rgba(0,0,0,0.2)"};
+    background-color: ${props => props.checked === true ? props.theme.lightblue : props.theme.white};
     border-radius: 2px;
     font-size: 13px;
 
@@ -350,7 +350,9 @@ const EditMenu = () => {
                         description: res.data.Data.List[0].MenuDescription || '', 
                         includeBaseMenu: res.data.Data.List[0].IncludeBaseMenu,
                         startTime: DateTime.fromFormat(res.data.Data.List[0].TimeStart, 'TT').toUTC().toISO(),
-                        endTime: DateTime.fromFormat(res.data.Data.List[0].TimeEnd, 'TT').toUTC().toISO()
+                        endTime: res.data.Data.List[0].TimeEnd === '23:59:59' ?
+                              DateTime.fromFormat('00:00:00', 'TT').toUTC().toISO() 
+                            : DateTime.fromFormat(res.data.Data.List[0].TimeEnd, 'TT').toUTC().toISO()
                     });
                     setRepeatDay({
                         t2: res.data.Data.List[0].RepeatDate.includes('1') ? true : false,
@@ -467,22 +469,17 @@ const EditMenu = () => {
     }
 
     const handleSetSort = (sort) => {
-        console.log(sort)
         setSort(sort);
         if (sort === '+createddate') {
-            console.log(1)
             newProducts.sort((a, b) => new Date(b.Product.CreatedDate) - new Date(a.Product.CreatedDate));
             stock.sort((a, b) => new Date(b.Product.CreatedDate) - new Date(a.Product.CreatedDate));
         } else if (sort === '-createddate') {
-            console.log(2)
             newProducts.sort((a, b) => new Date(a.Product.CreatedDate) - new Date(b.Product.CreatedDate));
             stock.sort((a, b) => new Date(a.Product.CreatedDate) - new Date(b.Product.CreatedDate));
         } else if (sort === '+price') {
-            console.log(3)
             newProducts.sort((a, b) => parseFloat(b.Price.replace(/\D/g, "")) - parseFloat(a.Price.replace(/\D/g, "")));
             stock.sort((a, b) => parseFloat(b.Price.replace(/\D/g, "")) - parseFloat(a.Price.replace(/\D/g, "")));
         } else if (sort === '-price') {
-            console.log(4)
             newProducts.sort((a, b) => parseFloat(a.Price.replace(/\D/g, "")) - parseFloat(b.Price.replace(/\D/g, "")));
             stock.sort((a, b) => parseFloat(a.Price.replace(/\D/g, "")) - parseFloat(b.Price.replace(/\D/g, "")));
         }
@@ -491,7 +488,7 @@ const EditMenu = () => {
     const handleEditItem = (event) => {
         event.preventDefault();
 
-        if (checkValid()) {
+        if (validCheck()) {
             let deleteArray = [];
             let updateArray = [];
             let insertArray = [];
@@ -584,7 +581,6 @@ const EditMenu = () => {
             if (APIarray.length) {
                 Promise.all(APIarray)
                 .then(function (results) {
-                    console.log(results)
                     setChange(!change);
                     toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
                 })
@@ -599,7 +595,12 @@ const EditMenu = () => {
         }
     }
 
-    const checkValid = () => {
+    useEffect(() => {
+        
+        
+    }, [input.endTime, input.startTime])
+
+    const validCheck = () => {
         let check = false;
         setError(error => ({ ...error, name: '', time: '', price: '' }));
 
@@ -607,10 +608,29 @@ const EditMenu = () => {
             setError(error => ({ ...error, name: 'Vui lòng nhập tiêu đề' }));
             check = true;
         }
-        if (input.startTime >= input.endTime) {
+
+        let startTime = DateTime.fromISO(input.startTime).toFormat('T');
+        let endTime = DateTime.fromISO(input.endTime).toFormat('T');
+
+        if (endTime === '00:00') {
+            if (DateTime.fromFormat(endTime, 'T').toMillis() + 86400000 - DateTime.fromFormat(startTime, 'T').toMillis() > 0
+            && DateTime.fromFormat(endTime, 'T').toMillis() + 86400000 - DateTime.fromFormat(startTime, 'T').toMillis() < 3600000) {
+                setError(error => ({ ...error, time: 'Giờ bắt đầu và giờ kết thúc phải cách nhau ít nhất 1 giờ' }));
+                check = true;
+            } else if (DateTime.fromFormat(endTime, 'T').toMillis() + 86400000 - DateTime.fromFormat(startTime, 'T').toMillis() < 0) {
+                setError(error => ({ ...error, time: 'Giờ bắt đầu không được lớn hơn giờ kết thúc' }));
+                check = true;
+            }
+        } 
+        else if (DateTime.fromFormat(endTime, 'T').toMillis() - DateTime.fromFormat(startTime, 'T').toMillis() > 0
+        && DateTime.fromFormat(endTime, 'T').toMillis() - DateTime.fromFormat(startTime, 'T').toMillis() < 3600000) {
+            setError(error => ({ ...error, time: 'Giờ bắt đầu và giờ kết thúc phải cách nhau ít nhất 1 giờ' }));
+            check = true;
+        } else if (DateTime.fromFormat(endTime, 'T').toMillis() - DateTime.fromFormat(startTime, 'T').toMillis() < 0) {
             setError(error => ({ ...error, time: 'Giờ bắt đầu không được lớn hơn giờ kết thúc' }));
             check = true;
         }
+
         newProducts.forEach((item) => {
             if (item.Price === null || item.Price === '' || item.Price === '0' || item.Price === 0) {
                 setError(error => ({ ...error, price: 'Vui lòng nhập giá' }));
@@ -624,8 +644,8 @@ const EditMenu = () => {
         return true;
     }
 
-    const checkValidBeforeConfirm = () => {
-        if (checkValid()) {
+    const validCheckBeforeConfirm = () => {
+        if (validCheck()) {
             toggleConfirmModal();
         }
     }
@@ -814,24 +834,24 @@ const EditMenu = () => {
 
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <TimePickerWrapper>
-                            <TimePicker
-                                minutesStep={5}
+                            <MobileTimePicker
+                                minutesStep={15} disableCloseOnSelect={false} showToolbar={false}
                                 disabled={twentyfour ? true : false} ampm={false}
                                 label={twentyfour ? "00:00:00" : "Thời gian bắt đầu"}
                                 value={twentyfour ? null : input.startTime}
                                 onChange={time => handleChange({ target: { value: time.toISOString(), name: 'startTime' } })} 
-                                renderInput={(params) => <TextField disabled {...params} error={error.time !== ''} helperText={error.time} />} 
+                                renderInput={(params) => <TextField {...params} error={error.time !== ''} helperText={error.time} />} 
                             />
 
                             <StyledArrowIcon />
 
-                            <TimePicker
-                                minutesStep={5}
+                            <MobileTimePicker
+                                minutesStep={15} disableCloseOnSelect={false} showToolbar={false}
                                 disabled={twentyfour ? true : false} ampm={false}
                                 label={twentyfour ? "00:00:00" : "Thời gian kết thúc"}
                                 value={twentyfour ? null : input.endTime}
                                 onChange={time => handleChange({ target: { value: time.toISOString(), name: 'endTime' } })} 
-                                renderInput={(params) => <TextField disabled {...params} error={error.time !== ''} helperText={error.time} />} 
+                                renderInput={(params) => <TextField {...params} error={error.time !== ''} helperText={error.time} />} 
                             />
                         </TimePickerWrapper>
                     </LocalizationProvider>
@@ -840,7 +860,7 @@ const EditMenu = () => {
             
             <FooterWrapper>
                 <FloatRight>
-                    <Button type="button" onClick={checkValidBeforeConfirm}>Cập nhật</Button>
+                    <Button type="button" onClick={validCheckBeforeConfirm}>Cập nhật</Button>
                 </FloatRight>
             </FooterWrapper>
 

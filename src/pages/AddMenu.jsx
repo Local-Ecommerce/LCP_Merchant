@@ -339,7 +339,7 @@ const AddMenu = () => {
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <TimePickerWrapper>
                             <TimePicker
-                                minutesStep={5}
+                                minutesStep={15}
                                 disabled={twentyfour ? true : false} ampm={false}
                                 label={twentyfour ? "00:00:00" : "Thời gian bắt đầu"}
                                 value={twentyfour ? null :input.startTime}
@@ -350,7 +350,7 @@ const AddMenu = () => {
                             <StyledArrowIcon />
 
                             <TimePicker
-                                minutesStep={5}
+                                minutesStep={15}
                                 disabled={twentyfour ? true : false} ampm={false}
                                 label={twentyfour ? "00:00:00" : "Thời gian kết thúc"}
                                 value={twentyfour ? null :input.endTime}

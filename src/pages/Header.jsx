@@ -12,7 +12,6 @@ import * as Constant from '../Constant';
 import _ from 'lodash';
 
 import NotificationList from '../components/Notification/NotificationList';
-import NotificationOrderList from '../components/Notification/NotificationOrderList';
 
 import { db } from "../firebase";
 import { ref, onValue, update, query, limitToLast, orderByChild, equalTo } from "firebase/database";

@@ -13,6 +13,7 @@ import * as Constant from '../Constant';
 
 import ToggleStatusModal from '../components/Menu/ToggleStatusModal';
 import DeleteModal from '../components/Menu/DeleteModal';
+import MenuSchedule from '../components/Menu/MenuSchedule';
 
 const PageWrapper = styled.div`
     margin: 50px;
@@ -21,7 +22,7 @@ const PageWrapper = styled.div`
 const Title = styled.h1`
     font-size: 16px;
     color: #383838;
-    margin: 15px 10px -5px 15px;
+    margin: 15px 10px ${props => props.mb ? "15px" : "-5px"} 15px;
 `;
 
 const AddButton = styled(Link)`
@@ -470,6 +471,7 @@ const Menu = () =>  {
     const [toggleStatusItem, setToggleStatusItem] = useState({ id: '', name: '', status: true });
 
     const [APIdata, setAPIdata] = useState([]);
+    const [menuSchedule, setMenuSchedule] = useState([]);
     const [menuExist, setMenuExist] = useState({ checked: false, exist: false });
     const [loading, setLoading] = useState(false);
     const [change, setChange] = useState(false);
@@ -488,31 +490,88 @@ const Menu = () =>  {
     const [view, setView] = useState(1);
 
     useEffect( () => {  //fetch api data
-        setLoading(true);
-        let url = "menus"
-                + "?limit=" + limit 
-                + "&page=" + (page + 1) 
-                + "&sort=" + sort 
-                + (search !== '' ? ("&search=" + search) : '') 
-                + (status.value !== '' ? ("&status=" + status.value) : '');
-        const fetchData = () => {
-            api.get(url)
-            .then(function (res) {
-                setAPIdata(res.data.Data.List);
-                setTotal(res.data.Data.Total);
-                setLastPage(res.data.Data.LastPage);
-                if (menuExist.checked === false) {
-                    setMenuExist({ checked: true, exist: (res.data.Data.Total > 0 ? true : false) })
-                }
-                setLoading(false);
-            })
-            .catch(function (error) {
-                console.log(error);
-                setLoading(false);
-            });
+        if (view === 1) {
+            setLoading(true);
+            let url = "menus"
+                    + "?limit=" + limit 
+                    + "&page=" + (page + 1) 
+                    + "&sort=" + sort 
+                    + (search !== '' ? ("&search=" + search) : '') 
+                    + (status.value !== '' ? ("&status=" + status.value) : '');
+            const fetchData = () => {
+                api.get(url)
+                .then(function (res) {
+                    setAPIdata(res.data.Data.List);
+                    setTotal(res.data.Data.Total);
+                    setLastPage(res.data.Data.LastPage);
+                    if (menuExist.checked === false) {
+                        setMenuExist({ checked: true, exist: (res.data.Data.Total > 0 ? true : false) })
+                    }
+                    setLoading(false);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                    setLoading(false);
+                });
+            }
+            fetchData();
         }
-        fetchData();
-    }, [change, limit, page, sort, status, search]);
+    }, [change, limit, page, sort, status, search, view]);
+
+    useEffect( () => {
+        if (view === 2) {
+            setLoading(true);
+            let url = "menus"
+                + "?search=" + search 
+                + (status.value !== '' ? ("&status=" + status.value) : '');
+            const fetchData = () => {
+                api.get(url)
+                .then(function (res) {
+                    let array = [];
+
+                    res.data.Data.List.forEach(item => {
+                        if (!item.BaseMenu) {
+                            let repeatDate = item.RepeatDate;
+                            if (repeatDate.includes('0')) {
+                                repeatDate = repeatDate.substr(1) + '7';
+                            }
+
+                            let repeatDateArray = [];
+                            for (var i = 0; i < repeatDate.length; i++) {
+                                let string = repeatDate.charAt(i);
+                                if (repeatDateArray.length && repeatDateArray[repeatDateArray.length - 1].includes(parseInt(string) - 1)) {
+                                    repeatDateArray[repeatDateArray.length - 1] = repeatDateArray[repeatDateArray.length - 1] + string;
+                                } else {
+                                    repeatDateArray.push(string);
+                                }
+                            }
+
+                            repeatDateArray.forEach(date => {
+                                array.push({
+                                    MenuId: item.MenuId,
+                                    MenuName: item.MenuName,
+                                    RepeatDate: date, 
+                                    TimeStart: item.TimeStart.slice(0,5),
+                                    TimeEnd: item.TimeEnd !== '23:59:59' ? item.TimeEnd.slice(0,5) : '24:00',
+                                    TimeStartMillis: milliseconds(item.TimeStart.split(":")[0], item.TimeStart.split(":")[1], 0), 
+                                    TimeEndMillis: item.TimeEnd !== '23:59:59' ? 
+                                    milliseconds(item.TimeEnd.split(":")[0], item.TimeEnd.split(":")[1], 0)
+                                    : milliseconds(24, 0, 0),
+                                    Status: item.Status
+                                });
+                            })
+                        }
+                    })
+                    setMenuSchedule(array);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                    setLoading(false);
+                });
+            }
+            fetchData();
+        }
+    }, [view, search, status]);
 
     useEffect(() => {   //timer when search
         const timeOutId = setTimeout(() => setSearch(typing), 500);
@@ -603,6 +662,8 @@ const Menu = () =>  {
         toggleDeleteModal();
     };
 
+    const milliseconds = (h, m, s) => ((h*60*60+m*60+s)*1000);
+
     return (
         <PageWrapper>
             {
@@ -652,8 +713,8 @@ const Menu = () =>  {
                                     </Align>
 
                                     <Align>
-                                        <StyledListIcon active={view === 1} onClick={() => setView(1)} />
-                                        <StyledCalendarIcon active={view === 2} onClick={() => setView(2)} />
+                                        <StyledListIcon active={view === 1 ? 1 : 0} onClick={() => setView(1)} />
+                                        <StyledCalendarIcon active={view === 2 ? 1 : 0} onClick={() => setView(2)} />
                                     </Align>
                                 </Row>
 
@@ -746,6 +807,10 @@ const Menu = () =>  {
                                         <StyledCalendarIcon active={view === 2} onClick={() => setView(2)} />
                                     </Align>
                                 </Row>
+
+                                <MenuSchedule
+                                    menuSchedule={menuSchedule}
+                                />
                             </>
                             : null
                         }
@@ -755,7 +820,7 @@ const Menu = () =>  {
                 :
 
                 <>
-                    <Title>Bảng giá</Title>
+                    <Title mb>Bảng giá</Title>
 
                     <TableWrapper>
                         <NoItemWrapper>

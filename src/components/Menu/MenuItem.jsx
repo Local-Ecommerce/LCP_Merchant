@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Delete, ToggleOff, ToggleOn } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
+import * as Constant from '../../Constant';
 
 const Button = styled.button`
     padding: 3px;
@@ -82,7 +83,7 @@ const StyledToggleOnIcon = styled(ToggleOn)`
 const StyledToggleOffIcon = styled(ToggleOff)`
     && {
         font-size: 40px;
-        color: ${props => props.theme.red};
+        color: ${props => props.theme.grey};
 
         
         &:hover {
@@ -171,8 +172,10 @@ const MenuItem = ({ item, handleGetToggleStatusItem, handleGetDeleteItem, index 
                 <HourSpan>
                     {
                         item.TimeStart === '00:00:00' && item.TimeEnd === '23:59:59' ?
-                        "Cả ngày" :
-                        item.TimeStart.slice(0,5) + " - " + item.TimeEnd.slice(0,5)
+                        "Cả ngày"
+                        : item.TimeEnd === '23:59:59' ?
+                        item.TimeStart.slice(0,5) + ' - 24:00'
+                        : item.TimeStart.slice(0,5) + " - " + item.TimeEnd.slice(0,5)
                     }
                 </HourSpan>
                 {item.RepeatDate.includes('1') ? <DaySpan green>2</DaySpan> : <DaySpan>2</DaySpan>}
@@ -186,9 +189,9 @@ const MenuItem = ({ item, handleGetToggleStatusItem, handleGetDeleteItem, index 
 
             <TableData center>
                 {
-                    item.Status === 9001 ?
+                    item.Status === Constant.ACTIVE_MENU ?
                     <StyledToggleOnIcon onClick={handleSetToggleStatusItem} />
-                    : item.Status === 9005 ?
+                    : item.Status === Constant.INACTIVE_MENU ?
                     <StyledToggleOffIcon onClick={handleSetToggleStatusItem} />
                     : null
                 }

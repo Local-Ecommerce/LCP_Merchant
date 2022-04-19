@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Delete, HideImage } from '@mui/icons-material';
+import { Delete, HideImage, Edit } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
 
 const Button = styled.button`
@@ -82,7 +82,16 @@ const StyledDeleteIcon = styled(Delete)`
     }
 `;
 
-const ProductItem = ({ item, handleGetDeleteItem }) =>  {
+const StyledEditIcon = styled(Edit)`
+    padding: 8px;
+    border-radius: 20px;
+
+    &:hover {
+    background-color: ${props => props.disabled === true ? null : props.theme.disabled};
+    }
+`;
+
+const ProductItem = ({ item, handleGetDeleteItem, handleGetDetailItem }) =>  {
     const navigate = useNavigate();
 
     if (item === 0) {
@@ -121,8 +130,13 @@ const ProductItem = ({ item, handleGetDeleteItem }) =>  {
         handleGetDeleteItem(item.ProductId, item.ProductName);
     }
 
+    const handleSetDetailItem = (e) => {
+        e.stopPropagation();
+        handleGetDetailItem(item.ProductId);
+    }
+
     return (
-        <TableRow onClick={() => navigate("/product/" + item.ProductId)}>
+        <TableRow onClick={handleSetDetailItem}>
             <TableData center>
                 {
                     item.Image ?
@@ -135,6 +149,10 @@ const ProductItem = ({ item, handleGetDeleteItem }) =>  {
             <TableData center> <Status active={activeCheck}>{activeLabel}</Status> </TableData>
 
             <TableData center>
+                <Button onClick={() => navigate("/product/" + item.ProductId)}>
+                    <StyledEditIcon />
+                </Button>
+
                 <Button onClick={handleSetDeleteItem}>
                     <StyledDeleteIcon />
                 </Button>

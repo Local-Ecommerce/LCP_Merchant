@@ -6,11 +6,13 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "styled-components";
+import ScrollToTop from "./contexts/ScrollToTop";
 
 const theme = {
 	red: "#dc3545",
 	green: "#28a745",
 	blue: "#17a2b8",
+	lightblue: "#8fe4f1",
 	black: "rgba(0, 0, 0, 0.87)",
 	white: "#fff",
 	dark: "#555",
@@ -28,6 +30,7 @@ ReactDOM.render(
 	<ThemeProvider theme={theme}>
 		<BrowserRouter>
 			<AuthProvider>
+				<ScrollToTop />
 				<App />
 			</AuthProvider>
 		</BrowserRouter>

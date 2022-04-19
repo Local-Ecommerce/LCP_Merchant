@@ -11,6 +11,7 @@ import { CircularProgress } from '@mui/material';
 import { Link } from 'react-router-dom';
 import * as Constant from '../Constant';
 
+import DetailModal from '../components/Product/DetailModal';
 import DeleteModal from '../components/Product/DeleteModal';
 
 const PageWrapper = styled.div`
@@ -401,13 +402,18 @@ const DropdownList = styled.li`
 const Product = () =>  {
     const [deleteModal, setDeleteModal] = useState(false);
     const toggleDeleteModal = () => { setDeleteModal(!deleteModal) };
-    const [deleteItem, setDeleteItem] = useState({id: '', name: ''});
+    const [detailModal, setDetailModal] = useState(false);
+    function toggleDetailModal() { setDetailModal(!detailModal); }
+
     const [cateDropdown, setCateDropdown] = useState(false);
     const toggleCateDropdown = () => { setCateDropdown(!cateDropdown); }
     const [sortDropdown, setSortDropdown] = useState(false);
     const toggleSortDropdown = () => { setSortDropdown(!sortDropdown); }
     const [statusDropdown, setStatusDropdown] = useState(false);
     const toggleStatusDropdown = () => { setStatusDropdown(!statusDropdown); }
+
+    const [deleteItem, setDeleteItem] = useState({id: '', name: '', type: ''});
+    const [detailItem, setDetailItem] = useState({});
 
     const [APIdata, setAPIdata] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -515,8 +521,13 @@ const Product = () =>  {
         setPage(event.selected);
     };
 
+    const handleGetDetailItem = (id) => {
+        setDetailItem({ id: id });
+        toggleDetailModal();
+    }
+
     const handleGetDeleteItem = (id, name) => {
-        setDeleteItem({id: id, name: name});
+        setDeleteItem({id: id, name: name, type: 'product'});
         toggleDeleteModal();
     }
 
@@ -545,6 +556,8 @@ const Product = () =>  {
         deleteData();
         toggleDeleteModal();
     };
+
+    
 
     return (
         <PageWrapper>
@@ -579,7 +592,7 @@ const Product = () =>  {
                                         <DropdownList onClick={() => handleSetCategory('', 'Toàn bộ')}>Toàn bộ</DropdownList>
                                         {
                                             categories.map((category, index) => {
-                                                return <div index={index}>
+                                                return <div key={index}>
                                                     <DropdownList 
                                                         key={category.SystemCategoryId}
                                                         onClick={() => handleSetCategory(category.SystemCategoryId, category.SysCategoryName)}
@@ -678,6 +691,7 @@ const Product = () =>  {
                                     <ProductList 
                                         currentItems={APIdata} 
                                         handleGetDeleteItem={handleGetDeleteItem} 
+                                        handleGetDetailItem={handleGetDetailItem}
                                     />
                                 }
                             </TableBody>
@@ -750,6 +764,12 @@ const Product = () =>  {
                                                   target="_blank">sản phẩm</StyledLink>
                 <StyledLinkIcon />
             </TipText>
+
+            <DetailModal 
+                display={detailModal}
+                toggle={toggleDetailModal}
+                detailItem={detailItem}
+            />
 
             <DeleteModal 
                 display={deleteModal}
