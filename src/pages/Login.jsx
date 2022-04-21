@@ -203,14 +203,17 @@ const Login = () => {
         setError('');
 
         let pattern= /[^@\s]+@[^@\s]+\.[^@\s]+/;
-        if (input.email === null || input.email === '' || !pattern.test(input.email)) {
-            setError('Vui lòng nhập đúng chuẩn email');
-            check = true;
-        }
-
-        if (input.forgetEmail === null || input.forgetEmail === '' || !pattern.test(input.forgetEmail)) {
-            setError('Vui lòng nhập đúng chuẩn email');
-            check = true;
+        
+        if (toggle === false) { //login
+            if (input.email === null || input.email === '' || !pattern.test(input.email)) {
+                setError('Vui lòng nhập đúng chuẩn email');
+                check = true;
+            }
+        } else {
+            if (input.forgetEmail === null || input.forgetEmail === '' || !pattern.test(input.forgetEmail)) {
+                setError('Vui lòng nhập đúng chuẩn email');
+                check = true;
+            }
         }
 
         if (check === true) {
