@@ -12,6 +12,7 @@ import * as Constant from '../Constant';
 import ProductInOrderList from '../components/Order/ProductInOrderList';
 import ConfirmModal from '../components/Order/ConfirmModal';
 import RejectModal from '../components/Order/RejectModal';
+import CompleteModal from '../components/Order/CompleteModal';
 import ResidentDetailModal from '../components/Order/ResidentDetailModal';
 
 const PageWrapper = styled.form`
@@ -252,6 +253,8 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
     const toggleConfirmModal = () => { setConfirmModal(!confirmModal); }
     const [rejectModal, setRejectModal] = useState(false);
     const toggleRejectModal = () => { setRejectModal(!rejectModal); }
+    const [completeModal, setCompleteModal] = useState(false);
+    const toggleCompleteModal = () => { setCompleteModal(!completeModal); }
 
     const [order, setOrder] = useState({
         Resident: {
@@ -265,7 +268,7 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
 
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {   //get menu
+    useEffect(() => {
         const fetchData = () => {
             setLoading(true);
             let url = "orders"
@@ -329,6 +332,28 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
         }
         rejectItem();
         toggleRejectModal();
+    }
+
+    const handleCompleteItem = (e) => {
+        e.preventDefault();
+
+        const completeItem = async () => {
+            const notification = toast.loading("Đang xử lí yêu cầu...");
+            api.put("orders?id=" + id + "&status=" + Constant.COMPLETED)
+            .then(function (res) {
+                if (res.data.ResultMessage === "SUCCESS") {
+                    toggleRefresh();
+                    navigate("/orders");
+                    toast.update(notification, { render: "Hoàn thành đơn hàng!", type: "success", autoClose: 5000, isLoading: false });
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+                toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
+            });
+        }
+        completeItem();
+        toggleCompleteModal();
     }
 
     return (
@@ -429,6 +454,16 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
                 : null
             }
 
+            {
+                order.Status === Constant.CONFIRMED ?
+                <FooterWrapper>
+                    <FloatRight>
+                        <Button onClick={toggleCompleteModal} blue type="button">Hoàn thành</Button>
+                    </FloatRight>
+                </FooterWrapper>
+                : null
+            }
+
             <ResidentDetailModal
                 display={residentModal} 
                 toggle={toggleResidentModal}
@@ -445,6 +480,12 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
                 display={rejectModal} 
                 toggle={toggleRejectModal}
                 handleRejectItem={handleRejectItem}
+            />
+
+            <CompleteModal
+                display={completeModal} 
+                toggle={toggleCompleteModal}
+                handleCompleteItem={handleCompleteItem}
             />
         </PageWrapper>
     )

@@ -596,9 +596,10 @@ const EditMenu = () => {
     }
 
     useEffect(() => {
+        console.log(newProducts)
+
         
-        
-    }, [input.endTime, input.startTime])
+    }, [newProducts])
 
     const validCheck = () => {
         let check = false;
@@ -633,12 +634,21 @@ const EditMenu = () => {
             }
         }
 
+        let flattenNewProducts = [...newProducts];
         newProducts.forEach((item) => {
-            if (item.Price === null || item.Price === '' || item.Price === '0' || item.Price === 0) {
-                setError(error => ({ ...error, price: 'Vui lòng nhập giá' }));
+            if (item.RelatedProductInMenu && item.RelatedProductInMenu.length > 0) {
+                item.RelatedProductInMenu.forEach((related) => {
+                    flattenNewProducts.push(related);
+                })
+            }
+        })
+        flattenNewProducts.forEach((item) => {
+            if (item.Price === null || item.Price === '' || item.Price === '0' || item.Price === 0 || parseFloat(item.Price.replace(/\D/g, "")) < 500) {
+                setError(error => ({ ...error, price: 'Vui lòng nhập giá trên 500 vnđ' }));
                 check = true;
             }
         })
+        
         if (check) {
             return false;
         }

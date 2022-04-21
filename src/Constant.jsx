@@ -59,3 +59,10 @@ export const OPEN = 5001;
 export const CANCELED_ORDER = 5002;
 export const CONFIRMED = 5006;
 export const COMPLETED = 5007;
+
+//pois & news type
+export const NEWS_TYPE_01 = 'Hot';
+export const NEWS_TYPE_02 = 'Popular';
+export const POI_TYPE_01 = 'Hot';
+export const POI_TYPE_02 = 'Popular';
+export const PINNED = 'Đang ghim';

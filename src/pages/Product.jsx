@@ -6,7 +6,7 @@ import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import ReactPaginate from "react-paginate";
 import useClickOutside from "../contexts/useClickOutside";
-import { Search, Error, Logout, ProductionQuantityLimits, AddCircle, ArrowDropDown } from '@mui/icons-material';
+import { Search, Error, Logout, ProductionQuantityLimits, AddCircle, ArrowDropDown, ArrowRight } from '@mui/icons-material';
 import { CircularProgress } from '@mui/material';
 import { Link } from 'react-router-dom';
 import * as Constant from '../Constant';
@@ -341,7 +341,8 @@ const Label = styled.div`
 `;
 
 const SelectWrapper = styled.div`
-    width: 180px;
+    width: ${props => props.width};
+    margin-right: 10px;
     display: inline-block;
     background-color: ${props => props.theme.white};
     border-radius: 5px;
@@ -381,7 +382,60 @@ const DropdownMenu = styled.ul`
     border-radius: 0 1px 2px 2px;
     overflow: hidden;
     display: ${props => props.dropdown === true ? "" : "none"};
-    max-height: 500px;
+    max-height: 600px;
+    overflow-y: auto;
+    z-index: 9;
+    padding: 0;
+    list-style: none;
+`;
+
+const DropdownLv1Menu = styled.ul`
+    position: absolute;
+    background-color: #fff;
+    width: 100%;
+    left: 0;
+    margin-top: 1px;
+    box-shadow: 0 1px 2px rgb(204, 204, 204);
+    border-radius: 0 1px 2px 2px;
+    overflow: hidden;
+    display: ${props => props.lv1CateDropdown === true ? "" : "none"};
+    max-height: 600px;
+    overflow-y: auto;
+    z-index: 9;
+    padding: 0;
+    list-style: none;
+`;
+
+const DropdownLv2Menu = styled.ul`
+    position: absolute;
+    background-color: #fff;
+    width: 100%;
+    top: ${props => props.height + "px"};
+    left: 100%;
+    margin-top: 1px;
+    box-shadow: 0 1px 2px rgb(204, 204, 204);
+    border-radius: 0 1px 2px 2px;
+    overflow: hidden;
+    display: ${props => props.lv2CateDropdown === true ? "" : "none"};
+    max-height: 600px;
+    overflow-y: auto;
+    z-index: 9;
+    padding: 0;
+    list-style: none;
+`;
+
+const DropdownLv3Menu = styled.ul`
+    position: absolute;
+    background-color: #fff;
+    width: 100%;
+    top: ${props => props.height + "px"};
+    left: 200%;
+    margin-top: 1px;
+    box-shadow: 0 1px 2px rgb(204, 204, 204);
+    border-radius: 0 1px 2px 2px;
+    overflow: hidden;
+    display: ${props => props.lv3CateDropdown === true ? "" : "none"};
+    max-height: 600px;
     overflow-y: auto;
     z-index: 9;
     padding: 0;
@@ -390,9 +444,13 @@ const DropdownMenu = styled.ul`
 
 const DropdownList = styled.li`
     padding: 10px;
+    height: 25px;
     transition: all .2s ease-in-out;
     cursor: pointer;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
     &:hover {
         background-color: ${props => props.theme.hover};
@@ -405,8 +463,17 @@ const Product = () =>  {
     const [detailModal, setDetailModal] = useState(false);
     function toggleDetailModal() { setDetailModal(!detailModal); }
 
-    const [cateDropdown, setCateDropdown] = useState(false);
-    const toggleCateDropdown = () => { setCateDropdown(!cateDropdown); }
+    const [lv1CateDropdown, setLv1CateDropdown] = useState(false);
+    const toggleLv1CateDropdown = () => { setLv1CateDropdown(!lv1CateDropdown); }
+    const [lv2CateDropdown, setLv2CateDropdown] = useState(false);
+    const [lv3CateDropdown, setLv3CateDropdown] = useState(false);
+
+    const [lv1Categories, setLv1Categories] = useState([]);
+    const [lv2Categories, setLv2Categories] = useState([]);
+    const [lv3Categories, setLv3Categories] = useState([]);
+    const [lv2CategoryHeight, setLv2CategoryHeight] = useState([]);
+    const [lv3CategoryHeight, setLv3CategoryHeight] = useState([]);
+
     const [sortDropdown, setSortDropdown] = useState(false);
     const toggleSortDropdown = () => { setSortDropdown(!sortDropdown); }
     const [statusDropdown, setStatusDropdown] = useState(false);
@@ -416,7 +483,6 @@ const Product = () =>  {
     const [detailItem, setDetailItem] = useState({});
 
     const [APIdata, setAPIdata] = useState([]);
-    const [categories, setCategories] = useState([]);
     const [productExist, setProductExist] = useState({ checked: false, exist: false });
     const [loading, setLoading] = useState(false);
     const [change, setChange] = useState(false);
@@ -458,7 +524,7 @@ const Product = () =>  {
                     + "&status=" + Constant.ACTIVE_SYSTEM_CATEGORY;
                 api.get(url2)
                 .then(function (res2) {
-                    setCategories(res2.data.Data.List);
+                    setLv1Categories(res2.data.Data.List);
                     setLoading(false);
                 })
             })
@@ -482,7 +548,9 @@ const Product = () =>  {
     }
 
     let clickCateOutside = useClickOutside(() => {
-        setCateDropdown(false);
+        setLv1CateDropdown(false);
+        setLv2CateDropdown(false);
+        setLv3CateDropdown(false);
     });
 
     let clickSortOutside = useClickOutside(() => {
@@ -495,8 +563,22 @@ const Product = () =>  {
 
     const handleSetCategory = (id, name) => {
         setCategory({id: id, name: name});
-        toggleCateDropdown();
-        setPage(0);
+        setLv1CateDropdown(false);
+        setLv2CateDropdown(false);
+        setLv3CateDropdown(false);
+    }
+
+    const handleGetLv2Category = (children, index) => {
+        setLv2CategoryHeight((index + 1) * 46 + 46);
+        setLv2Categories(children);
+        setLv2CateDropdown(true);
+        setLv3CateDropdown(false);
+    }
+
+    const handleGetLv3Category = (children, index) => {
+        setLv3CategoryHeight(lv2CategoryHeight + index * 46);
+        setLv3Categories(children);
+        setLv3CateDropdown(true);
     }
 
     const handleSetSort = (value, name) => {
@@ -582,57 +664,57 @@ const Product = () =>  {
 
                             <Align>
                                 <Label>Danh mục:</Label>
-                                <SelectWrapper ref={clickCateOutside}>
-                                    <Select onClick={toggleCateDropdown}>
+                                <SelectWrapper width="200px" ref={clickCateOutside}>
+                                    <Select onClick={toggleLv1CateDropdown}>
                                         {category.name}
                                         <ArrowDropDown />
                                     </Select>
 
-                                    <DropdownMenu dropdown={cateDropdown}>
+                                    <DropdownLv1Menu lv1CateDropdown={lv1CateDropdown}>
                                         <DropdownList onClick={() => handleSetCategory('', 'Toàn bộ')}>Toàn bộ</DropdownList>
-                                        {
-                                            categories.map((category, index) => {
-                                                return <div key={index}>
-                                                    <DropdownList 
-                                                        key={category.SystemCategoryId}
-                                                        onClick={() => handleSetCategory(category.SystemCategoryId, category.SysCategoryName)}
-                                                    >
-                                                        {category.SysCategoryName}
-                                                    </DropdownList>
+                                        {lv1Categories.map((category, index) => {
+                                            return <DropdownList 
+                                                key={category.SystemCategoryId}
+                                                onClick={() => handleSetCategory(category.SystemCategoryId, category.SysCategoryName)}
+                                                onMouseEnter={() => handleGetLv2Category(category.Children, index)}
+                                            >
+                                                {category.SysCategoryName}
+                                                {
+                                                    category.Children && category.Children.length ?
+                                                    <ArrowRight />
+                                                    : null
+                                                }
+                                            </DropdownList>
+                                        })}
+                                    </DropdownLv1Menu>
 
-                                                    {
-                                                        category.Children ?
-                                                        category.Children.map((category, index) => {
-                                                            return <div index={index}>
-                                                                <DropdownList 
-                                                                    key={category.SystemCategoryId}
-                                                                    onClick={() => handleSetCategory(category.SystemCategoryId, category.SysCategoryName)}
-                                                                >
-                                                                    {category.SysCategoryName}
-                                                                </DropdownList>
+                                    <DropdownLv2Menu lv2CateDropdown={lv2CateDropdown} height={lv2CategoryHeight}>
+                                        {lv2Categories.map((category, index) => {
+                                            return <DropdownList 
+                                                key={category.SystemCategoryId}
+                                                onClick={() => handleSetCategory(category.SystemCategoryId, category.SysCategoryName)}
+                                                onMouseEnter={() => handleGetLv3Category(category.Children, index)}
+                                            >
+                                                {category.SysCategoryName}
+                                                {
+                                                    category.Children && category.Children.length ?
+                                                    <ArrowRight />
+                                                    : null
+                                                }
+                                            </DropdownList>
+                                        })}
+                                    </DropdownLv2Menu>
 
-                                                                {
-                                                                    category.Children ?
-                                                                    category.Children.map((category, index) => {
-                                                                        return <div index={index}>
-                                                                            <DropdownList 
-                                                                                key={category.SystemCategoryId}
-                                                                                onClick={() => handleSetCategory(category.SystemCategoryId, category.SysCategoryName)}
-                                                                            >
-                                                                                {category.SysCategoryName}
-                                                                            </DropdownList>
-                                                                        </div>
-                                                                    })
-                                                                    : null
-                                                                }
-                                                            </div>
-                                                        })
-                                                        : null
-                                                    }
-                                                </div>
-                                            })
-                                        }
-                                    </DropdownMenu>
+                                    <DropdownLv3Menu lv3CateDropdown={lv3CateDropdown} height={lv3CategoryHeight}>
+                                        {lv3Categories.map((category) => {
+                                            return <DropdownList 
+                                                key={category.SystemCategoryId}
+                                                onClick={() => handleSetCategory(category.SystemCategoryId, category.SysCategoryName)}
+                                            >
+                                                {category.SysCategoryName}
+                                            </DropdownList>
+                                        })}
+                                    </DropdownLv3Menu>
                                 </SelectWrapper>
                             </Align>
 
@@ -645,8 +727,8 @@ const Product = () =>  {
                                     </Select>
 
                                     <DropdownMenu dropdown={sortDropdown}>
-                                        <DropdownList onClick={() => handleSetSort('-createddate', 'Ngày tạo tăng dần')}>Ngày tạo tăng dần</DropdownList>
-                                        <DropdownList onClick={() => handleSetSort('+createddate', 'Ngày tạo giảm dần')}>Ngày tạo giảm dần</DropdownList>
+                                        <DropdownList onClick={() => handleSetSort('-createddate', 'Sản phẩm mới')}>Sản phẩm mới</DropdownList>
+                                        <DropdownList onClick={() => handleSetSort('+createddate', 'Sản phẩm cũ')}>Sản phẩm cũ</DropdownList>
                                         <DropdownList onClick={() => handleSetSort('-defaultprice', 'Giá tăng dần')}>Giá tăng dần</DropdownList>
                                         <DropdownList onClick={() => handleSetSort('+defaultprice', 'Giá giảm dần')}>Giá giảm dần</DropdownList>
                                     </DropdownMenu>

@@ -59,6 +59,7 @@ const MenuBlock = styled(TableData)`
 
 const TimeText = styled.div`
     margin-top: 5px;
+    font-weight: 600;
 `;
 
 const MenuName = styled.div`
@@ -75,7 +76,7 @@ const MenuList = ({ menuSchedule }) => {
         <Table>
             <TableHead>
                 <TableRow>
-                    <TableHeader>&nbsp;</TableHeader>
+                    <TableHeader width={"80px"}>&nbsp;</TableHeader>
                     <TableHeader>Thứ hai</TableHeader>
                     <TableHeader>Thứ ba</TableHeader>
                     <TableHeader>Thứ tư</TableHeader>

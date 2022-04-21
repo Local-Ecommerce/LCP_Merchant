@@ -375,7 +375,7 @@ const Header = () => {
                 notificationDropdown ?
                 <NotificationDropdownWrapper ref={clickOutside}>
                     <Row>
-                        <Tab br active={activeTab === 1 ? true : false} onClick={() => setActiveTab(1)}>
+                        <Tab br active={activeTab === 1 ? 1 : 0} onClick={() => setActiveTab(1)}>
                             Sản phẩm 
                             {
                                 productRead > 0 ?
@@ -384,7 +384,7 @@ const Header = () => {
                             }
                         </Tab>
 
-                        <Tab br active={activeTab === 2 ? true : false} onClick={() => setActiveTab(2)}>
+                        <Tab br active={activeTab === 2 ? 1 : 0} onClick={() => setActiveTab(2)}>
                             Cửa hàng
                             {
                                 storeRead > 0 ?
@@ -393,7 +393,7 @@ const Header = () => {
                             }
                         </Tab>
 
-                        <Tab br active={activeTab === 3 ? true : false} onClick={() => setActiveTab(3)}>
+                        <Tab br active={activeTab === 3 ? 1 : 0} onClick={() => setActiveTab(3)}>
                             Đơn hàng 
                             {
                                 orderRead > 0 ?

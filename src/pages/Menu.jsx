@@ -563,6 +563,7 @@ const Menu = () =>  {
                         }
                     })
                     setMenuSchedule(array);
+                    setLoading(false);
                 })
                 .catch(function (error) {
                     console.log(error);
