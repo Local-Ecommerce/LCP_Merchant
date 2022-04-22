@@ -274,7 +274,8 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
             let url = "orders"
                 + "?id=" + id
                 + "&include=product"
-                + "&include=resident";
+                + "&include=resident"
+                + "&include=payment";
             api.get(url)
             .then(function (res) {
                 console.log(res.data.Data.List[0])
@@ -381,8 +382,8 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
                             
                             <DetailWrapper>
                                 <DetailLabel>Khách hàng</DetailLabel>
-                                <DetailText>{loading ? '' : order.Resident.ResidentName}</DetailText>
-                                <DetailText>{loading ? '' : order.Resident.PhoneNumber ? order.Resident.PhoneNumber.slice(0, 4) + " " + order.Resident.PhoneNumber.slice(4, 7) + " " + order.Resident.PhoneNumber.slice(7) : '-'}</DetailText>
+                                <DetailText>{loading ? '' : order.Resident ? order.Resident.ResidentName : ''}</DetailText>
+                                <DetailText>{loading ? '' : order.Resident && order.Resident.PhoneNumber ? order.Resident.PhoneNumber.slice(0, 4) + " " + order.Resident.PhoneNumber.slice(4, 7) + " " + order.Resident.PhoneNumber.slice(7) : '-'}</DetailText>
                                 <DetailHyperlink onClick={toggleResidentModal}>Xem chi tiết</DetailHyperlink>
                             </DetailWrapper>
                         </CustomerWrapper>
@@ -392,7 +393,7 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
 
                             <DetailWrapper>
                                 <DetailLabel>Địa chỉ nhận hàng</DetailLabel>
-                                <DetailText>{loading ? '' : order.Resident.DeliveryAddress}</DetailText>
+                                <DetailText>{loading ? '' : order.Resident ?  order.Resident.DeliveryAddress : ''}</DetailText>
                             </DetailWrapper>
                         </AddressWrapper>
                     </FlexWrapper>

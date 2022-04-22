@@ -92,14 +92,14 @@ const OrderItem = ({ item, index }) =>  {
             break;
     }
 
-    let phoneNumber = item.Resident.PhoneNumber || '';
+    let phoneNumber = (item.Resident && item.Resident.PhoneNumber) || '';
     phoneNumber = phoneNumber.slice(0, 4) + " " + phoneNumber.slice(4, 7) + " " + phoneNumber.slice(7);
 
     return (
         <TableRow onClick={() => navigate("/order/" + item.OrderId)}>
             <TableData grey>{index + 1}</TableData>
-            <TableData>{item.Resident.ResidentName}</TableData>
-            <TableData>{item.Resident.DeliveryAddress}</TableData>
+            <TableData>{item.Resident && item.Resident.ResidentName}</TableData>
+            <TableData>{item.Resident && item.Resident.DeliveryAddress}</TableData>
             <TableData center>{phoneNumber}</TableData>
             <TableData center>
                 <small>

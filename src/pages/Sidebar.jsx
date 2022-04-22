@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import SidebarData from '../components/Sidebar/SidebarData';
 import SidebarItem from '../components/Sidebar/SidebarItem';
 import { api } from "../RequestMethod";
+import { Person } from '@mui/icons-material';
 import * as Constant from '../Constant';
 
 const SidebarWrapper = styled.div`
@@ -39,9 +40,20 @@ const AvatarWrapper = styled.div`
 
 const Avatar = styled.img`
     vertical-align: middle;
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.1);
+`;
+
+const StyledUserIcon = styled(Person)`
+    && {
+        color: ${props => props.theme.grey};
+        font-size: 30px;
+        padding: 10px;
+        border-radius: 50%;
+        border: 1px solid rgba(0,0,0,0.1);
+    }
 `;
 
 const Name = styled.h3`
@@ -62,18 +74,31 @@ const Hello = styled.span`
 const Sidebar = ({ refresh, toggleRefresh }) => {
     const user = JSON.parse(localStorage.getItem('USER'));
     const [openOrder, setOpenOrder] = useState(0);
+    const [name, setName] = useState('');
+    const [image, setImage] = useState('');
 
     useEffect(() => {  //fetch api data
-        let url = "orders"
-            + "?limit=100"
-            + "&sort=-createddate"
-            + "&include=product"
-            + "&include=resident"
-            + "&status=" + Constant.OPEN;
+
         const fetchData = () => {
-            api.get(url)
+            api.get("residents?id=" + user.Residents[0].ResidentId)
             .then(function (res) {
-                setOpenOrder(res.data.Data.List.length);
+                setName(res.data.Data.List[0].ResidentName || '');
+
+                api.get("accounts?id=" + res.data.Data.List[0].AccountId)
+                .then(function (res2) {
+                    setImage(res2.data.Data.ProfileImage);
+
+                    let url = "orders"
+                        + "?limit=100"
+                        + "&sort=-createddate"
+                        + "&include=product"
+                        + "&include=resident"
+                        + "&status=" + Constant.OPEN;
+                    api.get(url)
+                    .then(function (res3) {
+                        setOpenOrder(res3.data.Data.List.length);
+                    })
+                })
             })
             .catch(function (error) {
                 console.log(error);
@@ -87,9 +112,14 @@ const Sidebar = ({ refresh, toggleRefresh }) => {
             <PaddingBlock />
 
             <AvatarWrapper>
-                <Avatar src="./images/user.png" alt="Loich Logo" />
+                {
+                    image ?
+                    <Avatar src={image} />
+                    : <StyledUserIcon />
+                }
+                
                 <Name>
-                    <Hello>Xin chào, </Hello>{!user ? null : user.Residents[0].ResidentName} <br/> 
+                    <Hello>Xin chào, </Hello>{name} <br/> 
                 </Name>
             </AvatarWrapper>
 

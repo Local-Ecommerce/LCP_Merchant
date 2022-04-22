@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import { Link } from 'react-router-dom';
 import { api } from "../RequestMethod";
-import { Notifications, Search, AccountCircleOutlined, HelpOutlineOutlined, Logout } from '@mui/icons-material';
+import { Notifications, Search, AccountCircleOutlined, HelpOutlineOutlined, Logout, Person } from '@mui/icons-material';
 import { Badge } from '@mui/material';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -117,6 +117,23 @@ const Avatar = styled.img`
     height: 40px;
     border-radius: 50%;
     cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.1);
+`;
+
+const StyledUserIcon = styled(Person)`
+    && {
+        color: ${props => props.theme.grey};
+        font-size: 30px;
+        padding: 5px;
+        border-radius: 50%;
+        border: 1px solid rgba(0,0,0,0.1);
+        cursor: pointer;
+    }
+`;
+
+const Align = styled.div`
+    display: flex;
+    align-items: center;
 `;
 
 const StyledBadge = styled(Badge)`
@@ -284,10 +301,12 @@ const StyledLogoutIcon = styled(Logout)`
     }
 `;
 
-const Header = () => {
+const Header = ({ refresh, toggleRefresh }) => {
     const { logout } = useAuth();
     let navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem('USER'));
+    const [name, setName] = useState('');
+    const [image, setImage] = useState('');
 
     const [activeTab, setActiveTab] = useState(1);
     const [notificationDropdown, toggleNotificationDropdown] = useState(false);
@@ -322,6 +341,24 @@ const Header = () => {
             })
         }
     }, []);
+
+    useEffect(() => {
+        const fetchData = () => {
+            api.get("residents?id=" + user.Residents[0].ResidentId)
+            .then(function (res) {
+                setName(res.data.Data.List[0].ResidentName || '');
+
+                api.get("accounts?id=" + res.data.Data.List[0].AccountId)
+                .then(function (res2) {
+                    setImage(res2.data.Data.ProfileImage);
+                })
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        }
+        fetchData();
+    }, [refresh]);
 
     let clickOutside = useClickOutside(() => {
         if (notificationDropdown) {
@@ -361,15 +398,19 @@ const Header = () => {
                 <Input placeholder="Tìm kiếm" />
             </SearchField>
 
-            <div>
+            <Align>
                 <IconButton onClick={() => toggleNotificationDropdown(!notificationDropdown)}>
                     <StyledBadge badgeContent={productRead + storeRead + orderRead} overlap="circular">
                         <StyledNotificationIcon />
                     </StyledBadge>
                 </IconButton>
             
-                <Avatar onClick={() => toggleUserDropdown(!userDropdown)} src="./images/user.png" alt="Loich Logo" />
-            </div>
+                {
+                    image ?
+                    <Avatar onClick={() => toggleUserDropdown(!userDropdown)} src={image} />
+                    : <StyledUserIcon onClick={() => toggleUserDropdown(!userDropdown)} />
+                }
+            </Align>
 
             {
                 notificationDropdown ?
@@ -441,7 +482,7 @@ const Header = () => {
                 userDropdown ?
                 <UserDropdownWrapper ref={clickOutside}>
                     <Name>
-                        {user ? user.Residents[0].ResidentName : null} <br/> 
+                        {name} <br/> 
                         <Title>Thương nhân</Title> 
                     </Name>
                     

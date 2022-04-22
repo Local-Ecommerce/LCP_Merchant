@@ -595,12 +595,6 @@ const EditMenu = () => {
         }
     }
 
-    useEffect(() => {
-        console.log(newProducts)
-
-        
-    }, [newProducts])
-
     const validCheck = () => {
         let check = false;
         setError(error => ({ ...error, name: '', time: '', price: '' }));

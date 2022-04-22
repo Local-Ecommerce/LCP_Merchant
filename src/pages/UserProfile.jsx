@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { DateTime } from 'luxon';
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import imageCompression from 'browser-image-compression';
 import useClickOutside from "../contexts/useClickOutside";
 import { Close, AddPhotoAlternate, ArrowDropDown } from "@mui/icons-material";
+import { TextField as MuiTextField } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon';
 
 import { auth } from "../firebase";
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 
 const PageWrapper = styled.div`
-    width: 720px;
+    width: 600px;
     margin: 70px auto;
 `;
 
@@ -255,17 +261,67 @@ const HiddenInputFile = styled.input`
     z-index: -1;
 `;
 
-const UserProfile = () => {
+const UserProfile = ({ refresh, toggleRefresh }) => {
+    const user = JSON.parse(localStorage.getItem('USER'));
     const [dropdown, setDropdown] = useState(false);
 	const toggleDropdown = () => { if (editable) { setDropdown(!dropdown); }}
 
+    const [change, setChange] = useState(false);
     const [loading, setLoading] = useState(false);
 	const [editable, setEditable] = useState(false);
 	const [editPassword, setEditPassword] = useState(false);
 
-    const [item, setItem] = useState('');
-    const [input, setInput] = useState({ name: '', image: '', gender: 'Nam', phone: '', address: '', password: '******', confirmPassword: '', newPassword: '' });
-    const [error, setError] = useState({ name: '', image: '', phone: '', address: '', password: '', confirmPassword: '', newPassword: '' });
+    const [input, setInput] = useState({ 
+        residentName: '',
+        phoneNumber: '',
+        deliveryAddress: '',
+        dateOfBirth: DateTime.fromFormat('01/01/2000', 'd/M/yyyy').toUTC().toISO(),
+        gender: 'Nam',
+        profileImage: '',
+
+        password: '******', 
+        confirmPassword: '', 
+        newPassword: '' 
+    });
+    const [error, setError] = useState({ 
+        residentName: '',
+        phoneNumber: '',
+        deliveryAddress: '',
+        dateOfBirth: '',
+
+        password: '', 
+        confirmPassword: '', 
+        newPassword: '' 
+    });
+
+    useEffect(() => {
+        const fetchData = () => {
+            setLoading(true);
+            api.get("residents?id=" + user.Residents[0].ResidentId)
+            .then(function (res) {
+                setInput(input => ({ ...input, 
+                    residentName: res.data.Data.List[0].ResidentName || '',
+                    phoneNumber: res.data.Data.List[0].PhoneNumber || '',
+                    deliveryAddress: res.data.Data.List[0].DeliveryAddress || '',
+                    dateOfBirth: res.data.Data.List[0].DateOfBirth,
+                    gender: res.data.Data.List[0].Gender || 'Nam'
+                }));
+
+                api.get("accounts?id=" + res.data.Data.List[0].AccountId)
+                .then(function (res2) {
+                    setInput(input => ({ ...input, 
+                        profileImage: res2.data.Data.ProfileImage || ''
+                    }));
+                    setLoading(false);
+                })
+            })
+            .catch(function (error) {
+                console.log(error);
+                setLoading(false);
+            });
+        }
+        fetchData();
+    }, [change]);
 
 	let clickOutside = useClickOutside(() => {
         setDropdown(false);
@@ -278,7 +334,13 @@ const UserProfile = () => {
     }
 
     const handleToggleEditable = () => {
-        if (editable) { setInput({ name: '', image: '', gender: 'Nam' }) };
+        if (editable) { 
+            setInput({ 
+                name: '', 
+                image: '', 
+                gender: 'Nam' 
+            }) 
+        };
         setEditable(!editable);
     }
 
@@ -291,11 +353,6 @@ const UserProfile = () => {
         setEditPassword(!editPassword);
     }
 
-	function handleChangeGender(value) {
-        setInput(input => ({ ...input, gender: value }));
-        setDropdown(!dropdown);
-    }
-
     const toBase64 = file => new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -304,7 +361,7 @@ const UserProfile = () => {
     });
 
     const handleSetImage = async (e) => {
-        setError(error => ({ ...error, image: '' }));
+        setError(error => ({ ...error, profileImage: '' }));
         const [file] = e.target.files;
         const options = {
             maxSizeMB: 1,
@@ -314,13 +371,13 @@ const UserProfile = () => {
         if (file) {
             const compressedFile = await imageCompression(file, options);
             let base64 = await toBase64(compressedFile);
-            setInput(input => ({ ...input, image: base64.toString() }));
+            setInput(input => ({ ...input, profileImage: base64.toString() }));
         }
     };
 
     const handleRemoveImage = () => {
-        setError(error => ({ ...error, image: '' }));
-        setInput(input => ({ ...input, image: '' }));
+        setError(error => ({ ...error, profileImage: '' }));
+        setInput(input => ({ ...input, profileImage: '' }));
     };
 
     const handleUpdatePassword = async (event) => {
@@ -385,42 +442,71 @@ const UserProfile = () => {
     const handleEditItem = (event) => {
         event.preventDefault();
 
-        if (checkValid()) {
-            const notification = toast.loading("Đang xử lí yêu cầu...");
-
+        if (validCheck()) {
             const editItem = async () => {
-                console.log(input.image.split(',')[1])
-                api.put("accounts?id=" + item.MerchantStoreId, {
-
+                const notification = toast.loading("Đang xử lí yêu cầu...");
+                api.put("residents?id=" + user.Residents[0].ResidentId, {
+                    residentName: input.residentName,
+                    phoneNumber: input.phoneNumber,
+                    dateOfBirth: DateTime.fromISO(input.dateOfBirth).toFormat('yyyy-MM-dd'),
+                    gender: input.gender,
+                    deliveryAddress: input.deliveryAddress,
+                    profileImage: input.profileImage.includes(',') ? input.profileImage.split(",")[1] : null
                 })
                 .then(function (res) {
                     if (res.data.ResultMessage === "SUCCESS") {
+                        setChange(!change);
+                        toggleRefresh();
                         toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
                     }
                 })
                 .catch(function (error) {
-                    console.log(error);toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
-                    
+                    console.log(error);
+                    toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
                 });
             };
             editItem();
         }
     }
 
-    const checkValid = () => {
+    const validCheck = () => {
         let check = false;
-        setError(error => ({ ...error, name: '' }));
+        setError(error => ({ ...error, 
+            residentName: '',
+            phoneNumber: '',
+            deliveryAddress: '',
+            dateOfBirth: ''
+        }));
 
-        if (input.name === null || input.name === '') {
-            setError(error => ({ ...error, name: 'Vui lòng nhập tên' }));
+        if (input.residentName === null || input.residentName === '') {
+            setError(error => ({ ...error, residentName: 'Vui lòng không để trống tên' }));
+            check = true;
+        }
+        let phonePattern = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
+        if (input.phoneNumber === null || input.phoneNumber === '' || !phonePattern.test(input.phoneNumber)) {
+            setError(error => ({ ...error, phoneNumber: 'Vui lòng nhập đúng chuẩn số điện thoại' }));
+            check = true;
+        }
+        if (input.deliveryAddress === null || input.deliveryAddress === '') {
+            setError(error => ({ ...error, deliveryAddress: 'Vui lòng không để trống địa chỉ' }));
+            check = true;
+        }
+        if (input.dateOfBirth === null || input.dateOfBirth === '' 
+            || DateTime.fromISO(input.dateOfBirth).toFormat('dd/MM/yyyy') === 'Invalid DateTime') {
+            setError(error => ({ ...error, dateOfBirth: 'Vui lòng nhập định dạng ngày/tháng/năm' }));
             check = true;
         }
 
-        if (check) {
+        if (check === true) {
             return false;
         }
-
         return true;
+    }
+
+    const handleSetGender = (e, gender) => {
+        e.stopPropagation();
+        setInput(input => ({ ...input, gender: gender }))
+        setDropdown(false);
     }
 
     return (
@@ -508,7 +594,7 @@ const UserProfile = () => {
                         <FieldLabel>Ảnh đại diện</FieldLabel>
                         <ImageContainer>
                             {
-                                input.image === "" ? 
+                                input.profileImage === "" ? 
                                 <label>
                                     <HiddenInputFile disabled={!editable} type="file" accept="image/png, image/jpeg" onChange={handleSetImage} />
                                     <StyledPhotoIcon disabled={!editable} />
@@ -516,77 +602,94 @@ const UserProfile = () => {
                                 : 
                                 editable ? <StyledCloseButton onClick={handleRemoveImage} /> : null
                             }
-                            <Image src={input.image} display={input.image === "" ? "false" : "true"} />
+                            <Image src={input.profileImage} display={input.profileImage === "" ? "false" : "true"} />
                         </ImageContainer>
                     </InputWrapper>
 
                     <InputWrapper>
                         <Row spacebetween>
                             <FieldLabel>Tên</FieldLabel>
-                            <HelperText ml0>{input.name.length}/250 kí tự</HelperText>
+                            <HelperText ml0>{input.residentName.length}/100 kí tự</HelperText>
                         </Row>
 
                         <TextField
-                            disabled={!editable} maxLength={250}
-                            type="text" value={loading ? "Đang tải..." : input.name} name='name'
+                            disabled={!editable} maxLength={100}
+                            type="text" value={input.residentName} name='residentName'
                             onChange={handleChange}
-                            error={error.name !== ''}
+                            error={error.residentName !== ''}
                         />
-                        <HelperText error>{error.name}</HelperText>
+                        <HelperText error>{error.residentName}</HelperText>
                     </InputWrapper>
-                    
-					<Flex>
-						<FlexChild>
-							<InputWrapper mt0 mb0>
-								<FieldLabel>Giới tính</FieldLabel>
-								
-								<SelectWrapper ref={clickOutside} disabled={!editable}>
-									<Select onClick={toggleDropdown}>
-										{input.gender}
-										<ArrowDropDown />
-									</Select>
 
-									<DropdownMenu dropdown={dropdown}>
-										<DropdownList onClick={() => handleChangeGender('Nam')}>Nam</DropdownList>
-										<DropdownList onClick={() => handleChangeGender('Nữ')}>Nữ</DropdownList>
-										<DropdownList onClick={() => handleChangeGender('Không xác định')}>Không xác định</DropdownList>
-									</DropdownMenu>
-								</SelectWrapper>
-							</InputWrapper>
-						</FlexChild>
+                    <Flex>
+                        <FlexChild>
+                            <InputWrapper mt0>
+                                <Row spacebetween>
+                                    <FieldLabel>Địa chỉ</FieldLabel>
+                                    <HelperText ml0>{input.deliveryAddress.length}/100 kí tự</HelperText>
+                                </Row>
 
-						<FlexChild>
-							<InputWrapper mt0 mb0>
-								<Row spacebetween>
-									<FieldLabel>Số điện thoại</FieldLabel>
-									<HelperText ml0>{input.name.length}/250 kí tự</HelperText>
-								</Row>
+                                <TextField
+                                    disabled={!editable} maxLength={100}
+                                    type="text" value={input.deliveryAddress} name='deliveryAddress'
+                                    onChange={handleChange}
+                                    error={error.deliveryAddress !== ''}
+                                    />
+                                    <HelperText error>{error.deliveryAddress}</HelperText>
+                            </InputWrapper>
+                        </FlexChild>
 
-								<TextField
-									disabled={!editable} maxLength={250}
-									type="text" value={loading ? "Đang tải..." : input.name} name='name'
-									onChange={handleChange}
-									error={error.name !== ''}
-								/>
-								<HelperText error>{error.name}</HelperText>
-							</InputWrapper>
-						</FlexChild>
-					</Flex>
+                        <FlexChild>
+                            <InputWrapper mt0>
+                                <FieldLabel>Số điện thoại</FieldLabel>
 
-					<InputWrapper pb>
-                        <Row spacebetween>
-                            <FieldLabel>Địa chỉ</FieldLabel>
-                            <HelperText ml0>{input.name.length}/250 kí tự</HelperText>
-                        </Row>
+                                <TextField
+                                    disabled={!editable} maxLength={11}
+                                    type="text" value={input.phoneNumber} name='phoneNumber'
+                                    onChange={handleChange}
+                                    error={error.phoneNumber !== ''}
+                                />
+                                <HelperText error>{error.phoneNumber}</HelperText>
+                            </InputWrapper>
+                        </FlexChild>
+                    </Flex>
 
-                        <TextField
-                            disabled={!editable} maxLength={250}
-                            type="text" value={loading ? "Đang tải..." : input.name} name='name'
-                            onChange={handleChange}
-                            error={error.name !== ''}
-                         />
-                         <HelperText error>{error.name}</HelperText>
-                    </InputWrapper>
+                    <Flex>
+                        <FlexChild>
+                            <InputWrapper mt0>
+                                <FieldLabel>Giới tính</FieldLabel>
+                                
+                                <SelectWrapper ref={clickOutside} disabled={!editable}>
+                                    <Select onClick={toggleDropdown}>
+                                        {input.gender}
+                                        <ArrowDropDown />
+                                    </Select>
+        
+                                    <DropdownMenu dropdown={dropdown}>
+                                        <DropdownList onClick={(e) => handleSetGender(e, 'Nam')}>Nam</DropdownList>
+                                        <DropdownList onClick={(e) => handleSetGender(e, 'Nữ')}>Nữ</DropdownList>
+                                        <DropdownList onClick={(e) => handleSetGender(e, 'Không xác định')}>Không xác định</DropdownList>
+                                    </DropdownMenu>
+                                </SelectWrapper>
+                            </InputWrapper>
+                        </FlexChild>
+
+                        <FlexChild>
+                            <InputWrapper mt0>
+                                <FieldLabel>Ngày sinh</FieldLabel>
+                                <LocalizationProvider dateAdapter={AdapterLuxon}>
+                                    <DatePicker
+                                        disabled={!editable} inputFormat="d/M/yyyy"
+                                        disableHighlightToday={true}
+                                        value={input.dateOfBirth}
+                                        onChange={(newValue) => { setInput(input => ({ ...input, dateOfBirth: newValue })) }}
+                                        renderInput={(params) => <MuiTextField {...params} size={'small'} />}
+                                    />
+                                </LocalizationProvider>
+                                <HelperText error mt>{error.dateOfBirth}</HelperText>
+                            </InputWrapper>
+                        </FlexChild>
+                    </Flex>
                 </ContainerWrapper>
 
                 <FooterWrapper>
