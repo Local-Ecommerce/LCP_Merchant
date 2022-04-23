@@ -583,14 +583,13 @@ const AddProduct = () => {
                         <CategoryList currentItems={lv2Category} selected={input.category.lv2} handleGetCategory={handleGetCategoryLv2} />
                         <CategoryList currentItems={lv3Category} selected={input.category.lv3} handleGetCategory={handleGetCategoryLv3} />
                     </Row>
-                    <HelperText error> {error.category} </HelperText>
+                    <HelperText error={1}> {error.category} </HelperText>
                 </ContainerWrapper>
 
 
                 <ContainerWrapper p0>
                     <FormLabel>Hình ảnh</FormLabel>
-                    <HelperText ml0 mb>Chỉ hình ảnh đầu tiên được lưu nếu trùng lặp.</HelperText>
-                    <HelperText ml0 mb error>{error.image}</HelperText>
+                    <HelperText ml0 mb error={1}>{error.image}</HelperText>
 
                     <ImageUpload
                         images={images}
@@ -633,7 +632,7 @@ const AddProduct = () => {
                                 label={<span style={{ fontSize: '14px' }}>Áp dụng giá mặc định vào toàn bộ tùy chọn sản phẩm.</span>} 
                             />
 
-                            <HelperText error> {error.optionPrice} </HelperText>
+                            <HelperText error={1}> {error.optionPrice} </HelperText>
                             {combination.map((item, index) => {
                                 return <VariantWrapper key={index}>
                                     <TextWrapper>
@@ -683,10 +682,10 @@ const AddProduct = () => {
                                 <WarningText>Bạn có tùy chọn chưa lưu!</WarningText>
                                 <Button disabled>Tạo mới</Button>
                             </>
-                            : (error.name !== '' || error.category !== '' || error.price !== '' || error.optionPrice) ?
+                            : (error.name !== '' || error.category !== '' || error.price !== '' || error.optionPrice || error.image) ?
                             <>
                                 <StyledWarningIcon error />
-                                <WarningText error>Bạn có thông tin chưa điền!</WarningText>
+                                <WarningText error={1}>Bạn có thông tin chưa điền!</WarningText>
                                 <Button disabled>Tạo mới</Button>
                             </>
                             :

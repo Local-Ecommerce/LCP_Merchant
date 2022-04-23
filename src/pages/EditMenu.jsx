@@ -378,6 +378,7 @@ const EditMenu = () => {
                     api.get(url2).then(function (res2) {
                         if (res2.data.ResultMessage === "SUCCESS") {
                             setProducts(res2.data.Data);
+                            console.log(res2.data.Data)
                             setNewProducts(res2.data.Data.map((item) => ({ 
                                 ...item, 
                                 Price: item.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
