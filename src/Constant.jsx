@@ -66,3 +66,7 @@ export const NEWS_TYPE_02 = 'Popular';
 export const POI_TYPE_01 = 'Hot';
 export const POI_TYPE_02 = 'Popular';
 export const PINNED = 'Đang ghim';
+
+//payment method
+export const PAYMENT_CASH = 'PM_CASH';
+export const PAYMENT_MOMO = 'PM_MOMO';

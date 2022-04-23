@@ -175,14 +175,14 @@ const Grey = styled.span`
     margin-right: 7px;
 `;
 
-// const StyledCreditIcon = styled(CreditCard)`
-//     && {
-//         font-size: 24px;
-//         margin-right: 5px;
-//         color: #af2070;
-//         margin-bottom: 5px;
-//     }
-// `;
+const StyledCreditIcon = styled(CreditCard)`
+    && {
+        font-size: 24px;
+        margin-right: 5px;
+        color: #af2070;
+        margin-bottom: 5px;
+    }
+`;
 
 const StyledNoCreditIcon = styled(CreditCardOff)`
     && {
@@ -265,6 +265,7 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
         TotalAmount: 0
     });
     const [products, setProducts] = useState([]);
+    const [payment, setPayment] = useState({});
 
     const [loading, setLoading] = useState(true);
 
@@ -278,9 +279,9 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
                 + "&include=payment";
             api.get(url)
             .then(function (res) {
-                console.log(res.data.Data.List[0])
                 setOrder(res.data.Data.List[0]);
                 setProducts(res.data.Data.List[0].OrderDetails);
+                setPayment(res.data.Data.List[0].Payments[0]);
                 setLoading(false);
             })
             .catch(function (error) {
@@ -412,35 +413,40 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
                 <RightWrapper>
                     <PaymentLabel>Thanh toán</PaymentLabel>
 
-                    <PaymentWrapper>
-                        <Row mb>
-                            <StyledNoCreditIcon />
-                            <PaymentText mb0>Trực tiếp khi nhận hàng</PaymentText>
-                        </Row>
-                        <PaymentText>
-                            <Grey>Số tiền:</Grey> 
-                            {loading ? '' : order.TotalAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
-                        </PaymentText>
-                        <PaymentText>
-                            <Grey>Thời gian:</Grey>
-                            {loading ? '' : DateTime.fromISO(order.CreatedDate).toFormat('dd/MM/yyyy t')}
-                        </PaymentText>
-                    </PaymentWrapper>
+                    {
+                        !loading && payment && payment.PaymentMethodId === Constant.PAYMENT_CASH ?
+                        <PaymentWrapper>
+                            <Row mb>
+                                <StyledNoCreditIcon />
+                                <PaymentText mb0>Trực tiếp khi nhận hàng</PaymentText>
+                            </Row>
+                            <PaymentText>
+                                <Grey>Số tiền:</Grey> 
+                                {payment.PaymentAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
+                            </PaymentText>
+                            <PaymentText>
+                                <Grey>Thời gian:</Grey>
+                                {DateTime.fromISO(payment.DateTime).toFormat('dd/MM/yyyy t')}
+                            </PaymentText>
+                        </PaymentWrapper>
 
-                    {/* <PaymentWrapper mt>
-                        <Row mb>
-                            <StyledCreditIcon />
-                            <PaymentText mb0>MoMo</PaymentText>
-                        </Row>
-                        <PaymentText>
-                            <Grey>Số tiền:</Grey> 
-                            {loading ? '' : order.TotalAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
-                        </PaymentText>
-                        <PaymentText>
-                            <Grey>Thời gian:</Grey>
-                            {loading ? '' : DateTime.fromISO(order.CreatedDate).toFormat('dd/MM/yyyy t')}
-                        </PaymentText>
-                    </PaymentWrapper> */}
+                        : !loading && payment && payment.PaymentMethodId === Constant.PAYMENT_MOMO ?
+                        <PaymentWrapper mt>
+                            <Row mb>
+                                <StyledCreditIcon />
+                                <PaymentText mb0>MoMo</PaymentText>
+                            </Row>
+                            <PaymentText>
+                                <Grey>Số tiền:</Grey> 
+                                {payment.PaymentAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
+                            </PaymentText>
+                            <PaymentText>
+                                <Grey>Thời gian:</Grey>
+                                {DateTime.fromISO(payment.DateTime).toFormat('dd/MM/yyyy t')}
+                            </PaymentText>
+                        </PaymentWrapper>
+                        : null
+                    }
                 </RightWrapper>
             </FlexWrapper>
             
