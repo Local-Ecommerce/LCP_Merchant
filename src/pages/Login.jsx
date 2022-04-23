@@ -154,8 +154,7 @@ const Login = () => {
                 console.log("Firebase Token: " + firebaseToken);
 
                 api.post("accounts/login", {
-                    firebaseToken: firebaseToken,
-                    role: "Merchant"
+                    firebaseToken: firebaseToken
                 })
                 .then(function (res) {
                     if (res.data.Data.RoleId === "R001" && res.data.Data.Residents[0].Type === "Merchant") {
