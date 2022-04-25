@@ -237,7 +237,7 @@ const AddMenu = () => {
         let check = false;
         setError(error => ({ ...error, name: '', time: '', repeatDay: '' }));
 
-        if (input.name === null || input.name === '') {
+        if (input.name.trim() === null || input.name.trim() === '') {
             setError(error => ({ ...error, name: 'Vui lòng nhập tiêu đề' }));
             check = true;
         }

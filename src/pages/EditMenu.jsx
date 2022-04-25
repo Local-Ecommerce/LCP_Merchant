@@ -378,7 +378,6 @@ const EditMenu = () => {
                     api.get(url2).then(function (res2) {
                         if (res2.data.ResultMessage === "SUCCESS") {
                             setProducts(res2.data.Data);
-                            console.log(res2.data.Data)
                             setNewProducts(res2.data.Data.map((item) => ({ 
                                 ...item, 
                                 Price: item.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
@@ -600,7 +599,7 @@ const EditMenu = () => {
         let check = false;
         setError(error => ({ ...error, name: '', time: '', price: '' }));
 
-        if (input.name === null || input.name === '') {
+        if (input.name.trim() === null || input.name.trim() === '') {
             setError(error => ({ ...error, name: 'Vui lòng nhập tiêu đề' }));
             check = true;
         }
@@ -638,8 +637,9 @@ const EditMenu = () => {
             }
         })
         flattenNewProducts.forEach((item) => {
-            if (item.Price === null || item.Price === '' || item.Price === '0' || item.Price === 0 || parseFloat(item.Price.replace(/\D/g, "")) < 500) {
-                setError(error => ({ ...error, price: 'Vui lòng nhập giá trên 500 vnđ' }));
+            if (item.Price === null || item.Price === '' || item.Price === '0' 
+                || item.Price === 0 || parseFloat(item.Price.replace(/\D/g, "")) < 1000) {
+                setError(error => ({ ...error, price: 'Vui lòng nhập giá trên 1000 vnđ' }));
                 check = true;
             }
         })
@@ -670,7 +670,7 @@ const EditMenu = () => {
 
     const handleSetPrice = (id, value) => {
         setError(error => ({ ...error, price: '' }));
-        if (value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",").length + 1 <= 12) {
+        if (value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",").length + 1 <= 11) {
             let index = newProducts.findIndex((item) => item.Product.ProductId === id);
             let newArray = [...newProducts];
             newArray[index].Price = value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -686,7 +686,7 @@ const EditMenu = () => {
 
     const handleSetPriceRelated = (belongToId, id, value) => {
         setError(error => ({ ...error, price: '' }));
-        if (value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",").length + 1 <= 12) {
+        if (value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",").length + 1 <= 11) {
             let index = newProducts.findIndex((item) => item.Product.ProductId === belongToId);
             let childIndex = newProducts[index].RelatedProductInMenu.findIndex((item) => item.Product.ProductId === id);
             let newArray = [...newProducts];
@@ -779,12 +779,12 @@ const EditMenu = () => {
                 <MenuWrapper>
                     <Row spacebetween>
                         <FormLabel>Tiêu đề</FormLabel>
-                        <HelperText ml0 mt>{input.name.length}/250 kí tự</HelperText>
+                        <HelperText ml0 mt>{input.name.length}/100 kí tự</HelperText>
                     </Row>
 
                     <TextField
                         fullWidth size="small" placeholder="Ví dụ: Thịt cá các loại, đồ gia dụng, etc" 
-                        inputProps={{ maxLength: 250, style: {fontSize: 14} }}
+                        inputProps={{ maxLength: 100, style: {fontSize: 14} }}
                         value={menuLoading ? 'Đang tải...' : input.name} name='name'
                         onChange={handleChange}
                         error={error.name !== ''}

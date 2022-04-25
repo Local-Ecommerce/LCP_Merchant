@@ -415,15 +415,15 @@ const UserProfile = ({ refresh, toggleRefresh }) => {
         let check = false;
         setError(error => ({ ...error, password: '', confirmPassword: '', newPassword: '' }));
 
-        if (input.password === null || input.password === '') {
+        if (input.password.trim() === null || input.password.trim() === '') {
             setError(error => ({ ...error, password: 'Vui lòng không bỏ trống' }));
             check = true;
         }
-        if (input.confirmPassword === null || input.confirmPassword === '') {
+        if (input.confirmPassword.trim() === null || input.confirmPassword.trim() === '') {
             setError(error => ({ ...error, confirmPassword: 'Vui lòng không bỏ trống' }));
             check = true;
         }
-        if (input.confirmPassword !== input.password) {
+        if (input.confirmPassword.trim() !== input.password.trim()) {
             setError(error => ({ ...error, confirmPassword: 'Mật khẩu xác nhận không trùng khớp với mật khẩu' }));
             check = true;
         }
@@ -478,20 +478,20 @@ const UserProfile = ({ refresh, toggleRefresh }) => {
             dateOfBirth: ''
         }));
 
-        if (input.residentName === null || input.residentName === '') {
+        if (input.residentName.trim() === null || input.residentName.trim() === '') {
             setError(error => ({ ...error, residentName: 'Vui lòng không để trống tên' }));
             check = true;
         }
         let phonePattern = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
-        if (input.phoneNumber === null || input.phoneNumber === '' || !phonePattern.test(input.phoneNumber)) {
+        if (input.phoneNumber.trim() === null || input.phoneNumber.trim() === '' || !phonePattern.test(input.phoneNumber.trim())) {
             setError(error => ({ ...error, phoneNumber: 'Vui lòng nhập đúng chuẩn số điện thoại' }));
             check = true;
         }
-        if (input.deliveryAddress === null || input.deliveryAddress === '') {
+        if (input.deliveryAddress.trim() === null || input.deliveryAddress.trim() === '') {
             setError(error => ({ ...error, deliveryAddress: 'Vui lòng không để trống địa chỉ' }));
             check = true;
         }
-        if (input.dateOfBirth === null || input.dateOfBirth === '' 
+        if (input.dateOfBirth.trim() === null || input.dateOfBirth.trim() === '' 
             || DateTime.fromISO(input.dateOfBirth).toFormat('dd/MM/yyyy') === 'Invalid DateTime') {
             setError(error => ({ ...error, dateOfBirth: 'Vui lòng nhập định dạng ngày/tháng/năm' }));
             check = true;

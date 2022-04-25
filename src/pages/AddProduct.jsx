@@ -276,7 +276,8 @@ const AddProduct = () => {
     const handleSetPrice = (e) => {
         setError(error => ({ ...error, price: '' }));
         const { value } = e.target;
-        if (value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",").length + 1 <= 12) {
+
+        if (value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",").length + 1 <= 11) {
             setInput(input => ({ ...input, price: value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }));
         }
         if (input.applyBasePrice) {
@@ -291,11 +292,14 @@ const AddProduct = () => {
     const handleSetOptionPrice = (e, color, size, weight) => {
         setError(error => ({ ...error, optionPrice: '' }));
         const { value } = e.target;
-        let newCombination = [...combination];
-        let index = newCombination.findIndex(obj => obj.color === color && obj.size === size && obj.weight === weight);
-        let inputPrice = value.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        newCombination[index] = { color: color, size: size, weight: weight, price: inputPrice, error: '' };
-        setCombination(newCombination);
+
+        if (value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",").length + 1 <= 11) {
+            let newCombination = [...combination];
+            let index = newCombination.findIndex(obj => obj.color === color && obj.size === size && obj.weight === weight);
+            let inputPrice = value.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            newCombination[index] = { color: color, size: size, weight: weight, price: inputPrice, error: '' };
+            setCombination(newCombination);
+        };
     }
 
     useEffect(() => {
@@ -475,7 +479,7 @@ const AddProduct = () => {
         let check = false;
         setError(error => ({ ...error, name: '', colors: '', sizes: '', weights: '', category: '', price: '', optionPrice: '' }));
 
-        if (input.name === null || input.name === '') {
+        if (input.name.trim() === null || input.name.trim() === '') {
             setError(error => ({ ...error, name: 'Vui lòng nhập tên sản phẩm' }));
             check = true;
         }
@@ -483,8 +487,8 @@ const AddProduct = () => {
             setError(error => ({ ...error, category: 'Vui lòng chọn danh mục sản phẩm' }));
             check = true;
         }
-        if (input.price === null || input.price === '' || input.price < 500) {
-            setError(error => ({ ...error, price: 'Vui lòng nhập giá trên 500 vnđ' }));
+        if (input.price === null || input.price === '' || parseFloat(input.price.replace(/\D/g, "")) < 1000) {
+            setError(error => ({ ...error, price: 'Vui lòng nhập giá trên 1000 vnđ' }));
             check = true;
         }
         if (images[0].image === '') {
@@ -492,14 +496,14 @@ const AddProduct = () => {
             check = true;
         }
         combination.forEach((item) => {
-            if (item.price === '' || item.price === null || item.price < 500) {
+            if (item.price === '' || item.price === null || parseFloat(item.price.replace(/\D/g, "")) < 1000) {
                 let newCombination = [...combination];
                 let index = newCombination.findIndex(obj => obj.color === item.color && obj.size === item.size && obj.weight === item.weight);
-                let error = "Vui lòng không để trống tùy chọn";
+                let error = "Vui lòng nhập giá tùy chọn trên 1000 vnđ";
                 newCombination[index] = { color: item.color, size: item.size, weight: item.weight, price: item.price, error: error };
                 setCombination(newCombination);
 
-                setError(error => ({ ...error, optionPrice: 'Vui lòng nhập giá tùy chọn trên 500 vnđ' }));
+                setError(error => ({ ...error, optionPrice: 'Vui lòng nhập giá tùy chọn trên 1000 vnđ' }));
                 check = true;
             }
         })
