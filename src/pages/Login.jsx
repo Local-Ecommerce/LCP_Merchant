@@ -1,9 +1,10 @@
 import styled from "styled-components";
 import React, { useState } from 'react';
 import { api } from "../RequestMethod";
-import { TextField } from '@mui/material';
+import { DateTime } from 'luxon';
 import { useNavigate } from 'react-router-dom';
-import { CircularProgress } from '@mui/material';
+import { useAuth } from "../contexts/AuthContext";
+import { TextField, CircularProgress } from '@mui/material';
 
 import { auth } from "../firebase";
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
@@ -121,6 +122,7 @@ const Button = styled.button`
 
 const Login = () => {
     let navigate = useNavigate();
+    const { timer, extendSession } = useAuth();
 
     const [loading, setLoading] = useState(false);
     const [toggle, setToggle] = useState(false);
@@ -163,6 +165,9 @@ const Login = () => {
                         localStorage.setItem('ACCESS_TOKEN', res.data.Data.RefreshTokens[0].AccessToken);
                         localStorage.setItem('REFRESH_TOKEN', res.data.Data.RefreshTokens[0].Token);
                         localStorage.setItem('EXPIRED_TIME', res.data.Data.RefreshTokens[0].AccessTokenExpiredDate);
+                        timer.current = setTimeout(() => {
+                            extendSession();
+                        }, DateTime.fromISO(res.data.Data.RefreshTokens[0].AccessTokenExpiredDate).diffNow().toObject().milliseconds);
                         navigate("/");
                     } else {
                         setError("Tài khoản hoặc mật khẩu không hợp lệ. Vui lòng thử lại.");
@@ -205,12 +210,12 @@ const Login = () => {
         let pattern= /[^@\s]+@[^@\s]+\.[^@\s]+/;
         
         if (toggle === false) { //login
-            if (input.email === null || input.email === '' || !pattern.test(input.email)) {
+            if (input.email.trim() === null || input.email.trim() === '' || !pattern.test(input.email.trim())) {
                 setError('Vui lòng nhập đúng chuẩn email');
                 check = true;
             }
         } else {
-            if (input.forgetEmail === null || input.forgetEmail === '' || !pattern.test(input.forgetEmail)) {
+            if (input.forgetEmail.trim() === null || input.forgetEmail.trim() === '' || !pattern.test(input.forgetEmail.trim())) {
                 setError('Vui lòng nhập đúng chuẩn email');
                 check = true;
             }
@@ -225,7 +230,8 @@ const Login = () => {
 
     return (
         <PageWrapper>
-            <BackgroundImage src="https://media.istockphoto.com/photos/old-messy-bad-condition-apartment-in-chua-boc-street-hanoi-picture-id641835106"></BackgroundImage>
+            <BackgroundImage src="images/background.png"></BackgroundImage>
+
             <LoginFormContainer>
                 {
                     !toggle ?

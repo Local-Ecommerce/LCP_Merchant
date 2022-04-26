@@ -639,8 +639,6 @@ const Product = () =>  {
         toggleDeleteModal();
     };
 
-    
-
     return (
         <PageWrapper>
             {

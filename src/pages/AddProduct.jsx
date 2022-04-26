@@ -487,7 +487,7 @@ const AddProduct = () => {
             setError(error => ({ ...error, category: 'Vui lòng chọn danh mục sản phẩm' }));
             check = true;
         }
-        if (input.price === null || input.price === '' || parseFloat(input.price.replace(/\D/g, "")) < 1000) {
+        if (input.price.trim() === null || input.price.trim() === '' || parseFloat(input.price.trim().replace(/\D/g, "")) < 1000) {
             setError(error => ({ ...error, price: 'Vui lòng nhập giá trên 1000 vnđ' }));
             check = true;
         }
@@ -496,7 +496,7 @@ const AddProduct = () => {
             check = true;
         }
         combination.forEach((item) => {
-            if (item.price === '' || item.price === null || parseFloat(item.price.replace(/\D/g, "")) < 1000) {
+            if (item.price.trim() === '' || item.price.trim() === null || parseFloat(item.price.trim().replace(/\D/g, "")) < 1000) {
                 let newCombination = [...combination];
                 let index = newCombination.findIndex(obj => obj.color === item.color && obj.size === item.size && obj.weight === item.weight);
                 let error = "Vui lòng nhập giá tùy chọn trên 1000 vnđ";

@@ -516,7 +516,7 @@ const EditProduct = () => {
     const handleEditItem = (event) => {
         event.preventDefault();
 
-        if (checkValid()) {
+        if (validCheck()) {
             setLoading(true);
 
             const combinationDifference = currentCombination.filter(
@@ -623,7 +623,7 @@ const EditProduct = () => {
         }
     }
 
-    const checkValid = () => {
+    const validCheck = () => {
         let check = false;
         setError(error => ({ ...error, name: '', colors: '', sizes: '', weights: '', category: '', price: '', optionPrice: '' }));
 

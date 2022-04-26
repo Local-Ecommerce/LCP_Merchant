@@ -294,8 +294,8 @@ const StoreDetail = () => {
         let check = false;
         setError(error => ({ ...error, name: '' }));
 
-        if (input.name === null || input.name === '') {
-            setError(error => ({ ...error, name: 'Vui lòng nhập tên' }));
+        if (input.name.trim() === null || input.name.trim() === '') {
+            setError(error => ({ ...error, name: 'Vui lòng nhập tên cửa hàng' }));
             check = true;
         }
 

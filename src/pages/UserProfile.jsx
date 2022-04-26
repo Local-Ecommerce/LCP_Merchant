@@ -491,7 +491,7 @@ const UserProfile = ({ refresh, toggleRefresh }) => {
             setError(error => ({ ...error, deliveryAddress: 'Vui lòng không để trống địa chỉ' }));
             check = true;
         }
-        if (input.dateOfBirth.trim() === null || input.dateOfBirth.trim() === '' 
+        if (input.dateOfBirth === null || input.dateOfBirth === '' 
             || DateTime.fromISO(input.dateOfBirth).toFormat('dd/MM/yyyy') === 'Invalid DateTime') {
             setError(error => ({ ...error, dateOfBirth: 'Vui lòng nhập định dạng ngày/tháng/năm' }));
             check = true;
