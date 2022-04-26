@@ -334,13 +334,6 @@ const UserProfile = ({ refresh, toggleRefresh }) => {
     }
 
     const handleToggleEditable = () => {
-        if (editable) { 
-            setInput({ 
-                name: '', 
-                image: '', 
-                gender: 'Nam' 
-            }) 
-        };
         setEditable(!editable);
     }
 
