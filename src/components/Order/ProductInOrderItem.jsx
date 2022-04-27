@@ -80,7 +80,7 @@ const ProductInOrderItem = ({ item }) =>  {
         + (item.Product.Color && (item.Product.Size || item.Product.Weight) ? " / " : '')
         + (item.Product.Size ? item.Product.Size : '')
         + (item.Product.Size && item.Product.Weight ? " / " : '')
-        + (item.Product.weight ? item.Product.Weight + "kg " : '');
+        + (item.Product.Weight ? item.Product.Weight + "kg " : '');
 
     return (
         <ContainerWrapper>
