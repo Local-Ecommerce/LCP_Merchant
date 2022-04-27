@@ -70,11 +70,11 @@ const Option = styled.div`
 `;
 
 const ProductInOrderItem = ({ item }) =>  {
-
+    
     if (item === 0) {
         return null;
     }
-
+    console.log(item);
     let option = 
           (item.Product.Color ? item.Product.Color : '')
         + (item.Product.Color && (item.Product.Size || item.Product.Weight) ? " / " : '')
