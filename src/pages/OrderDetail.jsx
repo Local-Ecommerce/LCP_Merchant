@@ -414,23 +414,7 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
                     <PaymentLabel>Thanh toán</PaymentLabel>
 
                     {
-                        !loading && payment && payment.PaymentMethodId === Constant.PAYMENT_CASH ?
-                        <PaymentWrapper>
-                            <Row mb>
-                                <StyledNoCreditIcon />
-                                <PaymentText mb0>Trực tiếp khi nhận hàng</PaymentText>
-                            </Row>
-                            <PaymentText>
-                                <Grey>Số tiền:</Grey> 
-                                {payment.PaymentAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
-                            </PaymentText>
-                            <PaymentText>
-                                <Grey>Thời gian:</Grey>
-                                {DateTime.fromISO(payment.DateTime).toFormat('dd/MM/yyyy t')}
-                            </PaymentText>
-                        </PaymentWrapper>
-
-                        : !loading && payment && payment.PaymentMethodId === Constant.PAYMENT_MOMO ?
+                        !loading && payment && payment.PaymentMethodId === Constant.PAYMENT_MOMO ?
                         <PaymentWrapper mt>
                             <Row mb>
                                 <StyledCreditIcon />
@@ -445,7 +429,21 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
                                 {DateTime.fromISO(payment.DateTime).toFormat('dd/MM/yyyy t')}
                             </PaymentText>
                         </PaymentWrapper>
-                        : null
+                        :
+                        <PaymentWrapper>
+                            <Row mb>
+                                <StyledNoCreditIcon />
+                                <PaymentText mb0>Trực tiếp khi nhận hàng</PaymentText>
+                            </Row>
+                            <PaymentText>
+                                <Grey>Số tiền:</Grey> 
+                                {payment.PaymentAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
+                            </PaymentText>
+                            <PaymentText>
+                                <Grey>Thời gian:</Grey>
+                                {DateTime.fromISO(payment.DateTime).toFormat('dd/MM/yyyy t')}
+                            </PaymentText>
+                        </PaymentWrapper>
                     }
                 </RightWrapper>
             </FlexWrapper>
