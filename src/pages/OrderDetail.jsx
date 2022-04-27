@@ -422,7 +422,7 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
                             </Row>
                             <PaymentText>
                                 <Grey>Số tiền:</Grey> 
-                                {payment.PaymentAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
+                                {loading ? '' : payment.PaymentAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
                             </PaymentText>
                             <PaymentText>
                                 <Grey>Thời gian:</Grey>
@@ -437,7 +437,7 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
                             </Row>
                             <PaymentText>
                                 <Grey>Số tiền:</Grey> 
-                                {payment.PaymentAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
+                                {loading ? '' : payment.PaymentAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
                             </PaymentText>
                             <PaymentText>
                                 <Grey>Thời gian:</Grey>
