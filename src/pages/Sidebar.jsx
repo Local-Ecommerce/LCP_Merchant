@@ -93,10 +93,11 @@ const Sidebar = ({ refresh, toggleRefresh }) => {
                         + "&sort=-createddate"
                         + "&include=product"
                         + "&include=resident"
+                        + "&include=payment"
                         + "&status=" + Constant.OPEN;
                     api.get(url)
                     .then(function (res3) {
-                        setOpenOrder(res3.data.Data.List.length);
+                        setOpenOrder(res3.data.Data.List.filter(item => item.Payments[0]).length);
                     })
                 })
             })
