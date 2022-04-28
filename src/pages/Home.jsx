@@ -274,7 +274,8 @@ const Home = () => {
                                     TimeEndMillis: item.TimeEnd !== '23:59:59' ? 
                                     milliseconds(item.TimeEnd.split(":")[0], item.TimeEnd.split(":")[1], 0)
                                     : milliseconds(24, 0, 0),
-                                    Status: item.Status
+                                    Status: item.Status,
+                                    Focus: true
                                 });
                             })
                         }

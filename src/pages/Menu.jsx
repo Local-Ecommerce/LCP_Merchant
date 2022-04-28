@@ -446,6 +446,7 @@ const StyledListIcon = styled(FormatListBulleted)`
         border: 1px solid rgba(0,0,0,0.1);
         color: ${props => props.active ? props.theme.black : "rgba(0,0,0,0.2)"};
         background-color: ${props => props.active ? "rgba(0,0,0,0.1)" : null};
+        cursor: pointer;
     }
 `;
 
@@ -455,7 +456,8 @@ const StyledCalendarIcon = styled(CalendarToday)`
         padding: 8px;
         border: 1px solid rgba(0,0,0,0.1);
         color: ${props => props.active ? props.theme.black : "rgba(0,0,0,0.2)"};
-        background-color: ${props => props.active ? "rgba(0,0,0,0.1)" : null};
+        background-color: ${props => props.active ? "rgba(0,0,0,0.1)" : null}; 
+        cursor: pointer;
     }
 `;
 
@@ -557,7 +559,8 @@ const Menu = () =>  {
                                     TimeEndMillis: item.TimeEnd !== '23:59:59' ? 
                                     milliseconds(item.TimeEnd.split(":")[0], item.TimeEnd.split(":")[1], 0)
                                     : milliseconds(24, 0, 0),
-                                    Status: item.Status
+                                    Status: item.Status,
+                                    Focus: true
                                 });
                             })
                         }

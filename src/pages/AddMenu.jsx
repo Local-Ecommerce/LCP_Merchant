@@ -3,11 +3,15 @@ import styled from 'styled-components';
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
-import { KeyboardBackspace, ArrowRight } from '@mui/icons-material';
+import { KeyboardBackspace, ArrowRight, CalendarToday } from '@mui/icons-material';
 import { TextField, Checkbox, FormControlLabel } from '@mui/material';
 import { MobileTimePicker, LocalizationProvider } from '@mui/lab';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import { DateTime } from 'luxon';
+import Modal from 'react-modal';
+import * as Constant from '../Constant';
+
+import MenuSchedule from '../components/Menu/MenuSchedule';
 
 const PageWrapper = styled.div`
     width: 720px;
@@ -46,6 +50,7 @@ const ContainerWrapper = styled.div`
     box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
     background-color: #fff;
     border-radius: 5px;
+    position: ${props => props.relative ? "relative" : null};
 `;
 
 const DatePickerWrapper = styled.div`
@@ -133,9 +138,83 @@ const StyledFormControlLabel = styled(FormControlLabel)`
     }
 `;
 
+const StyledCalendarIcon = styled(CalendarToday)`
+    && {
+        font-size: 20px;
+        padding: 8px;
+        border: 1px solid rgba(0,0,0,0.1);
+        color: ${props => props.theme.black};
+        background-color: ${props => props.theme.white};
+        box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
+        cursor: pointer;
+
+        position: absolute;
+        left: -50px;
+        top: 20px;
+    }
+`;
+
+const ModalWrapper = styled.div`
+`;
+
+const ModalContentWrapper = styled.div`
+    min-height: 200px;
+    max-height: 80vh;
+    overflow-y: auto;
+`;
+
+const ModalButtonWrapper = styled.div`
+    border-top: 1px solid #cfd2d4;
+    padding: 20px;
+    display: flex;
+    justify-content: flex-end;
+`;
+
+const ModalButton = styled.button`
+    min-width: 80px;
+    padding: 10px;
+    margin-left: 10px;
+    background: ${props => props.red ? props.theme.red : props.blue ? props.theme.blue : props.theme.white};
+    color: ${props => props.red || props.blue ? props.theme.white : props.theme.grey};
+    border: 1px solid ${props => props.red ? props.theme.red : props.blue ? props.theme.blue : props.theme.greyBorder};
+    border-radius: 4px;
+    text-align: center;
+    font-size: 1rem;
+    font-size: 14px;
+    font-weight: 600;
+
+    &:hover {
+    opacity: 0.8;
+    }
+
+    &:focus {
+    outline: 0;
+    }
+
+    &:active {
+    transform: translateY(1px);
+    }
+`;
+
+const customStyles = {
+    content: {
+        top: '50%',
+        left: '50%',
+        right: '20%',
+        bottom: 'auto',
+        marginRight: '-50%',
+        transform: 'translate(-50%, -50%)',
+        padding: '0px',
+    },
+};
+
 const AddMenu = () => {
     let navigate = useNavigate();
     const [storeId, setStoreId] = useState('');
+
+    const [modal, setModal] = useState(false);
+    const toggleModal = () => { setModal(!modal) };
+    const [menuSchedule, setMenuSchedule] = useState([]);
 
     const [input, setInput] = useState({ 
         name: '', 
@@ -155,6 +234,47 @@ const AddMenu = () => {
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
                     setStoreId(res.data.Data.List[0].MerchantStoreId);
+
+                    api.get("menus?status=" + Constant.ACTIVE_MENU)
+                    .then(function (res2) {
+                        let array = [];
+    
+                        res2.data.Data.List.forEach(item => {
+                            if (!item.BaseMenu) {
+                                let repeatDate = item.RepeatDate;
+                                if (repeatDate.includes('0')) {
+                                    repeatDate = repeatDate.substr(1) + '7';
+                                }
+    
+                                let repeatDateArray = [];
+                                for (var i = 0; i < repeatDate.length; i++) {
+                                    let string = repeatDate.charAt(i);
+                                    if (repeatDateArray.length && repeatDateArray[repeatDateArray.length - 1].includes(parseInt(string) - 1)) {
+                                        repeatDateArray[repeatDateArray.length - 1] = repeatDateArray[repeatDateArray.length - 1] + string;
+                                    } else {
+                                        repeatDateArray.push(string);
+                                    }
+                                }
+    
+                                repeatDateArray.forEach(date => {
+                                    array.push({
+                                        MenuId: item.MenuId,
+                                        MenuName: item.MenuName,
+                                        RepeatDate: date, 
+                                        TimeStart: item.TimeStart.slice(0,5),
+                                        TimeEnd: item.TimeEnd !== '23:59:59' ? item.TimeEnd.slice(0,5) : '24:00',
+                                        TimeStartMillis: milliseconds(item.TimeStart.split(":")[0], item.TimeStart.split(":")[1], 0), 
+                                        TimeEndMillis: item.TimeEnd !== '23:59:59' ? 
+                                        milliseconds(item.TimeEnd.split(":")[0], item.TimeEnd.split(":")[1], 0)
+                                        : milliseconds(24, 0, 0),
+                                        Status: item.Status,
+                                        Focus: true
+                                    });
+                                })
+                            }
+                        })
+                        setMenuSchedule(array);
+                    })
                 }
             })
             .catch(function (error) {
@@ -163,6 +283,8 @@ const AddMenu = () => {
         }
         fetchData();
     }, []);
+
+    const milliseconds = (h, m, s) => ((h*60*60+m*60+s)*1000);
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -225,8 +347,11 @@ const AddMenu = () => {
                     }
                 })
                 .catch(function (error) {
-                    console.log(error);
-                    toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
+                    if (error.response.data.ResultMessage) {
+                        toast.update(notification, { render: error.response.data.ResultMessage, type: "error", autoClose: 5000, isLoading: false });
+                    } else {
+                        toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
+                    }
                 });
             };
             addData();
@@ -343,7 +468,9 @@ const AddMenu = () => {
                     <HelperText error>{error.repeatDay}</HelperText>
                 </ContainerWrapper>
 
-                <ContainerWrapper>
+                <ContainerWrapper relative={1}>
+                    <StyledCalendarIcon onClick={toggleModal} />
+
                     <FormLabel>Thời gian hoạt động</FormLabel>
                     <StyledFormControlLabel 
                         style={{ pointerEvents: "none" }}
@@ -362,7 +489,7 @@ const AddMenu = () => {
                             <MobileTimePicker
                                 minutesStep={15} disableCloseOnSelect={false} showToolbar={false}
                                 disabled={twentyfour ? true : false} ampm={false}
-                                label={twentyfour ? "00:00:00" : "Thời gian bắt đầu"}
+                                label={twentyfour && !modal ? "00:00" : !modal ? "Thời gian bắt đầu" : ''}
                                 value={twentyfour ? null :input.startTime}
                                 onChange={time => handleChange({ target: { value: time.toISOString(), name: 'startTime' } })} 
                                 renderInput={(params) => <TextField disabled {...params} error={error.time !== ''} helperText={error.time} />} 
@@ -373,7 +500,7 @@ const AddMenu = () => {
                             <MobileTimePicker
                                 minutesStep={15} disableCloseOnSelect={false} showToolbar={false}
                                 disabled={twentyfour ? true : false} ampm={false}
-                                label={twentyfour ? "00:00:00" : "Thời gian kết thúc"}
+                                label={twentyfour && !modal ? "24:00" : !modal ? "Thời gian kết thúc" : ''}
                                 value={twentyfour ? null :input.endTime}
                                 onChange={time => handleChange({ target: { value: time.toISOString(), name: 'endTime' } })} 
                                 renderInput={(params) => <TextField disabled {...params} error={error.time !== ''} helperText={error.time} />} 
@@ -388,6 +515,18 @@ const AddMenu = () => {
                     </FloatRight>
                 </FooterWrapper>
             </form>
+
+            <Modal isOpen={modal} onRequestClose={toggleModal} style={customStyles} ariaHideApp={false}>
+                <ModalWrapper>
+                    <ModalContentWrapper>
+                        <MenuSchedule menuSchedule={menuSchedule} />
+                    </ModalContentWrapper>
+
+                    <ModalButtonWrapper>
+                        <ModalButton onClick={toggleModal}>Quay lại</ModalButton>
+                    </ModalButtonWrapper>
+                </ModalWrapper>
+            </Modal>
         </PageWrapper>
     )
 }

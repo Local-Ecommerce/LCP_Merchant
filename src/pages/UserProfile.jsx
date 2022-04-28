@@ -416,12 +416,13 @@ const UserProfile = ({ refresh, toggleRefresh }) => {
             setError(error => ({ ...error, confirmPassword: 'Vui lòng không bỏ trống' }));
             check = true;
         }
-        if (input.confirmPassword.trim() !== input.password.trim()) {
-            setError(error => ({ ...error, confirmPassword: 'Mật khẩu xác nhận không trùng khớp với mật khẩu' }));
+        let passwordPattern = /^[a-zA-Z0-9!@#$%^&*()]+$/;
+        if (input.newPassword.trim().length < 6 || !passwordPattern.test(input.newPassword.trim())) {
+            setError(error => ({ ...error, newPassword: 'Mật khẩu phải bao gồm ít nhất 6 kí tự và không chứa dấu cách' }));
             check = true;
         }
-        if (input.newPassword.length < 6) {
-            setError(error => ({ ...error, newPassword: 'Mật khẩu phải bao gồm ít nhất 6 kí tự' }));
+        if (input.confirmPassword.trim() !== input.newPassword.trim()) {
+            setError(error => ({ ...error, confirmPassword: 'Mật khẩu xác nhận không trùng khớp với mật khẩu mới' }));
             check = true;
         }
 
@@ -533,21 +534,6 @@ const UserProfile = ({ refresh, toggleRefresh }) => {
 						<>
 							<InputWrapper>
 								<Row spacebetween>
-									<FieldLabel>Xác nhận mật khẩu</FieldLabel>
-									<HelperText ml0>{input.confirmPassword.length}/20 kí tự</HelperText>
-								</Row>
-
-								<TextField
-									disabled={!editPassword} maxLength={20}
-									type="password" value={loading ? "Đang tải..." : input.confirmPassword} name='confirmPassword'
-									onChange={handleChange}
-									error={error.confirmPassword !== ''}
-								/>
-								<HelperText error>{error.confirmPassword}</HelperText>
-							</InputWrapper>
-
-							<InputWrapper pb>
-								<Row spacebetween>
 									<FieldLabel>Mật khẩu mới</FieldLabel>
 									<HelperText ml0>{input.newPassword.length}/20 kí tự</HelperText>
 								</Row>
@@ -559,6 +545,21 @@ const UserProfile = ({ refresh, toggleRefresh }) => {
 									error={error.newPassword !== ''}
 								/>
 								<HelperText error>{error.newPassword}</HelperText>
+							</InputWrapper>
+
+                            <InputWrapper pb>
+								<Row spacebetween>
+									<FieldLabel>Xác nhận mật khẩu</FieldLabel>
+									<HelperText ml0>{input.confirmPassword.length}/20 kí tự</HelperText>
+								</Row>
+
+								<TextField
+									disabled={!editPassword} maxLength={20}
+									type="password" value={loading ? "Đang tải..." : input.confirmPassword} name='confirmPassword'
+									onChange={handleChange}
+									error={error.confirmPassword !== ''}
+								/>
+								<HelperText error>{error.confirmPassword}</HelperText>
 							</InputWrapper>
 						</>
 						: null

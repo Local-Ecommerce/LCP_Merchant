@@ -5,16 +5,18 @@ import styled from 'styled-components';
 import { Link, useParams } from "react-router-dom";
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
-import { KeyboardBackspace, ArrowRight, Search, AddBox } from '@mui/icons-material';
+import { KeyboardBackspace, ArrowRight, Search, AddBox, CalendarToday } from '@mui/icons-material';
 import { TextField, CircularProgress, Checkbox, FormControlLabel } from '@mui/material';
 import { MobileTimePicker, LocalizationProvider } from '@mui/lab';
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import { DateTime } from 'luxon';
+import Modal from 'react-modal';
 import * as Constant from '../Constant';
 
 import AddItemModal from '../components/Menu/AddItemModal';
 import ConfirmModal from '../components/Menu/ConfirmModal';
 import ProductInMenuList from '../components/Menu/ProductInMenuList';
+import MenuSchedule from '../components/Menu/MenuSchedule';
 
 const PageWrapper = styled.form`
     min-width: 720px;
@@ -310,12 +312,85 @@ const DangerText = styled.div`
     font-size: 14px;
 `;
 
+const StyledCalendarIcon = styled(CalendarToday)`
+    && {
+        font-size: 16px;
+        padding: 8px;
+        border: 1px solid rgba(0,0,0,0.2);
+        color: ${props => props.theme.black};
+        background-color: ${props => props.theme.white};
+        cursor: pointer;
+        margin: 30px 0px 0px 0px;
+
+        &:hover {
+            background-color: ${props => props.theme.hover};
+        }
+    }
+`;
+
+const ModalWrapper = styled.div`
+`;
+
+const ModalContentWrapper = styled.div`
+    min-height: 200px;
+    max-height: 80vh;
+    overflow-y: auto;
+`;
+
+const ModalButtonWrapper = styled.div`
+    border-top: 1px solid #cfd2d4;
+    padding: 20px;
+    display: flex;
+    justify-content: flex-end;
+`;
+
+const ModalButton = styled.button`
+    min-width: 80px;
+    padding: 10px;
+    margin-left: 10px;
+    background: ${props => props.red ? props.theme.red : props.blue ? props.theme.blue : props.theme.white};
+    color: ${props => props.red || props.blue ? props.theme.white : props.theme.grey};
+    border: 1px solid ${props => props.red ? props.theme.red : props.blue ? props.theme.blue : props.theme.greyBorder};
+    border-radius: 4px;
+    text-align: center;
+    font-size: 1rem;
+    font-size: 14px;
+    font-weight: 600;
+
+    &:hover {
+    opacity: 0.8;
+    }
+
+    &:focus {
+    outline: 0;
+    }
+
+    &:active {
+    transform: translateY(1px);
+    }
+`;
+
+const customStyles = {
+    content: {
+        top: '50%',
+        left: '50%',
+        right: '20%',
+        bottom: 'auto',
+        marginRight: '-50%',
+        transform: 'translate(-50%, -50%)',
+        padding: '0px',
+    },
+};
+
 const EditMenu = () => {
     const { id } = useParams();
     const [confirmModal, setConfirmModal] = useState(false);
     const toggleConfirmModal = () => { setConfirmModal(!confirmModal); }
     const [addItemModal, setAddItemModal] = useState(false);
     const toggleAddItemModal = () => { setAddItemModal(!addItemModal); }
+    const [menuModal, setMenuModal] = useState(false);
+    const toggleMenuModal = () => { setMenuModal(!menuModal) };
+    const [menuSchedule, setMenuSchedule] = useState([]);
 
     const [menu, setMenu] = useState([]);
     const [products, setProducts] = useState([]);
@@ -368,7 +443,48 @@ const EditMenu = () => {
                         && res.data.Data.List[0].TimeEnd === '23:59:59' ?
                         true : false
                     );
-                    setMenuLoading(false);
+
+                    api.get("menus?status=" + Constant.ACTIVE_MENU)
+                    .then(function (res1) {
+                        let array = [];
+    
+                        res1.data.Data.List.forEach(item => {
+                            if (!item.BaseMenu) {
+                                let repeatDate = item.RepeatDate;
+                                if (repeatDate.includes('0')) {
+                                    repeatDate = repeatDate.substr(1) + '7';
+                                }
+    
+                                let repeatDateArray = [];
+                                for (var i = 0; i < repeatDate.length; i++) {
+                                    let string = repeatDate.charAt(i);
+                                    if (repeatDateArray.length && repeatDateArray[repeatDateArray.length - 1].includes(parseInt(string) - 1)) {
+                                        repeatDateArray[repeatDateArray.length - 1] = repeatDateArray[repeatDateArray.length - 1] + string;
+                                    } else {
+                                        repeatDateArray.push(string);
+                                    }
+                                }
+    
+                                repeatDateArray.forEach(date => {
+                                    array.push({
+                                        MenuId: item.MenuId,
+                                        MenuName: item.MenuName,
+                                        RepeatDate: date, 
+                                        TimeStart: item.TimeStart.slice(0,5),
+                                        TimeEnd: item.TimeEnd !== '23:59:59' ? item.TimeEnd.slice(0,5) : '24:00',
+                                        TimeStartMillis: milliseconds(item.TimeStart.split(":")[0], item.TimeStart.split(":")[1], 0), 
+                                        TimeEndMillis: item.TimeEnd !== '23:59:59' ? 
+                                        milliseconds(item.TimeEnd.split(":")[0], item.TimeEnd.split(":")[1], 0)
+                                        : milliseconds(24, 0, 0),
+                                        Status: item.Status,
+                                        Focus: item.MenuId === id ? true : false
+                                    });
+                                })
+                            }
+                        })
+                        setMenuSchedule(array);
+                        setMenuLoading(false);
+                    })
 
                     let url2 = "menu-products" 
                         + "?menuid=" + id
@@ -446,6 +562,8 @@ const EditMenu = () => {
         }
         fetchData();
     }, [change]);
+
+    const milliseconds = (h, m, s) => ((h*60*60+m*60+s)*1000);
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -545,21 +663,7 @@ const EditMenu = () => {
                 || menu.IncludeBaseMenu !== input.includeBaseMenu
                 || (twentyfour && (menu.TimeStart !== '00:00:00' || menu.TimeEnd !== '23:59:59'))
             ) {
-                APIarray.push(api.put("menus?id=" + id, {
-                    menuName: input.name,
-                    menuDescription: input.description,
-                    timeStart: twentyfour ? '00:00:00' : DateTime.fromISO(input.startTime).toFormat('TT'),
-                    timeEnd: twentyfour || DateTime.fromISO(input.endTime).toFormat('TT') === '00:00:00' ?
-                            '23:59:59': DateTime.fromISO(input.endTime).toFormat('TT'),
-                    repeatDate: (repeatDay.cn ? '0' : '')
-                                + (repeatDay.t2 ? '1' : '') 
-                                + (repeatDay.t3 ? '2' : '') 
-                                + (repeatDay.t4 ? '3' : '') 
-                                + (repeatDay.t5 ? '4' : '') 
-                                + (repeatDay.t6 ? '5' : '') 
-                                + (repeatDay.t7 ? '6' : ''),
-                    includeBaseMenu: input.includeBaseMenu,
-                }));
+                APIarray.push();
             }
             if (deleteArray.length) {
                 APIarray.push(api.delete("menu-products", {
@@ -578,19 +682,35 @@ const EditMenu = () => {
             }
 
             const notification = toast.loading("Đang xử lí yêu cầu...");
-            if (APIarray.length) {
-                Promise.all(APIarray)
-                .then(function (results) {
-                    setChange(!change);
-                    toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
-                })
-                .catch(function (error) {
-                    console.log(error);
+            api.put("menus?id=" + id, {
+                menuName: input.name,
+                menuDescription: input.description,
+                timeStart: twentyfour ? '00:00:00' : DateTime.fromISO(input.startTime).toFormat('TT'),
+                timeEnd: twentyfour || DateTime.fromISO(input.endTime).toFormat('TT') === '00:00:00' ?
+                        '23:59:59': DateTime.fromISO(input.endTime).toFormat('TT'),
+                repeatDate: (repeatDay.cn ? '0' : '')
+                            + (repeatDay.t2 ? '1' : '') 
+                            + (repeatDay.t3 ? '2' : '') 
+                            + (repeatDay.t4 ? '3' : '') 
+                            + (repeatDay.t5 ? '4' : '') 
+                            + (repeatDay.t6 ? '5' : '') 
+                            + (repeatDay.t7 ? '6' : ''),
+                includeBaseMenu: input.includeBaseMenu,
+            })
+            .then(function (results) {
+                if (APIarray.length) {
+                    Promise.all(APIarray)
+                }
+                setChange(!change);
+                toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
+            })
+            .catch(function (error) {
+                if (error.response.data.ResultMessage) {
+                    toast.update(notification, { render: error.response.data.ResultMessage, type: "error", autoClose: 5000, isLoading: false });
+                } else {
                     toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
-                });
-            } else {
-                toast.update(notification, { render: "Vui lòng chỉnh sửa bảng giá trước khi chọn cập nhật.", type: "info", autoClose: 5000, isLoading: false });
-            }
+                }
+            });
             toggleConfirmModal();
         }
     }
@@ -825,7 +945,10 @@ const EditMenu = () => {
                         <WeekDayCheckbox type="button" checked={repeatDay.cn} name='cn' onClick={handleToggleDate}>CN</WeekDayCheckbox>
                     </DatePickerWrapper>
 
-                    <FormLabel>Thời gian hoạt động</FormLabel>
+                    <SpaceBetween>
+                        <FormLabel>Thời gian hoạt động</FormLabel>
+                        <StyledCalendarIcon onClick={toggleMenuModal} />
+                    </SpaceBetween>
 
                     <FormControlLabel 
                         style={{ pointerEvents: "none" }}
@@ -844,7 +967,7 @@ const EditMenu = () => {
                             <MobileTimePicker
                                 minutesStep={15} disableCloseOnSelect={false} showToolbar={false}
                                 disabled={twentyfour ? true : false} ampm={false}
-                                label={twentyfour ? "00:00:00" : "Thời gian bắt đầu"}
+                                label={twentyfour && !menuModal ? "00:00" : !menuModal ? "Thời gian bắt đầu" : ''}
                                 value={twentyfour ? null : input.startTime}
                                 onChange={time => handleChange({ target: { value: time.toISOString(), name: 'startTime' } })} 
                                 renderInput={(params) => <TextField {...params} error={error.time !== ''} helperText={error.time} />} 
@@ -855,7 +978,7 @@ const EditMenu = () => {
                             <MobileTimePicker
                                 minutesStep={15} disableCloseOnSelect={false} showToolbar={false}
                                 disabled={twentyfour ? true : false} ampm={false}
-                                label={twentyfour ? "00:00:00" : "Thời gian kết thúc"}
+                                label={twentyfour && !menuModal ? "24:00" : !menuModal ? "Thời gian kết thúc" : ''}
                                 value={twentyfour ? null : input.endTime}
                                 onChange={time => handleChange({ target: { value: time.toISOString(), name: 'endTime' } })} 
                                 renderInput={(params) => <TextField {...params} error={error.time !== ''} helperText={error.time} />} 
@@ -870,6 +993,18 @@ const EditMenu = () => {
                     <Button type="button" onClick={validCheckBeforeConfirm}>Cập nhật</Button>
                 </FloatRight>
             </FooterWrapper>
+
+            <Modal isOpen={menuModal} onRequestClose={toggleMenuModal} style={customStyles} ariaHideApp={false}>
+                <ModalWrapper>
+                    <ModalContentWrapper>
+                        <MenuSchedule menuSchedule={menuSchedule} />
+                    </ModalContentWrapper>
+
+                    <ModalButtonWrapper>
+                        <ModalButton onClick={toggleMenuModal}>Quay lại</ModalButton>
+                    </ModalButtonWrapper>
+                </ModalWrapper>
+            </Modal>
 
             <AddItemModal 
                 display={addItemModal} 

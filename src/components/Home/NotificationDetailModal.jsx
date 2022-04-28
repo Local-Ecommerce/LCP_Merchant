@@ -118,6 +118,7 @@ const Date = styled.div`
 
 const Text = styled.div`
     font-size: 16px;
+    white-space: pre-wrap;
 `;
 
 const DetailModal = ({ display, toggle, detailItem }) => {

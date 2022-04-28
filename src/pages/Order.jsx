@@ -325,11 +325,12 @@ const Order = () =>  {
                 + "&sort=-createddate"
                 + "&include=product"
                 + "&include=resident"
+                + "&include=payment"
                 + (status !== '' ? ("&status=" + status) : '')
                 + (search !== '' ? ("&search=" + search) : '');
             api.get(url)
             .then(function (res) {
-                setAPIdata(res.data.Data.List);
+                setAPIdata(res.data.Data.List.filter(item => item.Payments[0]));
                 setTotal(res.data.Data.Total);
                 setLastPage(res.data.Data.LastPage);
                 if (orderExist.checked === false) {

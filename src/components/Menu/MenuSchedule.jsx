@@ -51,6 +51,8 @@ const MenuBlock = styled(TableData)`
     color: ${props => props.theme.white};
     border-radius: 3px;
     cursor: pointer;
+    border: 1px solid ${props => props.theme.white};
+    opacity: ${props => props.focus ? "1" : "0.6"};
 
     &:hover {
         opacity: 0.8;
@@ -106,6 +108,7 @@ const MenuList = ({ menuSchedule }) => {
                             if (found) {
                                 skipColumn = found.RepeatDate.length - 1;
                                 return <MenuBlock
+                                    focus={found.Focus ? 1 : 0}
                                     onClick={() => navigate("/menu/" + found.MenuId)}
                                     key={rowIndex}
                                     rowSpan={(found.TimeEndMillis - found.TimeStartMillis) / 900000}

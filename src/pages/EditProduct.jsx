@@ -4,12 +4,15 @@ import styled from 'styled-components';
 import { Link, useParams } from "react-router-dom";
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
-import { KeyboardBackspace, Warning } from '@mui/icons-material';
+import { KeyboardBackspace, Warning, RemoveCircle, ArrowDropDown, ArrowDropUp } from '@mui/icons-material';
 import { TextField, InputAdornment, FormControlLabel, Checkbox } from '@mui/material';
 import imageCompression from 'browser-image-compression';
+
 import ProductOption from '../components/Product/ProductOption';
 import ImageUpload from '../components/Product/ImageUpload';
 import CategoryList from '../components/Product/CategoryList';
+import DeleteModal from '../components/Product/DeleteModal';
+import MenuInProductDetailItem from '../components/Product/MenuInProductDetailItem';
 
 import { db } from "../firebase";
 import { ref, push } from "firebase/database";
@@ -201,11 +204,45 @@ const PriceField = styled.input`
     color: ${props => props.grey ? "#BEBEBE" : props.theme.black};
 `;
 
+const Align = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: ${props => props.borderbottom ? "1px solid rgba(0,0,0,0.1)" : null};
+    cursor: pointer;
+
+    &:hover {
+        opacity: 0.7;
+    }
+`;
+
+const MenuLabel = styled.div`
+    font-size: 16px;
+    font-weight: 600;
+`;
+
+const StyledCheckIcon = styled(RemoveCircle)`
+    && {
+        font-size: 20px;
+        margin-right: 5px;
+        color: ${props => props.theme.red};
+    }
+`;
+
 const EditProduct = () => {
     const { id } = useParams();
     const user = JSON.parse(localStorage.getItem('USER'));
 
+    const [dropdown, setDropdown] = useState(false);
+    const toggleDropdown = () => { setDropdown(!dropdown); }
+
+    const [deleteItem, setDeleteItem] = useState({id: '', name: '', type: ''});
+    const [deletePimModal, setDeletePimModal] = useState(false);
+    const toggleDeletePimModal = () => { setDeletePimModal(!deletePimModal) };
+
     const [item, setItem] = useState({});
+    const [menus, setMenus] = useState([]);
     const [input, setInput] = useState({ name: '', description: '', shortDescription: '', category: {lv1: '', lv2: '', lv3: ''}, price: 0, colors: [], sizes: [],  weights: [], code: '' });
     const [error, setError] = useState({ name: '', category: '', price: '', colors: '', image: '', sizes: '', weights: '', optionPrice: '' });
 
@@ -227,109 +264,108 @@ const EditProduct = () => {
         setLoading(true);
 
         const fetchData = () => {
-            api.get("categories?status=3001&sort=" + sort)
-            .then(function (res1) {
-                if (res1.data.ResultMessage === "SUCCESS") {
+            api.get("menus?productid=" + id)
+            .then(function (res0) {
+                setMenus(res0.data.Data.List.filter(item => item.ProductInMenus.length));
+
+                api.get("categories?status=3001&sort=" + sort)
+                .then(function (res1) {
                     setLv1Category(res1.data.Data.List.filter((item) => {
                         return item.CategoryLevel === 1;
                     }));
 
                     api.get("products?id=" + id + "&include=related")
                     .then(function (res2) {
-                        if (res2.data.ResultMessage === "SUCCESS") {
-                            setItem(res2.data.Data.List[0]);
+                        setItem(res2.data.Data.List[0]);
 
-                            let colorArray = [...new Map(res2.data.Data.List[0].RelatedProducts.map(({ Color }) => ({ 
-                                value: Color, error: '', old: true
-                            })).map(item => [item['value'], item])).values()].filter(item => (item.value))
-                            .map((item, index) => ({ name: index, ...item }));
+                        let colorArray = [...new Map(res2.data.Data.List[0].RelatedProducts.map(({ Color }) => ({ 
+                            value: Color, error: '', old: true
+                        })).map(item => [item['value'], item])).values()].filter(item => (item.value))
+                        .map((item, index) => ({ name: index, ...item }));
 
-                            let sizeArray = [...new Map(res2.data.Data.List[0].RelatedProducts.map(({ Size }) => ({ 
-                                value: Size, error: '', old: true
-                            })).map(item => [item['value'], item])).values()].filter(item => (item.value))
-                            .map((item, index) => ({ name: index, ...item }));
+                        let sizeArray = [...new Map(res2.data.Data.List[0].RelatedProducts.map(({ Size }) => ({ 
+                            value: Size, error: '', old: true
+                        })).map(item => [item['value'], item])).values()].filter(item => (item.value))
+                        .map((item, index) => ({ name: index, ...item }));
 
-                            let weightArray = [...new Map(res2.data.Data.List[0].RelatedProducts.map(({ Weight }) => ({ 
-                                value: Weight, error: '', old: true
-                            })).map(item => [item['value'], item])).values()].filter(item => (item.value))
-                            .map((item, index) => ({ name: index, ...item }));
+                        let weightArray = [...new Map(res2.data.Data.List[0].RelatedProducts.map(({ Weight }) => ({ 
+                            value: Weight, error: '', old: true
+                        })).map(item => [item['value'], item])).values()].filter(item => (item.value))
+                        .map((item, index) => ({ name: index, ...item }));
 
-                            setCurrentCombination(res2.data.Data.List[0].RelatedProducts.map((item) => ({ 
-                                id: item.ProductId, edit: false, color: item.Color, size: item.Size, weight: item.Weight, price: item.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), error: ''
-                            })));
+                        setCurrentCombination(res2.data.Data.List[0].RelatedProducts.map((item) => ({ 
+                            id: item.ProductId, edit: false, color: item.Color, size: item.Size, weight: item.Weight, price: item.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), error: ''
+                        })));
 
-                            setCombination(res2.data.Data.List[0].RelatedProducts.map((item) => ({ 
-                                id: item.ProductId, edit: false, color: item.Color, size: item.Size, weight: item.Weight, price: item.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), error: ''
-                            })));
+                        setCombination(res2.data.Data.List[0].RelatedProducts.map((item) => ({ 
+                            id: item.ProductId, edit: false, color: item.Color, size: item.Size, weight: item.Weight, price: item.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), error: ''
+                        })));
 
-                            let images = res2.data.Data.List[0].Image.split("|").map((item, index) => (
-                                { name: index, image: item }
-                            ));
+                        let images = res2.data.Data.List[0].Image.split("|").map((item, index) => (
+                            { name: index, image: item }
+                        ));
 
-                            setImages(images);
-                            setCurrentImages(images);
+                        setImages(images);
+                        setCurrentImages(images);
 
-                            setInput(input => ({
-                                ...input,
-                                code: res2.data.Data.List[0].ProductCode,
-                                name: res2.data.Data.List[0].ProductName,
-                                description: res2.data.Data.List[0].Description,
-                                shortDescription: res2.data.Data.List[0].BriefDescription,
-                                price: res2.data.Data.List[0].DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-                                status: res2.data.Data.List[0].Status,
-                                colors: colorArray,
-                                sizes: sizeArray,
-                                weights: weightArray,
-                            }));
+                        setInput(input => ({
+                            ...input,
+                            code: res2.data.Data.List[0].ProductCode,
+                            name: res2.data.Data.List[0].ProductName,
+                            description: res2.data.Data.List[0].Description,
+                            shortDescription: res2.data.Data.List[0].BriefDescription,
+                            price: res2.data.Data.List[0].DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                            status: res2.data.Data.List[0].Status,
+                            colors: colorArray,
+                            sizes: sizeArray,
+                            weights: weightArray,
+                        }));
 
-                            api.get("categories?id=" + res2.data.Data.List[0].SystemCategoryId + "&include=parent")
-                            .then(function (res3) {
-                                if (res3.data.ResultMessage === "SUCCESS") {
-                                    if (res3.data.Data.List[0].CategoryLevel === 3) {
-                                        setInput(input => ({
-                                            ...input,
-                                            category: {
-                                                lv1: res3.data.Data.List[0].Parent.BelongTo,
-                                                lv2: res3.data.Data.List[0].Parent.SystemCategoryId,
-                                                lv3: res3.data.Data.List[0].SystemCategoryId
-                                            }
-                                        }));
-                                        let lv2CategoryList = res1.data.Data.List.filter((item) => {
-                                            return item.SystemCategoryId === res3.data.Data.List[0].Parent.BelongTo;
-                                        })[0].Children;
-                                        setLv2Category(lv2CategoryList);
-                                        setLv3Category(lv2CategoryList.filter((item) => {
-                                            return item.SystemCategoryId === res3.data.Data.List[0].Parent.SystemCategoryId;
-                                        })[0].Children);
-                                    } else if (res3.data.Data.List[0].CategoryLevel === 2) {
-                                        setInput(input => ({
-                                            ...input,
-                                            category: {
-                                                lv1: res3.data.Data.List[0].Parent.SystemCategoryId,
-                                                lv2: res3.data.Data.List[0].SystemCategoryId,
-                                                lv3: ''
-                                            }
-                                        }));
-                                        let lv2CategoryList = res1.data.Data.List.filter((item) => {
-                                            return item.SystemCategoryId === res3.data.Data.List[0].Parent.SystemCategoryId;
-                                        })[0].Children;
-                                        setLv2Category(lv2CategoryList);
-                                    } else if (res3.data.Data.List[0].CategoryLevel === 1) {
-                                        setInput(input => ({
-                                            ...input,
-                                            category: {
-                                                lv1: res3.data.Data.List[0].SystemCategoryId,
-                                                lv2: '',
-                                                lv3: ''
-                                            }
-                                        }));
+                        api.get("categories?id=" + res2.data.Data.List[0].SystemCategoryId + "&include=parent")
+                        .then(function (res3) {
+                            if (res3.data.Data.List[0].CategoryLevel === 3) {
+                                setInput(input => ({
+                                    ...input,
+                                    category: {
+                                        lv1: res3.data.Data.List[0].Parent.BelongTo,
+                                        lv2: res3.data.Data.List[0].Parent.SystemCategoryId,
+                                        lv3: res3.data.Data.List[0].SystemCategoryId
                                     }
-                                    setLoading(false);
-                                }
-                            })
-                        }
+                                }));
+                                let lv2CategoryList = res1.data.Data.List.filter((item) => {
+                                    return item.SystemCategoryId === res3.data.Data.List[0].Parent.BelongTo;
+                                })[0].Children;
+                                setLv2Category(lv2CategoryList);
+                                setLv3Category(lv2CategoryList.filter((item) => {
+                                    return item.SystemCategoryId === res3.data.Data.List[0].Parent.SystemCategoryId;
+                                })[0].Children);
+                            } else if (res3.data.Data.List[0].CategoryLevel === 2) {
+                                setInput(input => ({
+                                    ...input,
+                                    category: {
+                                        lv1: res3.data.Data.List[0].Parent.SystemCategoryId,
+                                        lv2: res3.data.Data.List[0].SystemCategoryId,
+                                        lv3: ''
+                                    }
+                                }));
+                                let lv2CategoryList = res1.data.Data.List.filter((item) => {
+                                    return item.SystemCategoryId === res3.data.Data.List[0].Parent.SystemCategoryId;
+                                })[0].Children;
+                                setLv2Category(lv2CategoryList);
+                            } else if (res3.data.Data.List[0].CategoryLevel === 1) {
+                                setInput(input => ({
+                                    ...input,
+                                    category: {
+                                        lv1: res3.data.Data.List[0].SystemCategoryId,
+                                        lv2: '',
+                                        lv3: ''
+                                    }
+                                }));
+                            }
+                            setLoading(false);
+                        })
                     })
-                }
+                })
             })
             .catch(function (error) {
                 console.log(error);
@@ -662,12 +698,74 @@ const EditProduct = () => {
         return true;
     }
 
+    const handleGetDeletePim = (id, name) => {
+        setDeleteItem({id: id, name: name, type: 'pim'});
+        toggleDeletePimModal();
+    }
+
+    const handleDeletePim = (e) => {
+        e.preventDefault();
+
+        const deletePim = async () => {
+            const notification = toast.loading("Đang xử lí yêu cầu...");
+
+            api.delete("menu-products", {
+                data: [ deleteItem.id ]
+            })
+            .then(function (res) {
+                if (res.data.ResultMessage === "SUCCESS") {
+                    setChange(!change);
+                    toast.update(notification, { render: "Xóa sản phẩm khỏi bảng giá thành công!", type: "success", autoClose: 5000, isLoading: false });
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+                toast.update(notification, { render: "Đã xảy ra lỗi khi xử lí yêu cầu.", type: "error", autoClose: 5000, isLoading: false });
+            });
+        };
+        deletePim();
+        toggleDeletePimModal();
+    };
+
     return (
         <PageWrapper>
             <Row>
                 <Link to="/products"><StyledBackIcon /></Link>
                 <Title><TitleGrey>Danh sách sản phẩm </TitleGrey>/ {item.ProductName}</Title>
             </Row>
+
+            {
+                menus.length ?
+                <ContainerWrapper>
+                    <Align borderbottom onClick={toggleDropdown}>
+                        <Align>
+                            <StyledCheckIcon />
+                            <MenuLabel>
+                                Sản phẩm đang thuộc {menus.length} bảng giá.
+                                Vui lòng bỏ sản phẩm ra khỏi toàn bộ bảng giá trước khi cập nhật.
+                            </MenuLabel>
+                        </Align>
+
+                        {
+                            !dropdown ?
+                            <ArrowDropDown />
+                            : <ArrowDropUp />
+                        }
+                    </Align>
+
+                    {
+                        dropdown ?
+                        <>{menus.map((menu, index) => {
+                            return <MenuInProductDetailItem 
+                                item={menu} key={index} index={index}
+                                handleGetDeletePim={handleGetDeletePim}
+                            />
+                        })}</>
+                        : null
+                    }
+                </ContainerWrapper>
+                : null                      
+            }
             
             <form onSubmit={handleEditItem} id="form">
                 <ContainerWrapper>
@@ -827,12 +925,25 @@ const EditProduct = () => {
                                 <WarningText error={1}>Bạn có thông tin chưa điền!</WarningText>
                                 <Button disabled>Cập nhật</Button>
                             </>
+                            : menus.length ?
+                            <>
+                                <StyledWarningIcon error />
+                                <WarningText error={1}>Sản phẩm đang thuộc {menus.length} bảng giá. Vui lòng bỏ sản phẩm ra khỏi toàn bộ bảng giá trước khi cập nhật.</WarningText>
+                                <Button disabled>Cập nhật</Button>
+                            </>
                             :
                             <Button disabled={loading}>Cập nhật</Button>
                         }
                     </FloatRight>
                 </FooterWrapper>
             </form>
+
+            <DeleteModal 
+                display={deletePimModal}
+                toggle={toggleDeletePimModal}
+                deleteItem={deleteItem}
+                handleDeleteItem={handleDeletePim}
+            />
         </PageWrapper>
     )
 }

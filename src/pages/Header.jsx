@@ -393,11 +393,6 @@ const Header = ({ refresh, toggleRefresh }) => {
                 <Logo src='./images/lcp.png' alt="Loich Logo" />
             </Link>
 
-            <SearchField>
-                <StyledSearchIcon />
-                <Input placeholder="Tìm kiếm" />
-            </SearchField>
-
             <Align>
                 <IconButton onClick={() => toggleNotificationDropdown(!notificationDropdown)}>
                     <StyledBadge badgeContent={productRead + storeRead + orderRead} overlap="circular">
