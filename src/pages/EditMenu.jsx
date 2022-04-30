@@ -519,11 +519,15 @@ const EditMenu = () => {
                                                 Product: related,
                                                 Price: related.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
                                                 ProductInMenuId: null,
-                                                checked: false
+                                                checked: false,
+                                                MaxBuy: 1,
+                                                Quantity: 0
                                             })),
                                             Price: item.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
                                             ProductInMenuId: null,
-                                            checked: false
+                                            checked: false,
+                                            MaxBuy: 1,
+                                            Quantity: 0
                                         }
                                     ));
                                     const productExistInStock = res2.data.Data.filter(o1 => tempStock.some(o2 => o1.ProductId === o2.Product.ProductId));
@@ -532,17 +536,19 @@ const EditMenu = () => {
                                         let product = tempStock[index].Product;
                                         tempStock[index] = {
                                             Product: product,
-                                            RelatedProductInMenu: product.RelatedProducts.map((related) => (
-                                                {
-                                                    Product: related,
-                                                    Price: item.Price.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-                                                    ProductInMenuId: item.ProductInMenuId,
-                                                    checked: true
-                                                }
-                                            )),
+                                            RelatedProductInMenu: product.RelatedProducts.map((related) => ({
+                                                Product: related,
+                                                Price: item.Price.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                                                ProductInMenuId: item.ProductInMenuId,
+                                                checked: true,
+                                                MaxBuy: product.MaxBuy,
+                                                Quantity: product.Quantity
+                                            })),
                                             Price: item.Price.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
                                             ProductInMenuId: item.ProductInMenuId,
-                                            checked: true
+                                            checked: true,
+                                            MaxBuy: item.MaxBuy,
+                                            Quantity: item.Quantity
                                         };
                                     });
                                     setStock(tempStock);
@@ -641,7 +647,9 @@ const EditMenu = () => {
                 } else {
                     insertArray.push({
                         productId: item.Product.ProductId,
-                        price: item.Price.replace(/\D/g, "")
+                        price: item.Price.replace(/\D/g, ""),
+                        quantity: item.Quantity,
+                        maxBuy: item.MaxBuy
                     });
                 }
             });
@@ -656,7 +664,7 @@ const EditMenu = () => {
                 quantity: item.Quantity,
                 maxBuy: item.MaxBuy
             }));
-
+            console.log(insertArray)
             let APIarray = [];
             if (menu.MenuName !== input.name 
                 || menu.MenuDescription !== input.description
