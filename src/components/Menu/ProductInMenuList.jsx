@@ -34,11 +34,19 @@ const ImageWrapper = styled.div`
     width: 40px;
 `;
 
-const TextFIeldWrapper = styled.div`
+const TextFieldWrapper = styled.div`
     flex: 3;
     display: flex;
     justify-content: center;
     margin-right: 15px;
+`;
+
+const NumberFieldWrapper = styled.div`
+    flex: 2;
+    display: flex;
+    justify-content: center;
+    margin-right: 15px;
+    text-align: center;
 `;
 
 const StyledHelpIcon = styled(Help)`
@@ -78,7 +86,11 @@ const Tooltip = styled.div`
     }
 `;
 
-const ProductInMenuList = ({ currentItems, handleDeleteItem, handleSetPrice, handleSetPriceRelated, isBaseMenu, search }) => {
+const ProductInMenuList = ({ currentItems, handleDeleteItem, 
+                            handleSetPrice, handleSetPriceRelated, 
+                            handleSetMaxBuy, handleSetMaxBuyRelated,
+                            handleSetQuantity, handleSetQuantityRelated, 
+                            isBaseMenu, search }) => {
 
     if (currentItems.length === 0) {
         return <ProductInMenuItem item={0} />
@@ -90,11 +102,13 @@ const ProductInMenuList = ({ currentItems, handleDeleteItem, handleSetPrice, han
                 <Index>#</Index>
                 <ImageWrapper>Ảnh</ImageWrapper>
                 <TextWrapper isBaseMenu={isBaseMenu}>Tên sản phẩm</TextWrapper>
-                <TextFIeldWrapper>Giá mặc định</TextFIeldWrapper>
+                <TextFieldWrapper>Giá mặc định</TextFieldWrapper>
                 {
                     isBaseMenu ?
-                    null : <TextFIeldWrapper>Giá thay đổi</TextFIeldWrapper>
+                    null : <TextFieldWrapper>Giá thay đổi</TextFieldWrapper>
                 }
+                <NumberFieldWrapper>Số lượng</NumberFieldWrapper>
+                <NumberFieldWrapper>Mức mua tối đa</NumberFieldWrapper>
                 <Tooltip>
                     <StyledHelpIcon />
                     <TooltipText>
@@ -112,6 +126,10 @@ const ProductInMenuList = ({ currentItems, handleDeleteItem, handleSetPrice, han
                         handleDeleteItem={handleDeleteItem}
                         handleSetPrice={handleSetPrice}
                         handleSetPriceRelated={handleSetPriceRelated}
+                        handleSetMaxBuy={handleSetMaxBuy}
+                        handleSetMaxBuyRelated={handleSetMaxBuyRelated}
+                        handleSetQuantity={handleSetQuantity}
+                        handleSetQuantityRelated={handleSetQuantityRelated}
                         isBaseMenu={isBaseMenu}
                         search={search}
                     />

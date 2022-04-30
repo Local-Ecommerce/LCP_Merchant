@@ -20,7 +20,7 @@ import MenuSchedule from '../components/Menu/MenuSchedule';
 
 const PageWrapper = styled.form`
     min-width: 720px;
-    max-width: 1150px;
+    max-width: 1200px;
     margin: 40px auto;
 `;
 
@@ -179,7 +179,7 @@ const DatePickerWrapper = styled.div`
 `;
 
 const WeekDayCheckbox = styled.button`
-    padding: 7px 13px;
+    padding: 7px 10px;
     margin-right: 1px;
     border: 1px solid ${props => props.checked === true ? props.theme.blue : "rgba(0,0,0,0.2)"};
     background-color: ${props => props.checked === true ? props.theme.lightblue : props.theme.white};
@@ -204,14 +204,14 @@ const TimePickerWrapper = styled.div`
 
 const StyledArrowIcon = styled(ArrowRight)`
     && {
-    margin: 5px;
+        margin: 0px;
     }
 `;
 
 const FormLabel = styled.div`
     font-weight: 700;
     font-size: 15px;
-    margin: 30px 0px 10px 0px;
+    margin: 25px 0px 10px 0px;
 `;
 
 const FooterWrapper = styled.div`
@@ -634,6 +634,7 @@ const EditMenu = () => {
                     o1 => !flattenProducts.some(o2 => o1.Product.ProductId === o2.Product.ProductId)
                 )
             );
+
             differenceArray.forEach((item) => {
                 if (item.ProductInMenuId !== null) {
                     deleteArray.push(item.ProductInMenuId);
@@ -646,11 +647,14 @@ const EditMenu = () => {
             });
             updateArray = flattenNewProducts.filter(
                 o1 => flattenProducts.some(o2 => o1.Product.ProductId === o2.Product.ProductId
-                    && o1.Price.toString().replace(/\D/g, "") !== o2.Price.toString().replace(/\D/g, ""))
+                    && (o1.Price.toString().replace(/\D/g, "") !== o2.Price.toString().replace(/\D/g, "")
+                    || o1.Quantity !== o2.Quantity || o1.MaxBuy !== o2.MaxBuy))
             ).map((item) => ({
                 productInMenuId: item.ProductInMenuId,
                 price: item.Price.replace(/\D/g, ""),
-                status: 10001
+                status: 10001,
+                quantity: item.Quantity,
+                maxBuy: item.MaxBuy
             }));
 
             let APIarray = [];
@@ -700,9 +704,14 @@ const EditMenu = () => {
             .then(function (results) {
                 if (APIarray.length) {
                     Promise.all(APIarray)
+                    .then(function (results) {
+                        setChange(!change);
+                        toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
+                    })
+                } else {
+                    setChange(!change);
+                    toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
                 }
-                setChange(!change);
-                toast.update(notification, { render: "Cập nhật thành công!", type: "success", autoClose: 5000, isLoading: false });
             })
             .catch(function (error) {
                 if (error.response.data.ResultMessage) {
@@ -762,6 +771,15 @@ const EditMenu = () => {
                 setError(error => ({ ...error, price: 'Vui lòng nhập giá trên 1000 vnđ' }));
                 check = true;
             }
+            if (item.Quantity === null || item.Quantity === '') {
+                setError(error => ({ ...error, price: 'Vui lòng nhập số lượng' }));
+                check = true;
+            }
+            if (item.MaxBuy === null || item.MaxBuy === '' || item.MaxBuy === '0' 
+                || item.MaxBuy === 0) {
+                setError(error => ({ ...error, price: 'Vui lòng nhập mức mua tối đa trên 0' }));
+                check = true;
+            }
         })
         
         if (check) {
@@ -811,6 +829,66 @@ const EditMenu = () => {
             let childIndex = newProducts[index].RelatedProductInMenu.findIndex((item) => item.Product.ProductId === id);
             let newArray = [...newProducts];
             newArray[index].RelatedProductInMenu[childIndex].Price = value.replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            setNewProducts(newArray);
+            setStock(newArray);
+        }
+    }
+
+    const handleSetMaxBuy = (id, value) => {
+        setError(error => ({ ...error, price: '' }));
+        let pattern = /^([0-9]*)$/;
+        if (value.length + 1 <= 4 && pattern.test(value.trim())) {
+            let index = newProducts.findIndex((item) => item.Product.ProductId === id);
+            let newArray = [...newProducts];
+            newArray[index].MaxBuy = value;
+            if (newArray[index].RelatedProductInMenu.length) {
+                newArray[index].RelatedProductInMenu.forEach((related) => {
+                    related.MaxBuy = value;
+                })
+            }
+            setNewProducts(newArray);
+            setStock(newArray);
+        }
+    }
+
+    const handleSetMaxBuyRelated = (belongToId, id, value) => {
+        setError(error => ({ ...error, price: '' }));
+        let pattern = /^([0-9]*)$/;
+        if (value.length + 1 <= 4 && pattern.test(value.trim())) {
+            let index = newProducts.findIndex((item) => item.Product.ProductId === belongToId);
+            let childIndex = newProducts[index].RelatedProductInMenu.findIndex((item) => item.Product.ProductId === id);
+            let newArray = [...newProducts];
+            newArray[index].RelatedProductInMenu[childIndex].MaxBuy = value;
+            setNewProducts(newArray);
+            setStock(newArray);
+        }
+    }
+
+    const handleSetQuantity = (id, value) => {
+        setError(error => ({ ...error, price: '' }));
+        let pattern = /^([0-9]*)$/;
+        if (value.length + 1 <= 8 && pattern.test(value.trim())) {
+            let index = newProducts.findIndex((item) => item.Product.ProductId === id);
+            let newArray = [...newProducts];
+            newArray[index].Quantity = value;
+            if (newArray[index].RelatedProductInMenu.length) {
+                newArray[index].RelatedProductInMenu.forEach((related) => {
+                    related.Quantity = value;
+                })
+            }
+            setNewProducts(newArray);
+            setStock(newArray);
+        }
+    }
+
+    const handleSetQuantityRelated = (belongToId, id, value) => {
+        setError(error => ({ ...error, price: '' }));
+        let pattern = /^([0-9]*)$/;
+        if (value.length + 1 <= 8 && pattern.test(value.trim())) {
+            let index = newProducts.findIndex((item) => item.Product.ProductId === belongToId);
+            let childIndex = newProducts[index].RelatedProductInMenu.findIndex((item) => item.Product.ProductId === id);
+            let newArray = [...newProducts];
+            newArray[index].RelatedProductInMenu[childIndex].Quantity = value;
             setNewProducts(newArray);
             setStock(newArray);
         }
@@ -870,18 +948,16 @@ const EditMenu = () => {
                             :
                             <>
                                 {
-                                    error.price !== '' ?
-                                    <DangerText> {error.price} </DangerText>
-                                    : null
-                                }
-
-                                {
                                     newProducts && newProducts.length ?
                                     <ProductInMenuList 
                                         currentItems={newProducts} 
                                         handleDeleteItem={handleDeleteItem}
                                         handleSetPrice={handleSetPrice}
                                         handleSetPriceRelated={handleSetPriceRelated}
+                                        handleSetMaxBuy={handleSetMaxBuy}
+                                        handleSetMaxBuyRelated={handleSetMaxBuyRelated}
+                                        handleSetQuantity={handleSetQuantity}
+                                        handleSetQuantityRelated={handleSetQuantityRelated}
                                         isBaseMenu={menu.BaseMenu}
                                         search={search}
                                     />
@@ -890,6 +966,12 @@ const EditMenu = () => {
                                         <NoProductTitle> Bảng giá chưa có sản phẩm</NoProductTitle>
                                         <NoProductButton type="button" onClick={toggleAddItemModal}> Thêm sản phẩm </NoProductButton>
                                     </NoProductWrapper>
+                                }
+
+                                {
+                                    error.price !== '' ?
+                                    <DangerText> {error.price} </DangerText>
+                                    : null
                                 }
                             </>
                         }

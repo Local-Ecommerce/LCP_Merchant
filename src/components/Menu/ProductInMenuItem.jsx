@@ -141,8 +141,16 @@ const StyledDisabledCloseIcon = styled(Close)`
     }
 `;
 
-const TextFIeldWrapper = styled.div`
+const TextFieldWrapper = styled.div`
     flex: 3;
+    display: flex;
+    justify-content: center;
+    margin-right: 15px;
+    opacity: ${props => props.disabled ? "0" : null};
+`;
+
+const NumberFieldWrapper = styled.div`
+    flex: 2;
     display: flex;
     justify-content: center;
     margin-right: 15px;
@@ -170,6 +178,18 @@ const TextField = styled.input`
     color: ${props => props.grey ? "#BEBEBE" : props.theme.black};
 `;
 
+const NumberField = styled.input`
+    width: 100%;
+    padding: 5px;
+    outline: none;
+    border: 1px solid ${props => props.error ? props.theme.red : props.theme.greyBorder};
+    border-radius: 3px 0 0 3px;
+    font-size: 14px;
+    background-color: ${props => props.theme.white};
+    color: ${props => props.grey ? "#BEBEBE" : props.theme.black};
+    text-align: center;
+`;
+
 const StyledDropdownIcon = styled(ArrowDropDown)`
     && {
         margin-left: 5px;
@@ -184,7 +204,11 @@ const StyledDropupIcon = styled(ArrowDropUp)`
     }
 `;
 
-const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice, handleSetPriceRelated, isBaseMenu, search }) =>  {
+const ProductInMenuItem = ({ item, index, handleDeleteItem, 
+                            handleSetPrice, handleSetPriceRelated, 
+                            handleSetMaxBuy, handleSetMaxBuyRelated,
+                            handleSetQuantity, handleSetQuantityRelated, 
+                            isBaseMenu, search }) =>  {
     const [dropdown, setDropdown] = useState(false);
     const toggleDropdown = () => { setDropdown(!dropdown) };
 
@@ -229,19 +253,19 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice, hand
                 <Index>{index}.</Index>
 
                 <ImageWrapper>
-                        {
-                            item.Product.Image ?
-                            <Image src={item.Product.Image ? item.Product.Image.split("|")[0] : ''} />
-                            : <StyledNoImageIcon />
-                        }
-                        
-                        {
-                            activeCheck === 'active' ?
-                            null :
-                            <Status active={activeCheck}>
-                                <TooltipText>{activeLabel}</TooltipText>
-                            </Status>
-                        }
+                    {
+                        item.Product.Image ?
+                        <Image src={item.Product.Image ? item.Product.Image.split("|")[0] : ''} />
+                        : <StyledNoImageIcon />
+                    }
+                    
+                    {
+                        activeCheck === 'active' ?
+                        null :
+                        <Status active={activeCheck}>
+                            <TooltipText>{activeLabel}</TooltipText>
+                        </Status>
+                    }
                 </ImageWrapper>
 
                 <TextWrapper isBaseMenu={isBaseMenu}>
@@ -255,15 +279,15 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice, hand
                     }
                 </TextWrapper>
 
-                <TextFIeldWrapper>
+                <TextFieldWrapper>
                     {item.Product.DefaultPrice.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
-                </TextFIeldWrapper>
+                </TextFieldWrapper>
 
                 {
                     isBaseMenu ?
                     null :
-                    <TextFIeldWrapper>
-                        <TextField
+                    <TextFieldWrapper>
+                        <TextField norightborder={1}
                             type="text" grey={
                                 relatedPrices.length > 0 
                                 && (parseInt(item.Price.replace(/\D/g, "")) !== Math.min(...relatedPrices) 
@@ -275,8 +299,26 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice, hand
                             onChange={(event) => handleSetPrice(item.Product.ProductId, event.target.value)}
                         />
                         <Currency>đ</Currency>
-                    </TextFIeldWrapper>
+                    </TextFieldWrapper>
                 }
+
+                <NumberFieldWrapper>
+                    <NumberField 
+                        type="text"
+                        value={item.Quantity} name='quantity'
+                        onClick={inputStopPropagation}
+                        onChange={(event) => handleSetQuantity(item.Product.ProductId, event.target.value)}
+                    />
+                </NumberFieldWrapper>
+
+                <NumberFieldWrapper>
+                    <NumberField 
+                        type="text"
+                        value={item.MaxBuy} name='maxBuy'
+                        onClick={inputStopPropagation}
+                        onChange={(event) => handleSetMaxBuy(item.Product.ProductId, event.target.value)}
+                    />
+                </NumberFieldWrapper>
 
                 <ButtonWrapper>
                     <Button type="button" onClick={() => handleDeleteItem(item.Product.ProductId)}>
@@ -304,14 +346,14 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice, hand
                                 {related.Product.Weight ? related.Product.Weight + "kg " : ''}
                             </TextWrapper>
 
-                            <TextFIeldWrapper>
+                            <TextFieldWrapper>
                                 {related.Product.DefaultPrice.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")} đ
-                            </TextFIeldWrapper>
+                            </TextFieldWrapper>
 
                             {
                                 isBaseMenu ?
                                 null :
-                                <TextFIeldWrapper>
+                                <TextFieldWrapper>
                                     <TextField
                                         type="text"
                                         value={related.Price} name='price'
@@ -323,8 +365,34 @@ const ProductInMenuItem = ({ item, index, handleDeleteItem, handleSetPrice, hand
                                         )}
                                     />
                                     <Currency>đ</Currency>
-                                </TextFIeldWrapper>
+                                </TextFieldWrapper>
                             }
+
+                            <NumberFieldWrapper>
+                                <NumberField 
+                                    type="text"
+                                    value={related.Quantity} name='quantity'
+                                    onClick={inputStopPropagation}
+                                    onChange={(event) => handleSetQuantityRelated(
+                                        item.Product.ProductId, 
+                                        related.Product.ProductId, 
+                                        event.target.value
+                                    )}
+                                />
+                            </NumberFieldWrapper>
+
+                            <NumberFieldWrapper>
+                                <NumberField 
+                                    type="text"
+                                    value={related.MaxBuy} name='maxBuy'
+                                    onClick={inputStopPropagation}
+                                    onChange={(event) => handleSetMaxBuyRelated(
+                                        item.Product.ProductId, 
+                                        related.Product.ProductId, 
+                                        event.target.value
+                                    )}
+                                />
+                            </NumberFieldWrapper>
 
                             <ButtonWrapper>
                                 <Button type="button">

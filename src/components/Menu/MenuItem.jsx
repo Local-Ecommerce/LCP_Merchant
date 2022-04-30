@@ -157,7 +157,7 @@ const MenuItem = ({ item, handleGetToggleStatusItem, handleGetDeleteItem, index 
                 <Tooltip>
                     {
                         item.BaseMenu ?
-                        <BaseTag>Bảng giá nền</BaseTag>
+                        <BaseTag>Bảng giá cơ bản</BaseTag>
                         : null
                     }
                     <TooltipText>

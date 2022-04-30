@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
-import { KeyboardBackspace, Warning } from '@mui/icons-material';
+import { KeyboardBackspace, Warning, Help } from '@mui/icons-material';
 import { TextField, InputAdornment, Checkbox, FormControlLabel } from '@mui/material';
 import ProductOption from '../components/Product/ProductOption';
 import ImageUpload from '../components/Product/ImageUpload';
@@ -49,6 +49,7 @@ const Title = styled.h1`
 const ContainerWrapper = styled.div`
     padding: ${props => props.p0 ? "30px 30px 1px 30px" : "30px 30px"};
     padding-top: ${props => props.pt0 ? "10px" : null};
+    padding-bottom: ${props => props.pb0 ? "10px" : null};
     margin-bottom: 20px;
     box-shadow: 0px 0px 15px -10px rgba(0, 0, 0, 0.75);
     background-color: #fff;
@@ -132,11 +133,6 @@ const OptionLabel = styled.div`
     font-size: 14px;
 `;
 
-const StyledLink = styled.a`
-    color: #007bff;
-    cursor: pointer;
-`;
-
 const VariantWrapper = styled.div`
     font-size: 14px;
     padding: 10px;
@@ -207,6 +203,37 @@ const PriceField = styled.input`
     color: ${props => props.grey ? "#BEBEBE" : props.theme.black};
 `;
 
+const SmallLabel = styled.div`
+    margin-top: ${props => props.mt ? "13px" : "0px"};
+    margin-bottom: 7px;
+    font-size: 13px;
+    color: #6c6c6c;
+`;
+
+const FlexibleTextField = styled(TextField)`
+    && {
+        width: ${props => props.width};
+    }
+`;
+
+const Flex = styled.div`
+    display: flex;
+    align-items: center;
+`;
+
+const StyledHelpIcon = styled(Help)`
+    && {
+        font-size: 22px;
+        color: ${props => props.theme.grey};
+        opacity: 0.5;
+        cursor: pointer;
+
+        &:hover {
+            opacity: 1.0;
+        }
+    }
+`;
+
 const AddProduct = () => {    
     let navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem('USER'));
@@ -223,12 +250,25 @@ const AddProduct = () => {
         weights: [], 
         code: '',
         toBaseMenu: true,
+        quantity: 0,
+        maxBuy: 1,
         applyBasePrice: false
     });
     const [combination, setCombination] = useState([]);
     const [combiChange, setcombiChange] = useState(false);
     const [images, setImages] = useState([ { name: 0, image: '' } ]);
-    const [error, setError] = useState({ name: '', category: '', price: '', image: '', colors: '', sizes: '', weights: '', optionPrice: '' });
+    const [error, setError] = useState({ 
+        name: '', 
+        category: '', 
+        price: '', 
+        image: '', 
+        colors: '', 
+        sizes: '', 
+        weights: '', 
+        optionPrice: '',
+        maxBuy: '',
+        quantity: ''
+    });
 
     const sort = '+syscategoryname';
     const [lv1Category, setLv1Category] = useState([]);
@@ -286,6 +326,26 @@ const AddProduct = () => {
                     price: input.price
                 })
             }));
+        }
+    }
+
+    const handleSetMaxBuy = (e) => {
+        setError(error => ({ ...error, maxBuy: '' }));
+        const { value } = e.target;
+
+        let pattern = /^([0-9]*)$/;
+        if (value.length + 1 <= 4 && pattern.test(value.trim())) {
+            setInput(input => ({ ...input, maxBuy: value}));
+        }
+    }
+
+    const handleSetQuantity = (e) => {
+        setError(error => ({ ...error, quantity: '' }));
+        const { value } = e.target;
+
+        let pattern = /^([0-9]*)$/;
+        if (value.length + 1 <= 8 && pattern.test(value.trim())) {
+            setInput(input => ({ ...input, quantity: value}));
         }
     }
 
@@ -421,8 +481,8 @@ const AddProduct = () => {
 
     const handleAddItem = (event) => {
         event.preventDefault();
-        setProcessing(true);
-        if (checkValid()) {
+        if (validCheck()) {
+            setProcessing(true);
             const notification = toast.loading("Đang xử lí yêu cầu...");
             const addData = async () => {                
                 api.post("products", {
@@ -434,6 +494,8 @@ const AddProduct = () => {
                     systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
                     image: images.filter(item => item.image !== '').map(item => item.image.split(',')[1]),
                     toBaseMenu: input.toBaseMenu,
+                    quantity: input.quantity,
+                    maxBuy: input.maxBuy,
                     relatedProducts: 
                         combination.length === 0 ? [] : combination.map(combination => {
                             return {
@@ -475,7 +537,7 @@ const AddProduct = () => {
         }
     }
 
-    const checkValid = () => {
+    const validCheck = () => {
         let check = false;
         setError(error => ({ ...error, name: '', colors: '', sizes: '', weights: '', category: '', price: '', optionPrice: '' }));
 
@@ -507,6 +569,14 @@ const AddProduct = () => {
                 check = true;
             }
         })
+        if (input.maxBuy.trim() === null || input.maxBuy.trim() === '' || parseInt(input.maxBuy.trim()) >= 1000) {
+            setError(error => ({ ...error, maxBuy: 'Vui lòng nhập hạn mức mua' }));
+            check = true;
+        }
+        if (input.quantity.trim() === null || input.quantity.trim() === '' || parseInt(input.quantity.trim()) >= 9999999) {
+            setError(error => ({ ...error, quantity: 'Vui lòng nhập số lượng' }));
+            check = true;
+        }
         if (check) {
             return false;
         }
@@ -615,14 +685,13 @@ const AddProduct = () => {
 
                 <ContainerWrapper>
                     <FormLabel>Giá mặc định</FormLabel>
-
-                    <TextField
-                        fullWidth
-                        InputProps={{ inputMode: 'numeric', pattern: '[0-9]*', startAdornment: <InputAdornment position="start">vnđ</InputAdornment> }}
+                    <FlexibleTextField
+                        width={"65%"}
+                        InputProps={{ style: {fontSize: 14}, startAdornment: <InputAdornment position="start">vnđ</InputAdornment> }}
                         value={input.price} name='price'
                         onChange={handleSetPrice}
                         error={error.price !== ''}
-                        helperText={error.price}
+                        helperText={error.price}    
                     />
 
                     {
@@ -664,17 +733,42 @@ const AddProduct = () => {
                     }
                 </ContainerWrapper>
 
-                <ContainerWrapper pt0>
-                    <FormControlLabel 
-                        checked={input.toBaseMenu} name='toBaseMenu' 
-                        onChange={handleToggleToBaseMenu} 
-                        control={<Checkbox />} 
-                        label={<span style={{ fontSize: '14px' }}>Tự động thêm sản phẩm vào bảng giá cơ bản</span>} 
-                    />
-                    <HelperText>
-                        Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/Th%E1%BB%B1c_ph%E1%BA%A9m_t%C6%B0%C6%A1i_s%E1%BB%91ng"
-                                            target="_blank">các loại bảng giá</StyledLink>
-                    </HelperText>
+                <ContainerWrapper pt0={1} pb0={!input.toBaseMenu}>
+                    <Flex>
+                        <FormControlLabel 
+                            checked={input.toBaseMenu} name='toBaseMenu' 
+                            onChange={handleToggleToBaseMenu} 
+                            control={<Checkbox />} 
+                            label={<span style={{ fontSize: '14px' }}>Tự động thêm sản phẩm vào bảng giá cơ bản</span>} 
+                        />
+                        <StyledHelpIcon />
+                    </Flex>
+
+                    {
+                        input.toBaseMenu ? 
+                        <>
+                            <SmallLabel mt>Hạn mức mua</SmallLabel>
+                            <FlexibleTextField
+                                size="small" width={"65%"}
+                                InputProps={{ style: {fontSize: 14} }}
+                                value={input.maxBuy} name='maxBuy'
+                                onChange={handleSetMaxBuy}
+                                error={error.maxBuy !== ''}
+                                helperText={error.maxBuy}    
+                            />
+
+                            <SmallLabel mt>Số lượng</SmallLabel>
+                            <FlexibleTextField
+                                size="small" width={"65%"}
+                                InputProps={{ style: {fontSize: 14} }}
+                                value={input.quantity} name='quantity'
+                                onChange={handleSetQuantity}
+                                error={error.quantity !== ''}
+                                helperText={error.quantity}    
+                            />
+                        </>
+                        : null
+                    }
                 </ContainerWrapper>
 
                 <FooterWrapper>
@@ -686,7 +780,7 @@ const AddProduct = () => {
                                 <WarningText>Bạn có tùy chọn chưa lưu!</WarningText>
                                 <Button disabled>Tạo mới</Button>
                             </>
-                            : (error.name !== '' || error.category !== '' || error.price !== '' || error.optionPrice || error.image) ?
+                            : (error.name !== '' || error.category !== '' || error.price !== '' || error.optionPrice || error.image || error.maxBuy || error.quantity) ?
                             <>
                                 <StyledWarningIcon error />
                                 <WarningText error={1}>Bạn có thông tin chưa điền!</WarningText>
