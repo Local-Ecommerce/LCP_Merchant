@@ -9,6 +9,7 @@ import { Notifications, ShoppingCart, ArrowDropDown, RemoveShoppingCart, AttachM
 import MenuSchedule from '../components/Menu/MenuSchedule';
 import HomeNotificationList from '../components/Home/HomeNotificationList';
 import NotificationDetailModal from '../components/Home/NotificationDetailModal';
+import FirstTimePopupModal from '../components/Home/FirstTimePopupModal';
 
 const PageWrapper = styled.form`
     min-width: 1000px;
@@ -218,6 +219,7 @@ const Footer = styled.div`
 `;
 
 const Home = () => {
+    const user = JSON.parse(localStorage.getItem('USER'));
     const [activeTab, setActiveTab] = useState(1);
     const [day, setDay] = useState(7);
 
@@ -228,6 +230,9 @@ const Home = () => {
     const [menuSchedule, setMenuSchedule] = useState([]);
     const [news, setNews] = useState([]);
     const [pois, setPois] = useState([]);
+
+    const [firstTimePopup, setFirstTimePopup] = useState(false);
+    const toggleFirstTimePopup = () => { setFirstTimePopup(!firstTimePopup) };
 
     const [notificationItem, setNotificationItem] = useState({});
     const [notificationDetailModal, setNotificationDetailModal] = useState(false);
@@ -316,10 +321,13 @@ const Home = () => {
         const fetchData = () => {
             api.get("stores")
             .then(function (res) {
-                if (res.data.Data.List[0]) {
-                    console.log("có store")
-                } else {
-                    console.log("ko có store")
+                if (!res.data.Data.List[0]) {
+                    toggleFirstTimePopup();
+
+                    api.post("stores", {
+                        storeName: 'Cửa hàng của ' + user.Residents[0].ResidentName,
+                        storeImage: null
+                    })
                 }
             })
             .catch(function (error) {
@@ -453,6 +461,11 @@ const Home = () => {
                 display={notificationDetailModal} 
                 toggle={toggleNotificationDetailModal} 
                 detailItem={notificationItem}
+            />
+
+            <FirstTimePopupModal
+                display={firstTimePopup} 
+                toggle={toggleFirstTimePopup} 
             />
         </PageWrapper>
     )
