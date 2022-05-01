@@ -330,7 +330,7 @@ const Order = () =>  {
                 + (search !== '' ? ("&search=" + search) : '');
             api.get(url)
             .then(function (res) {
-                setAPIdata(res.data.Data.List.filter(item => item.Payments[0]));
+                setAPIdata(res.data.Data.List);
                 setTotal(res.data.Data.Total);
                 setLastPage(res.data.Data.LastPage);
                 if (orderExist.checked === false) {

@@ -312,6 +312,23 @@ const Home = () => {
         fetchData();
     }, [day]);
 
+    useEffect(() => {
+        const fetchData = () => {
+            api.get("stores")
+            .then(function (res) {
+                if (res.data.Data.List[0]) {
+                    console.log("có store")
+                } else {
+                    console.log("ko có store")
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        }
+        fetchData();
+    }, []);
+
     const milliseconds = (h, m, s) => ((h*60*60+m*60+s)*1000);
 
     let clickOutside = useClickOutside(() => {

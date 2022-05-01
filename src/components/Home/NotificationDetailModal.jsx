@@ -119,6 +119,7 @@ const Date = styled.div`
 const Text = styled.div`
     font-size: 16px;
     white-space: pre-wrap;
+    line-height: 1.5;
 `;
 
 const DetailModal = ({ display, toggle, detailItem }) => {
