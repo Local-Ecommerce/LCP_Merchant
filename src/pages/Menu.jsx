@@ -14,6 +14,7 @@ import * as Constant from '../Constant';
 import ToggleStatusModal from '../components/Menu/ToggleStatusModal';
 import DeleteModal from '../components/Menu/DeleteModal';
 import MenuSchedule from '../components/Menu/MenuSchedule';
+import LearnMoreAboutMenuModal from '../components/Menu/LearnMoreAboutMenuModal';
 
 const PageWrapper = styled.div`
     margin: 50px;
@@ -253,7 +254,7 @@ const StyledLinkIcon = styled(Logout)`
     }
 `;
 
-const StyledLink = styled.a`
+const StyledLink = styled.div`
     color: #007bff;
     cursor: pointer;
 `;
@@ -468,6 +469,8 @@ const Menu = () =>  {
     const toggleToggleStatusModal = () => { setToggleStatusModal(!toggleStatusModal) };
     const [statusDropdown, setStatusDropdown] = useState(false);
     const toggleStatusDropdown = () => { setStatusDropdown(!statusDropdown); }
+    const [aboutModal, setAboutModal] = useState(false);
+    const toggleAboutModal = () => { setAboutModal(!aboutModal) };
 
     const [deleteItem, setDeleteItem] = useState({id: '', name: ''});
     const [toggleStatusItem, setToggleStatusItem] = useState({ id: '', name: '', status: true });
@@ -850,8 +853,7 @@ const Menu = () =>  {
 
             <TipText>
                 <StyledExclamationIcon />
-                Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/B%C3%A1o_gi%C3%A1_b%C3%A1n_h%C3%A0ng"
-                                                  target="_blank">bảng giá</StyledLink>
+                Tìm hiểu thêm về&nbsp;<StyledLink onClick={toggleAboutModal}>các loại bảng giá</StyledLink>
                 <StyledLinkIcon />
             </TipText>
 
@@ -867,6 +869,11 @@ const Menu = () =>  {
                 toggle={toggleToggleStatusModal}
                 toggleStatusItem={toggleStatusItem}
                 handleToggleStatus={handleToggleStatus}
+            />
+
+            <LearnMoreAboutMenuModal
+                display={aboutModal} 
+                toggle={toggleAboutModal} 
             />
         </PageWrapper>
     )

@@ -13,6 +13,7 @@ import * as Constant from '../Constant';
 
 import DetailModal from '../components/Product/DetailModal';
 import DeleteModal from '../components/Product/DeleteModal';
+import LearnMoreAboutProductModal from '../components/Product/LearnMoreAboutProductModal';
 
 const PageWrapper = styled.div`
     margin: 50px;
@@ -251,7 +252,7 @@ const StyledLinkIcon = styled(Logout)`
     }
 `;
 
-const StyledLink = styled.a`
+const StyledLink = styled.div`
     color: #007bff;
     cursor: pointer;
 `;
@@ -462,6 +463,8 @@ const Product = () =>  {
     const toggleDeleteModal = () => { setDeleteModal(!deleteModal) };
     const [detailModal, setDetailModal] = useState(false);
     function toggleDetailModal() { setDetailModal(!detailModal); }
+    const [aboutModal, setAboutModal] = useState(false);
+    const toggleAboutModal = () => { setAboutModal(!aboutModal) };
 
     const [lv1CateDropdown, setLv1CateDropdown] = useState(false);
     const toggleLv1CateDropdown = () => { setLv1CateDropdown(!lv1CateDropdown); }
@@ -840,8 +843,7 @@ const Product = () =>  {
 
             <TipText>
             <StyledExclamationIcon />
-                Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/S%E1%BA%A3n_ph%E1%BA%A9m"
-                                                  target="_blank">sản phẩm</StyledLink>
+                Tìm hiểu thêm về&nbsp;<StyledLink onClick={toggleAboutModal}>sản phẩm</StyledLink>
                 <StyledLinkIcon />
             </TipText>
 
@@ -856,6 +858,11 @@ const Product = () =>  {
                 toggle={toggleDeleteModal}
                 deleteItem={deleteItem}
                 handleDeleteItem={handleDeleteItem}
+            />
+
+            <LearnMoreAboutProductModal
+                display={aboutModal} 
+                toggle={toggleAboutModal} 
             />
         </PageWrapper>
     )

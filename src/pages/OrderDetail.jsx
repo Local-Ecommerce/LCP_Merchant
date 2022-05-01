@@ -222,7 +222,7 @@ const FloatRight = styled.div`
     float: right;
 `;
 
-const Button = styled.button`
+const Button = styled.div`
     min-width: 80px;
     border-radius: 5px;
     border: none;
@@ -233,6 +233,7 @@ const Button = styled.button`
     border: 1px solid ${props => props.red ? props.theme.red : props.blue ? props.theme.blue : props.theme.greyBorder};
     font-size: 14px;
     margin-right: ${props => props.mr ? "15px" : null};
+    opacity: ${props => props.disabled ? "0.6" : "1"};
 
     &:active {
     transform: translateY(1px);
@@ -466,7 +467,11 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
                 <FooterWrapper>
                     <FloatRight>
                         <Button onClick={toggleRejectModal} type="button" mr>Từ chối</Button>
-                        <Button onClick={toggleConfirmModal} blue type="button">Duyệt</Button>
+                        {
+                            !loading && payment ?
+                            <Button onClick={toggleConfirmModal} blue type="button">Duyệt</Button>
+                            : <Button disabled={1}>Duyệt</Button>
+                        }
                     </FloatRight>
                 </FooterWrapper>
                 : null

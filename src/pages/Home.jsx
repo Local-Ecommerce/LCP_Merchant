@@ -3,8 +3,10 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { api } from "../RequestMethod";
 import * as Constant from '../Constant';
+import * as FileSaver from 'file-saver';
+import * as XLSX from 'xlsx';
 import useClickOutside from "../contexts/useClickOutside";
-import { Notifications, ShoppingCart, ArrowDropDown, RemoveShoppingCart, AttachMoney, ShoppingCartCheckout } from '@mui/icons-material';
+import { Notifications, ShoppingCart, ArrowDropDown, RemoveShoppingCart, AttachMoney, ShoppingCartCheckout, ExitToApp } from '@mui/icons-material';
 
 import MenuSchedule from '../components/Menu/MenuSchedule';
 import HomeNotificationList from '../components/Home/HomeNotificationList';
@@ -214,6 +216,39 @@ const StyledNoNotificationIcon = styled(Notifications)`
     }
 `;
 
+const StyledExportIcon = styled(ExitToApp)`
+    && {
+        font-size: 20px;
+        margin-right: 5px;
+    }
+`;
+
+const ExportButton = styled.div`
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
+    font-size: 14px;
+    padding: 9px;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 3px;
+    color: ${props => props.theme.white};
+    background-color: ${props => props.theme.green};
+    cursor: pointer;
+    opacity: ${props => props.disabled ? 0.6 : 1};
+
+    &:hover {
+        opacity: 0.8;
+    }
+
+    &:focus {
+        outline: 0;
+    }
+
+    &:active {
+        transform: translateY(1px);
+    }
+`;
+
 const Footer = styled.div`
     padding: 20px;
 `;
@@ -227,6 +262,7 @@ const Home = () => {
     const toggleDropdown = () => { setDropdown(!dropdown); }
 
     const [dashboardData, setDashboardData] = useState({});
+    const [exportData, setExportData] = useState([]);
     const [menuSchedule, setMenuSchedule] = useState([]);
     const [news, setNews] = useState([]);
     const [pois, setPois] = useState([]);
@@ -339,6 +375,36 @@ const Home = () => {
 
     const milliseconds = (h, m, s) => ((h*60*60+m*60+s)*1000);
 
+    useEffect( () => {
+        const fetchData = () => {
+            let url = "orders"
+                + "?sort=-createddate"
+                + "&include=product"
+                + "&include=resident"
+                + "&include=payment";
+            api.get(url)
+            .then(function (res) {
+                setExportData(res.data.Data.List.filter(item => item.Payments[0]).map((item) => ({
+                    'Mã đơn hàng': item.OrderId,
+                    'Ngày tạo': item.CreatedDate,
+                    'Tổng cộng': item.TotalAmount,
+                    'Trạng thái': item.Status === Constant.OPEN ? 'Chờ duyệt'
+                    : item.Status === Constant.CANCELED_ORDER ? 'Hủy'
+                    : item.Status === Constant.CONFIRMED ? 'Đang hoạt động'
+                    : item.Status === Constant.COMPLETED ? 'Hoàn thành' : null,
+                    'Hình thức thanh toán': item.Payments[0].PaymentMethodId === Constant.PAYMENT_MOMO ? 'MoMo' : 'Tiền mặt',
+                    'Tên khách hàng': item.Resident.ResidentName,
+                    'Số điện thoại khách hàng': item.Resident.PhoneNumber,
+                    'Địa chỉ giao hàng': item.Resident.DeliveryAddress 
+                })));
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        }
+        fetchData();
+    }, []);
+
     let clickOutside = useClickOutside(() => {
         setDropdown(false);
     });
@@ -352,6 +418,31 @@ const Home = () => {
     const handleGetItem = (item) => {
         setNotificationItem(item);
         toggleNotificationDetailModal();
+    }
+
+    const handleExportExcel = (csvData) => {
+        if (exportData.length) {
+            const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+            const fileExtension = '.xlsx';
+            const fileName = 'Thong_ke_he_thong_LCP';
+
+            var wscols = [
+                {wch:25},
+                {wch:25},
+                {wch:12},
+                {wch:12},
+                {wch:12},
+                {wch:20},
+                {wch:20},
+                {wch:20}
+            ];
+            const ws = XLSX.utils.json_to_sheet(csvData);
+            ws['!cols'] = wscols;
+            const wb = { Sheets: { 'data': ws }, SheetNames: ['data'] };
+            const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const data = new Blob([excelBuffer], {type: fileType});
+            FileSaver.saveAs(data, fileName + fileExtension);
+        }
     }
 
     return (
@@ -373,6 +464,11 @@ const Home = () => {
                             <DropdownList onClick={(e) => handleSetDay(e, 365)}>365 ngày gần nhất</DropdownList>
                         </DropdownMenu>
                     </SelectWrapper>
+
+                    <ExportButton disabled={!exportData.length} onClick={() => handleExportExcel(exportData)}>
+                        <StyledExportIcon />
+                        Xuất thống kê
+                    </ExportButton>
                 </Align>
             </Row>
 

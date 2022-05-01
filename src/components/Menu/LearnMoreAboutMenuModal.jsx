@@ -41,7 +41,7 @@ const customStyles = {
     },
 };
 
-const LearnMoreAboutProductModal = ({ display, toggle }) => {
+const LearnMoreAboutMenuModal = ({ display, toggle }) => {
 
     return (
         <Modal isOpen={display} onRequestClose={toggle} style={customStyles} ariaHideApp={false}>
@@ -58,4 +58,4 @@ const LearnMoreAboutProductModal = ({ display, toggle }) => {
     )
 };
 
-export default LearnMoreAboutProductModal;
+export default LearnMoreAboutMenuModal;
