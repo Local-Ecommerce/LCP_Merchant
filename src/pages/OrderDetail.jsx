@@ -429,7 +429,7 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
                                 {DateTime.fromISO(payment.DateTime).toFormat('dd/MM/yyyy t')}
                             </PaymentText>
                         </PaymentWrapper>
-                        :
+                        : !loading && payment && payment.PaymentMethodId === Constant.PAYMENT_CASH ?
                         <PaymentWrapper>
                             <Row mb>
                                 <StyledNoCreditIcon />
@@ -442,6 +442,19 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
                             <PaymentText>
                                 <Grey>Thời gian:</Grey>
                                 {DateTime.fromISO(payment.DateTime).toFormat('dd/MM/yyyy t')}
+                            </PaymentText>
+                        </PaymentWrapper>
+                        :
+                        <PaymentWrapper>
+                        <Row mb>
+                            <StyledNoCreditIcon />
+                            <PaymentText mb0>Chưa có hình thức thanh toán</PaymentText>
+                        </Row>
+                        <PaymentText>
+                            <Grey>Số tiền: N/A </Grey> 
+                        </PaymentText>
+                            <PaymentText>
+                            <Grey>Thời gian: N/A</Grey>
                             </PaymentText>
                         </PaymentWrapper>
                     }
