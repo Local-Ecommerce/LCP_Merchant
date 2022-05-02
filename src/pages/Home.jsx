@@ -504,7 +504,7 @@ const Home = () => {
                     <GridLabel>Tổng số doanh thu</GridLabel>
                     <Align>
                         <StyledMoneyIcon />
-                        <GridParam>{dashboardData.TotalRevenue ? dashboardData.TotalRevenue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : ''}</GridParam>
+                        <GridParam>{dashboardData.TotalRevenue ? dashboardData.TotalRevenue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : 0}</GridParam>
                         <GridParamSmall>vnđ</GridParamSmall>
                     </Align>
                 </GridItem>

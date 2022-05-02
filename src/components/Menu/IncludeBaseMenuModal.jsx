@@ -42,22 +42,22 @@ const customStyles = {
     },
 };
 
-const LearnMoreAboutProductModal = ({ display, toggle }) => {
+const IncludeBaseMenuModal = ({ display, toggle }) => {
 
     return (
         <Modal isOpen={display} onRequestClose={toggle} style={customStyles} ariaHideApp={false}>
             <ModalContentWrapper>
                 <ImageWrapper>
-                    <Image src={"/images/learnAboutProduct.png"} />
+                    <Image src={"/images/learnAboutMenu3.png"} />
                 </ImageWrapper>
 
                 <HelperText>
-                    Tạo <b>Sản phẩm</b> và thêm vào <b>Bảng giá</b>
-                    <br/>giúp khách hàng thấy được sản phẩm của bạn khi bảng giá hoạt động.
+                    Khi đến giờ hoạt động của <b>bảng giá theo giờ</b>, nếu <b>"tích hợp bảng giá cơ bản"</b> được chọn, 
+                    <br/>các sản phẩm thuộc <b>bảng giá cơ bản</b> và nằm ngoài <b>bảng giá theo giờ</b> vẫn sẽ tiếp tục hoạt động.
                 </HelperText>
             </ModalContentWrapper>
         </Modal>
     )
 };
 
-export default LearnMoreAboutProductModal;
+export default IncludeBaseMenuModal;

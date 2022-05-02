@@ -12,6 +12,7 @@ import Modal from 'react-modal';
 import * as Constant from '../Constant';
 
 import MenuSchedule from '../components/Menu/MenuSchedule';
+import LearnMoreAboutMenuModal from '../components/Menu/LearnMoreAboutMenuModal';
 
 const PageWrapper = styled.div`
     width: 720px;
@@ -127,7 +128,7 @@ const Button = styled.button`
     }
 `;
 
-const StyledLink = styled.a`
+const StyledLink = styled.span`
     color: #007bff;
     cursor: pointer;
 `;
@@ -212,6 +213,9 @@ const AddMenu = () => {
     let navigate = useNavigate();
     const [storeId, setStoreId] = useState('');
 
+    const [aboutModal, setAboutModal] = useState(false);
+    const toggleAboutModal = () => { setAboutModal(!aboutModal) };
+
     const [modal, setModal] = useState(false);
     const toggleModal = () => { setModal(!modal) };
     const [menuSchedule, setMenuSchedule] = useState([]);
@@ -226,7 +230,11 @@ const AddMenu = () => {
     });
     const [repeatDay, setRepeatDay] = useState({ t2:false, t3:false, t4:false, t5:false, t6:false, t7:false, cn:false });
     const [twentyfour, setTwentyfour] = useState(false);
-    const [error, setError] = useState({ name: '', repeatDate: '', time: '' });
+    const [error, setError] = useState({ 
+        name: '', 
+        repeatDay: '', 
+        time: '' 
+    });
 
     useEffect(() => {   //get store id
         const fetchData = () => {
@@ -442,12 +450,12 @@ const AddMenu = () => {
                         checked={input.includeBaseMenu} name='includeBaseMenu' 
                         onClick={handleToggleIncludeBaseMenu} 
                         control={<Checkbox />} 
-                        label={<span style={{ fontSize: '14px' }}>Tích hợp bảng giá nền</span>} 
+                        label={<span style={{ fontSize: '14px' }}>Tích hợp bảng giá cơ bản</span>} 
                     />
+
                     <HelperText>
-                        Các sản phẩm thuộc bảng giá nền vẫn sẽ tiếp tục bán khi đến giờ hoạt động của bảng giá này.<br/>
-                        Tìm hiểu thêm về&nbsp;<StyledLink href="https://vi.wikipedia.org/wiki/Th%E1%BB%B1c_ph%E1%BA%A9m_t%C6%B0%C6%A1i_s%E1%BB%91ng"
-                                            target="_blank">các loại bảng giá</StyledLink>
+                        Các sản phẩm thuộc bảng giá cơ bản vẫn sẽ tiếp tục bán khi đến giờ hoạt động của bảng giá này.<br/>
+                        Tìm hiểu thêm về&nbsp;<StyledLink onClick={toggleAboutModal}>các loại bảng giá</StyledLink>
                     </HelperText>
                 </ContainerWrapper>
 
@@ -527,6 +535,11 @@ const AddMenu = () => {
                     </ModalButtonWrapper>
                 </ModalWrapper>
             </Modal>
+
+            <LearnMoreAboutMenuModal
+                display={aboutModal} 
+                toggle={toggleAboutModal} 
+            />
         </PageWrapper>
     )
 }

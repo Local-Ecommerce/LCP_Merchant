@@ -662,7 +662,7 @@ const UserProfile = ({ refresh, toggleRefresh }) => {
                                     <DropdownMenu dropdown={dropdown}>
                                         <DropdownList onClick={(e) => handleSetGender(e, 'Nam')}>Nam</DropdownList>
                                         <DropdownList onClick={(e) => handleSetGender(e, 'Nữ')}>Nữ</DropdownList>
-                                        <DropdownList onClick={(e) => handleSetGender(e, 'Không xác định')}>Không xác định</DropdownList>
+                                        <DropdownList onClick={(e) => handleSetGender(e, 'Khác')}>Khác</DropdownList>
                                     </DropdownMenu>
                                 </SelectWrapper>
                             </InputWrapper>
