@@ -100,7 +100,7 @@ const FirstTimePopupModal = ({ display, toggle }) => {
                         Hãy bắt đầu với việc tạo sản phẩm đầu tiên cho cửa hàng của bạn.
                     </NoItemText>
 
-                    <Link to="/addProduct">
+                    <Link to="/products">
                         <NoItemButton>
                             Tạo sản phẩm
                         </NoItemButton>
