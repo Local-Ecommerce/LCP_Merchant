@@ -13,8 +13,6 @@ import _ from 'lodash';
 
 import NotificationList from '../components/Notification/NotificationList';
 import FeedbackDetailModal from '../components/Notification/FeedbackDetailModal';
-import ResidentDetailModal from '../components/Notification/ResidentDetailModal';
-import ProductDetailModal from '../components/Notification/ProductDetailModal';
 import PictureModal from '../components/Notification/PictureModal';
 
 import { db } from "../firebase";
@@ -285,17 +283,9 @@ const Header = ({ refresh, toggleRefresh }) => {
     const [image, setImage] = useState('');
     const [apartmentName, setApartmentName] = useState('');
 
-    const [feedbackId, setFeedbackId] = useState('');
+    const [feedback, setFeedback] = useState({});
     const [feedbackModal, setFeedbackModal] = useState(false);
     const toggleFeedbackModal = () => { setFeedbackModal(!feedbackModal) };
-
-    const [productItem, setProductItem] = useState({});
-    const [productModal, setProductModal] = useState(false);
-    const toggleProductModal = () => { setProductModal(!productModal); }
-
-    const [residentItem, setResidentItem] = useState({});
-    const [residentModal, setResidentModal] = useState(false);
-    const toggleResidentModal = () => { setResidentModal(!residentModal); }
 
     const [picItem, setPicItem] = useState({});
     const [pictureModal, setPictureModal] = useState(false);
@@ -385,19 +375,9 @@ const Header = ({ refresh, toggleRefresh }) => {
         } catch {}
     }
 
-    const handleGetFeedbackId = (id) => {
-        setFeedbackId(id);
+    const handleGetFeedback = (feedback) => {
+        setFeedback(feedback);
         toggleFeedbackModal();
-    }
-
-    const handleGetResidentItem = (item) => {
-        setResidentItem(item);
-        toggleResidentModal();
-    }
-
-    const handleGetProductItem = (item) => {
-        setProductItem(item);
-        toggleProductModal();
     }
 
     const handleGetPicItem = (url) => {
@@ -474,7 +454,7 @@ const Header = ({ refresh, toggleRefresh }) => {
                             <NotificationWrapper>
                                 <NotificationList 
                                     currentItems={stores}
-                                    handleGetFeedbackId={handleGetFeedbackId}
+                                    handleGetFeedback={handleGetFeedback}
                                 />
                             </NotificationWrapper>
                         </>
@@ -515,22 +495,8 @@ const Header = ({ refresh, toggleRefresh }) => {
             <FeedbackDetailModal 
                 display={feedbackModal} 
                 toggle={toggleFeedbackModal} 
-                feedbackId={feedbackId}
-                handleGetResidentItem={handleGetResidentItem}
-                handleGetProductItem={handleGetProductItem}
+                feedback={feedback}
                 handleGetPicItem={handleGetPicItem}
-            />
-
-            <ResidentDetailModal
-                display={residentModal} 
-                toggle={toggleResidentModal}
-                resident={residentItem}
-            />
-
-            <ProductDetailModal
-                display={productModal} 
-                toggle={toggleProductModal}
-                detailItem={productItem}
             />
 
             <PictureModal

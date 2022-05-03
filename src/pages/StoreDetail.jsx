@@ -208,6 +208,7 @@ const StoreDetail = () => {
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
                     setItem(res.data.Data.List[0]);
+                    console.log(item);
                     setInput({
                         name: res.data.Data.List[0].StoreName,
                         image: res.data.Data.List[0].StoreImage || ''
@@ -282,7 +283,7 @@ const StoreDetail = () => {
                             read: 0,
                             receiverId: user.Residents[0].ApartmentId,
                             senderId: user.Residents[0].ResidentId,
-                            type: '103'
+                            type: '105'
                         });
                         toast.update(notification, { render: "Gửi cập nhật chờ duyệt thành công!", type: "success", autoClose: 5000, isLoading: false });
                     }

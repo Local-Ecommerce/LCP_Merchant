@@ -109,7 +109,7 @@ const StyledSeenCircle = styled(Circle)`
     }
 `;
 
-const NotificationItem = ({ item, handleGetFeedbackId }) => {
+const NotificationItem = ({ item, handleGetFeedback }) => {
     const date = DateTime.fromMillis(item.createdDate)
     const diff = date.diffNow(["years", "months", "days", "hours", "minutes"])
     let timeLabel = '';
@@ -132,15 +132,15 @@ const NotificationItem = ({ item, handleGetFeedbackId }) => {
         timeLabel = '1 phút trước';
     }
 
-    const handleSetFeedbackId = () => {
-        handleGetFeedbackId(item.data.feedbackId);
+    const handleSetFeedback = () => {
+        handleGetFeedback(item);
     }
 
     return (
         <>
             {
-                item.type === '103' ?
-                <WarningWrapper onClick={handleSetFeedbackId}>
+                item.type === '103' || item.type === '104' ?
+                <WarningWrapper onClick={handleSetFeedback}>
                     {
                         item.data.image ?
                         <Image src={item.data.image} />
@@ -149,7 +149,12 @@ const NotificationItem = ({ item, handleGetFeedbackId }) => {
         
                     <TextWrapper>
                         <TopText>
-                            <b>{item.data.name} </b>đã bị cảnh cáo sau phản hồi của khách hàng.
+                            <b>{item.data.name} </b>
+                            {
+                                item.type === '103' ? <>đã bị cảnh cáo với lí do: {item.data.feedbackReason}</>
+                                : item.type === '104' ? <>đã được gỡ cảnh cáo.</>
+                                : null
+                            }
                         </TopText>
         
                         <BottomText>{timeLabel}</BottomText>
