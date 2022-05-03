@@ -208,7 +208,7 @@ const StoreDetail = () => {
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
                     setItem(res.data.Data.List[0]);
-                    console.log(item);
+                    console.log(res.data.Data.List[0]);
                     setInput({
                         name: res.data.Data.List[0].StoreName,
                         image: res.data.Data.List[0].StoreImage || ''
