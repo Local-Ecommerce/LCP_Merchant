@@ -309,7 +309,7 @@ const Header = ({ refresh, toggleRefresh }) => {
             return onValue(dataRef, (snapshot) => {
                 const data = _.reverse(_.toArray(snapshot.val()));
                 const productList = data.filter(item => item.type === '001' || item.type === '002');
-                const storeList = data.filter(item => item.type === '101' || item.type === '102' || item.type === '103');
+                const storeList = data.filter(item => item.type === '101' || item.type === '102' || item.type === '103' || item.type === '104');
                 const orderList = data.filter(item => item.type === '301');
 
                 setProducts(productList);
