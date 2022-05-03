@@ -486,23 +486,23 @@ const AddProduct = () => {
             const notification = toast.loading("Đang xử lí yêu cầu...");
             const addData = async () => {                
                 api.post("products", {
-                    productCode: input.code,
-                    productName: input.name,
-                    briefDescription: input.shortDescription,
-                    description: input.description,
+                    productCode: input.code.trim(),
+                    productName: input.name.trim(),
+                    briefDescription: input.shortDescription.trim(),
+                    description: input.description.trim(),
                     defaultPrice: input.price.replace(/\D/g, ""),
                     systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
                     image: images.filter(item => item.image !== '').map(item => item.image.split(',')[1]),
                     toBaseMenu: input.toBaseMenu,
-                    quantity: input.quantity,
-                    maxBuy: input.maxBuy,
+                    quantity: input.quantity.trim(),
+                    maxBuy: input.maxBuy.trim(),
                     relatedProducts: 
                         combination.length === 0 ? [] : combination.map(combination => {
                             return {
                                 defaultPrice: combination.price.replace(/\D/g, ""),
-                                size: combination.size,
-                                color: combination.color,
-                                weight: combination.weight,
+                                size: combination.size.trim(),
+                                color: combination.color.trim(),
+                                weight: combination.weight.trim(),
                                 systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
                                 image: []
                             }
