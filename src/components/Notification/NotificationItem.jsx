@@ -174,6 +174,8 @@ const NotificationItem = ({ item, handleGetFeedback }) => {
                 <NotificationWrapper to={
                     item.type === '001' || item.type === '002' ?
                     "/product/" + item.data.id
+                    : item.type === '003' || item.type === '004' ?
+                    "/menu/" + item.data.menuId
                     : item.type === '101' || item.type === '102' ?
                     "/storeDetail"
                     : item.type === '301' ?
@@ -188,15 +190,24 @@ const NotificationItem = ({ item, handleGetFeedback }) => {
         
                     <TextWrapper>
                         <TopText>
-                            <b>{item.data.name} </b> 
                             {
-                                item.type === '001' ? "đã được duyệt."
-                                : item.type === '101' ? "cập nhật đã được duyệt."
-                                : item.type === '002' ? <>đã bị từ chối với lí do: <u>{item.data.reason}</u>.</>
-                                : item.type === '102' ? <>cập nhật đã bị từ chối với lí do: <u>{item.data.reason}</u>.</>
-                                : item.type === '103' ? <>đã bị cảnh cáo sau phản hồi của khách hàng.</>
-                                : item.type === '301' ? <b>{"Cửa hàng nhận được 1 đơn hàng mới."}</b>
-                                : null
+                                item.type === '003' ?
+                                <>Bảng giá <b>{item.data.menuName}</b> có sản phẩm hết hàng.</>
+                                : item.type === '004' ?
+                                <>Bảng giá <b>{item.data.menuName}</b> có sản phẩm gần hết hàng.</>
+                                :
+                                <>
+                                    <b>{item.data.name} </b> 
+                                    {
+                                        item.type === '001' ? "đã được duyệt."
+                                        : item.type === '101' ? "cập nhật đã được duyệt."
+                                        : item.type === '002' ? <>đã bị từ chối với lí do: <u>{item.data.reason}</u>.</>
+                                        : item.type === '102' ? <>cập nhật đã bị từ chối với lí do: <u>{item.data.reason}</u>.</>
+                                        : item.type === '103' ? <>đã bị cảnh cáo sau phản hồi của khách hàng.</>
+                                        : item.type === '301' ? <b>{"Cửa hàng nhận được 1 đơn hàng mới."}</b>
+                                        : null
+                                    }
+                                </>
                             }
                         </TopText>
         

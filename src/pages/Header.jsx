@@ -308,7 +308,7 @@ const Header = ({ refresh, toggleRefresh }) => {
             const dataRef = query(ref(db, 'Notification/' + user.Residents[0].ResidentId), limitToLast(100), orderByChild('receiverId'), equalTo(user.Residents[0].ResidentId));
             return onValue(dataRef, (snapshot) => {
                 const data = _.reverse(_.toArray(snapshot.val()));
-                const productList = data.filter(item => item.type === '001' || item.type === '002');
+                const productList = data.filter(item => item.type === '001' || item.type === '002' || item.type === '003' || item.type === '004');
                 const storeList = data.filter(item => item.type === '101' || item.type === '102' || item.type === '103' || item.type === '104');
                 const orderList = data.filter(item => item.type === '301');
 

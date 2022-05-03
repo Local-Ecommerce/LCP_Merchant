@@ -364,6 +364,8 @@ const Home = () => {
                         storeName: 'Cửa hàng của ' + user.Residents[0].ResidentName,
                         storeImage: null
                     })
+                } else {
+                    
                 }
             })
             .catch(function (error) {
