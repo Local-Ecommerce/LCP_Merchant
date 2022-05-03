@@ -115,11 +115,11 @@ const customStyles = {
 };
 
 const ResidentDetailModal = ({ display, toggle, resident }) => {
-    const [account, setAccount] = useState({ AvatarImage: '' });
+    const [account, setAccount] = useState({ ProfileImage: '' });
 
     useEffect(() => {
         if (display) {
-            setAccount({ AvatarImage: '' });
+            setAccount({ ProfileImage: '' });
 
             api.get("accounts?id=" + resident.AccountId)
             .then(function (res) {
