@@ -191,6 +191,11 @@ const StyledReportIcon = styled(Report)`
     }
 `;
 
+const Align = styled.div`
+    display: flex;
+    align-items: center;
+`;
+
 const StoreDetail = () => {
     const user = JSON.parse(localStorage.getItem('USER'));
 
@@ -208,7 +213,6 @@ const StoreDetail = () => {
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
                     setItem(res.data.Data.List[0]);
-                    console.log(res.data.Data.List[0]);
                     setInput({
                         name: res.data.Data.List[0].StoreName,
                         image: res.data.Data.List[0].StoreImage || ''
@@ -319,7 +323,7 @@ const StoreDetail = () => {
                 <ContainerWrapper>
                     <HeaderWrapper>
                         <Row>
-                            <div>
+                            <Align>
                                 <Header>Thông tin cửa hàng</Header>
                                 {
                                     item.Warned === 1 ?
@@ -331,7 +335,7 @@ const StoreDetail = () => {
                                     </>
                                     : null
                                 }
-                            </div>
+                            </Align>
                             <StyledHyperlink onClick={handleToggleEditable}>{editable ? "Sửa" : "Hủy"}</StyledHyperlink>
                         </Row>
                     </HeaderWrapper>
