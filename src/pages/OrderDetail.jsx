@@ -219,11 +219,11 @@ const FooterWrapper = styled.div`
 `;
 
 const FloatRight = styled.div`
-    float: right;
+    display: flex;
+    justify-content: flex-end;
 `;
 
 const Button = styled.div`
-    min-width: 80px;
     border-radius: 5px;
     border: none;
     padding: 10px 15px;
@@ -466,12 +466,12 @@ const OrderDetail = ({ refresh, toggleRefresh }) => {
                 order.Status === Constant.OPEN ?
                 <FooterWrapper>
                     <FloatRight>
-                        <Button onClick={toggleRejectModal} type="button" mr>Từ chối</Button>
                         {
                             !loading && payment ?
-                            <Button onClick={toggleConfirmModal} blue type="button">Duyệt</Button>
+                            <Button mr={1} onClick={toggleConfirmModal} blue type="button">Duyệt</Button>
                             : <Button disabled={1}>Duyệt</Button>
                         }
+                        <Button onClick={toggleRejectModal} type="button">Từ chối</Button>
                     </FloatRight>
                 </FooterWrapper>
                 : null

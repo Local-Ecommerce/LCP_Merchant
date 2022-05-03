@@ -30,6 +30,32 @@ const NotificationWrapper = styled(Link)`
     }
 `;
 
+const WarningWrapper = styled.div`
+    height: 50px;
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #dee2e6;
+    color: ${props => props.theme.black};
+    text-decoration: none;
+    cursor: pointer;
+    background-color: #fff;
+    border-radius: 5px;
+
+    &:hover {
+    opacity: 0.9;
+    background-color: #F5F5F5;
+    }
+
+    &:focus {
+    outline: 0;
+    }
+
+    &:active {
+    transform: translateY(1px);
+    }
+`;
+
 const Image = styled.img`
     vertical-align: middle;
     width: 40px;
@@ -83,7 +109,7 @@ const StyledSeenCircle = styled(Circle)`
     }
 `;
 
-const NotificationItem = ({ item }) => {
+const NotificationItem = ({ item, handleGetFeedbackId }) => {
     const date = DateTime.fromMillis(item.createdDate)
     const diff = date.diffNow(["years", "months", "days", "hours", "minutes"])
     let timeLabel = '';
@@ -106,46 +132,82 @@ const NotificationItem = ({ item }) => {
         timeLabel = '1 phút trước';
     }
 
-    return (
-            <NotificationWrapper to={
-                item.type === '001' || item.type === '002' ?
-                "/product/" + item.data.id
-                : item.type === '101' || item.type === '102' ?
-                "/storeDetail"
-                : item.type === '301' ?
-                "/orders"
-                : "/"
-            }>
-                {
-                    item.data.image ?
-                    <Image src={item.data.image} />
-                    : <StyledNoImageIcon />
-                }
+    const handleSetFeedbackId = () => {
+        handleGetFeedbackId(item.data.feedbackId);
+    }
 
-                <TextWrapper>
-                    <TopText>
-                        <b>{item.data.name} </b> 
+    return (
+        <>
+            {
+                item.type === '103' ?
+                <WarningWrapper onClick={handleSetFeedbackId}>
+                    {
+                        item.data.image ?
+                        <Image src={item.data.image} />
+                        : <StyledNoImageIcon />
+                    }
+        
+                    <TextWrapper>
+                        <TopText>
+                            <b>{item.data.name} </b>đã bị cảnh cáo sau phản hồi của khách hàng.
+                        </TopText>
+        
+                        <BottomText>{timeLabel}</BottomText>
+                    </TextWrapper>
+        
+                    <SeenWrapper>
                         {
-                            item.type === '001' ? "đã được duyệt."
-                            : item.type === '101' ? "cập nhật đã được duyệt."
-                            : item.type === '002' ? <>đã bị từ chối với lí do: <u>{item.data.reason}</u>.</>
-                            : item.type === '102' ? <>cập nhật đã bị từ chối với lí do: <u>{item.data.reason}</u>.</>
-                            : item.type === '301' ? <b>{"Cửa hàng nhận được 1 đơn hàng mới."}</b>
+                            item.read === 0 ?
+                            <StyledSeenCircle checked={item.read} />
                             : null
                         }
-                    </TopText>
+                    </SeenWrapper>
+                </WarningWrapper>
 
-                    <BottomText>{timeLabel}</BottomText>
-                </TextWrapper>
+                :
 
-                <SeenWrapper>
+                <NotificationWrapper to={
+                    item.type === '001' || item.type === '002' ?
+                    "/product/" + item.data.id
+                    : item.type === '101' || item.type === '102' ?
+                    "/storeDetail"
+                    : item.type === '301' ?
+                    "/orders"
+                    : "/"
+                }>
                     {
-                        item.read === 0 ?
-                        <StyledSeenCircle checked={item.read} />
-                        : null
+                        item.data.image ?
+                        <Image src={item.data.image} />
+                        : <StyledNoImageIcon />
                     }
-                </SeenWrapper>
-            </NotificationWrapper>
+        
+                    <TextWrapper>
+                        <TopText>
+                            <b>{item.data.name} </b> 
+                            {
+                                item.type === '001' ? "đã được duyệt."
+                                : item.type === '101' ? "cập nhật đã được duyệt."
+                                : item.type === '002' ? <>đã bị từ chối với lí do: <u>{item.data.reason}</u>.</>
+                                : item.type === '102' ? <>cập nhật đã bị từ chối với lí do: <u>{item.data.reason}</u>.</>
+                                : item.type === '103' ? <>đã bị cảnh cáo sau phản hồi của khách hàng.</>
+                                : item.type === '301' ? <b>{"Cửa hàng nhận được 1 đơn hàng mới."}</b>
+                                : null
+                            }
+                        </TopText>
+        
+                        <BottomText>{timeLabel}</BottomText>
+                    </TextWrapper>
+        
+                    <SeenWrapper>
+                        {
+                            item.read === 0 ?
+                            <StyledSeenCircle checked={item.read} />
+                            : null
+                        }
+                    </SeenWrapper>
+                </NotificationWrapper>
+            }
+        </>
     );
 };
 

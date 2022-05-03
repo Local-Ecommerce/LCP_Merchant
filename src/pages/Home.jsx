@@ -424,7 +424,7 @@ const Home = () => {
         if (exportData.length) {
             const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
             const fileExtension = '.xlsx';
-            const fileName = 'Thong_ke_he_thong_LCP';
+            const fileName = 'Thong_ke_hoa_don_LCP';
 
             var wscols = [
                 {wch:25},

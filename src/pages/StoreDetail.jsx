@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import imageCompression from 'browser-image-compression';
-import { Close, AddPhotoAlternate } from "@mui/icons-material";
+import { Close, AddPhotoAlternate, Report } from "@mui/icons-material";
 
 import { db } from "../firebase";
 import { ref, push } from "firebase/database";
@@ -185,6 +185,12 @@ const HiddenInputFile = styled.input`
     z-index: -1;
 `;
 
+const StyledReportIcon = styled(Report)`
+    && {
+        color: ${props => props.theme.red};
+    }
+`;
+
 const StoreDetail = () => {
     const user = JSON.parse(localStorage.getItem('USER'));
 
@@ -312,7 +318,19 @@ const StoreDetail = () => {
                 <ContainerWrapper>
                     <HeaderWrapper>
                         <Row>
-                            <Header>Thông tin cơ bản</Header>
+                            <div>
+                                <Header>Thông tin cửa hàng</Header>
+                                {
+                                    item.Warned === 1 ?
+                                    <StyledReportIcon />
+                                    : item.Warned === 2 ?
+                                    <>
+                                        <StyledReportIcon />
+                                        <StyledReportIcon />
+                                    </>
+                                    : null
+                                }
+                            </div>
                             <StyledHyperlink onClick={handleToggleEditable}>{editable ? "Sửa" : "Hủy"}</StyledHyperlink>
                         </Row>
                     </HeaderWrapper>

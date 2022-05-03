@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import { Link } from 'react-router-dom';
 import { api } from "../RequestMethod";
-import { Notifications, Search, AccountCircleOutlined, HelpOutlineOutlined, Logout, Person } from '@mui/icons-material';
+import { Notifications, AccountCircleOutlined, HelpOutlineOutlined, Logout, Person } from '@mui/icons-material';
 import { Badge } from '@mui/material';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -12,6 +12,10 @@ import * as Constant from '../Constant';
 import _ from 'lodash';
 
 import NotificationList from '../components/Notification/NotificationList';
+import FeedbackDetailModal from '../components/Notification/FeedbackDetailModal';
+import ResidentDetailModal from '../components/Notification/ResidentDetailModal';
+import ProductDetailModal from '../components/Notification/ProductDetailModal';
+import PictureModal from '../components/Notification/PictureModal';
 
 import { db } from "../firebase";
 import { ref, onValue, update, query, limitToLast, orderByChild, equalTo } from "firebase/database";
@@ -76,39 +80,6 @@ const Row = styled.div`
 const Logo = styled.img`
     width: 80px;
     height: 40px;
-`;
-
-const SearchField = styled.div`
-    display: flex;
-    width: 31%;
-    justify-content: center;
-    align-items: center;
-    border-radius: 5px;
-    border-color: #E0E0E0;
-    border-style: solid;
-    border-width: thin;
-    height: 35px;
-    padding: 0px 3px 0px 8px;
-    background-color: #f6f6f7;
-`;
-
-const Input = styled.input`
-    padding: 4px;
-    flex-grow: 1;
-    background-color: transparent;
-    outline: none;
-    border: none;
-    margin-right: 8px;
-
-    &:focus {
-    outline: 0;
-    }
-`;
-
-const StyledSearchIcon = styled(Search)`
-    && {
-        color: grey;
-    }
 `;
 
 const Avatar = styled.img`
@@ -301,12 +272,34 @@ const StyledLogoutIcon = styled(Logout)`
     }
 `;
 
+const ApartmentName = styled.div`
+    font-size: 14px;
+    margin-left: 10px;
+`;
+
 const Header = ({ refresh, toggleRefresh }) => {
     const { logout } = useAuth();
     let navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem('USER'));
     const [name, setName] = useState('');
     const [image, setImage] = useState('');
+    const [apartmentName, setApartmentName] = useState('');
+
+    const [feedbackId, setFeedbackId] = useState('');
+    const [feedbackModal, setFeedbackModal] = useState(false);
+    const toggleFeedbackModal = () => { setFeedbackModal(!feedbackModal) };
+
+    const [productItem, setProductItem] = useState({});
+    const [productModal, setProductModal] = useState(false);
+    const toggleProductModal = () => { setProductModal(!productModal); }
+
+    const [residentItem, setResidentItem] = useState({});
+    const [residentModal, setResidentModal] = useState(false);
+    const toggleResidentModal = () => { setResidentModal(!residentModal); }
+
+    const [picItem, setPicItem] = useState({});
+    const [pictureModal, setPictureModal] = useState(false);
+    function togglePictureModal() { setPictureModal(!pictureModal); }
 
     const [activeTab, setActiveTab] = useState(1);
     const [notificationDropdown, toggleNotificationDropdown] = useState(false);
@@ -326,7 +319,7 @@ const Header = ({ refresh, toggleRefresh }) => {
             return onValue(dataRef, (snapshot) => {
                 const data = _.reverse(_.toArray(snapshot.val()));
                 const productList = data.filter(item => item.type === '001' || item.type === '002');
-                const storeList = data.filter(item => item.type === '101' || item.type === '102');
+                const storeList = data.filter(item => item.type === '101' || item.type === '102' || item.type === '103');
                 const orderList = data.filter(item => item.type === '301');
 
                 setProducts(productList);
@@ -351,6 +344,11 @@ const Header = ({ refresh, toggleRefresh }) => {
                 api.get("accounts?id=" + res.data.Data.List[0].AccountId)
                 .then(function (res2) {
                     setImage(res2.data.Data.ProfileImage);
+
+                    api.get("apartments?id=" + res.data.Data.List[0].ApartmentId)
+                    .then(function (res3) {
+                        setApartmentName("| " + res3.data.Data.List[0].ApartmentName);
+                    })
                 })
             })
             .catch(function (error) {
@@ -387,11 +385,34 @@ const Header = ({ refresh, toggleRefresh }) => {
         } catch {}
     }
 
+    const handleGetFeedbackId = (id) => {
+        setFeedbackId(id);
+        toggleFeedbackModal();
+    }
+
+    const handleGetResidentItem = (item) => {
+        setResidentItem(item);
+        toggleResidentModal();
+    }
+
+    const handleGetProductItem = (item) => {
+        setProductItem(item);
+        toggleProductModal();
+    }
+
+    const handleGetPicItem = (url) => {
+        setPicItem(url);
+        togglePictureModal();
+    }
+
     return (
         <Wrapper>
-            <Link to={"/"}>
-                <Logo src='./images/lcp.png' alt="Loich Logo" />
-            </Link>
+            <Align>
+                <Link to={"/"}>
+                    <Logo src='./images/lcp.png' alt="Loich Logo" />
+                </Link>
+                <ApartmentName>{apartmentName}</ApartmentName>
+            </Align>
 
             <Align>
                 <IconButton onClick={() => toggleNotificationDropdown(!notificationDropdown)}>
@@ -452,7 +473,8 @@ const Header = ({ refresh, toggleRefresh }) => {
                         <>
                             <NotificationWrapper>
                                 <NotificationList 
-                                    currentItems={stores} 
+                                    currentItems={stores}
+                                    handleGetFeedbackId={handleGetFeedbackId}
                                 />
                             </NotificationWrapper>
                         </>
@@ -460,7 +482,7 @@ const Header = ({ refresh, toggleRefresh }) => {
                         <>
                             <NotificationWrapper>
                                 <NotificationList 
-                                    currentItems={orders} 
+                                    currentItems={orders}
                                 />
                             </NotificationWrapper>
                         </>
@@ -489,6 +511,33 @@ const Header = ({ refresh, toggleRefresh }) => {
                 </UserDropdownWrapper>
                 : null
             }
+
+            <FeedbackDetailModal 
+                display={feedbackModal} 
+                toggle={toggleFeedbackModal} 
+                feedbackId={feedbackId}
+                handleGetResidentItem={handleGetResidentItem}
+                handleGetProductItem={handleGetProductItem}
+                handleGetPicItem={handleGetPicItem}
+            />
+
+            <ResidentDetailModal
+                display={residentModal} 
+                toggle={toggleResidentModal}
+                resident={residentItem}
+            />
+
+            <ProductDetailModal
+                display={productModal} 
+                toggle={toggleProductModal}
+                detailItem={productItem}
+            />
+
+            <PictureModal
+                display={pictureModal} 
+                toggle={togglePictureModal} 
+                url={picItem}
+            />
         </Wrapper>
     );
 }
