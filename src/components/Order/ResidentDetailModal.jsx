@@ -115,15 +115,15 @@ const customStyles = {
 };
 
 const ResidentDetailModal = ({ display, toggle, resident }) => {
-    const [account, setAccount] = useState({ ProfileImage: '' });
+    const [profileImage, setProfileImage] = useState('');
 
     useEffect(() => {
         if (display) {
-            setAccount({ ProfileImage: '' });
+            setProfileImage('');
 
             api.get("accounts?id=" + resident.AccountId)
             .then(function (res) {
-                setAccount(res.data.Data);
+                setProfileImage(res.data.Data.ProfileImage);
             })
             .catch(function (error) {
                 console.log(error);
@@ -140,7 +140,7 @@ const ResidentDetailModal = ({ display, toggle, resident }) => {
                 <ModalContentWrapper>
                     <LeftWrapper>
                         <FieldLabel mt>Ảnh</FieldLabel>
-                        <Image src={account.ProfileImage ? account.ProfileImage : ''} />         
+                        <Image src={profileImage} />         
                     </LeftWrapper>
 
                     <RightWrapper>
