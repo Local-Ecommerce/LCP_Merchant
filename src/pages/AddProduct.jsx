@@ -494,15 +494,15 @@ const AddProduct = () => {
                     systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
                     image: images.filter(item => item.image !== '').map(item => item.image.split(',')[1]),
                     toBaseMenu: input.toBaseMenu,
-                    quantity: input.quantity.toString(),
-                    maxBuy: input.maxBuy.toString(),
+                    quantity: input.quantity,
+                    maxBuy: input.maxBuy,
                     relatedProducts: 
                         combination.length === 0 ? [] : combination.map(combination => {
                             return {
                                 defaultPrice: combination.price.replace(/\D/g, ""),
-                                size: combination.size.toString(),
-                                color: combination.color.toString(),
-                                weight: combination.weight.toString(),
+                                size: combination.size,
+                                color: combination.color,
+                                weight: combination.weight,
                                 systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
                                 image: []
                             }
@@ -569,11 +569,11 @@ const AddProduct = () => {
                 check = true;
             }
         })
-        if (input.maxBuy.toString() === null || input.maxBuy.toString() === '' || parseInt(input.maxBuy.toString()) >= 1000) {
+        if (input.maxBuy === null || input.maxBuy === '' || parseInt(input.maxBuy) >= 1000) {
             setError(error => ({ ...error, maxBuy: 'Vui lòng nhập hạn mức mua' }));
             check = true;
         }
-        if (input.quantity.toString() === null || input.quantity.toString() === '' || parseInt(input.quantity.toString()) >= 9999999) {
+        if (input.quantity === null || input.quantity === '' || parseInt(input.quantity) >= 9999999) {
             setError(error => ({ ...error, quantity: 'Vui lòng nhập số lượng' }));
             check = true;
         }
