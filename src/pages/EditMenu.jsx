@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, ArrowRight, Search, AddBox, CalendarToday } from '@mui/icons-material';
@@ -384,6 +384,7 @@ const customStyles = {
 
 const EditMenu = () => {
     const { id } = useParams();
+    let navigate = useNavigate();
     const [confirmModal, setConfirmModal] = useState(false);
     const toggleConfirmModal = () => { setConfirmModal(!confirmModal); }
     const [addItemModal, setAddItemModal] = useState(false);
@@ -418,149 +419,156 @@ const EditMenu = () => {
             api.get("menus?id=" + id)
             .then(function (res) {
                 if (res.data.ResultMessage === "SUCCESS") {
-                    setMenu(res.data.Data.List[0]);
-                    setInput({
-                        id: res.data.Data.List[0].MenuId, 
-                        name: res.data.Data.List[0].MenuName || '', 
-                        description: res.data.Data.List[0].MenuDescription || '', 
-                        includeBaseMenu: res.data.Data.List[0].IncludeBaseMenu,
-                        startTime: DateTime.fromFormat(res.data.Data.List[0].TimeStart, 'TT').toUTC().toISO(),
-                        endTime: res.data.Data.List[0].TimeEnd === '23:59:59' ?
-                              DateTime.fromFormat('00:00:00', 'TT').toUTC().toISO() 
-                            : DateTime.fromFormat(res.data.Data.List[0].TimeEnd, 'TT').toUTC().toISO()
-                    });
-                    setRepeatDay({
-                        t2: res.data.Data.List[0].RepeatDate.includes('1') ? true : false,
-                        t3: res.data.Data.List[0].RepeatDate.includes('2') ? true : false,
-                        t4: res.data.Data.List[0].RepeatDate.includes('3') ? true : false,
-                        t5: res.data.Data.List[0].RepeatDate.includes('4') ? true : false,
-                        t6: res.data.Data.List[0].RepeatDate.includes('5') ? true : false,
-                        t7: res.data.Data.List[0].RepeatDate.includes('6') ? true : false,
-                        cn: res.data.Data.List[0].RepeatDate.includes('0') ? true : false
-                    });
-                    setTwentyfour(
-                        res.data.Data.List[0].TimeStart === '00:00:00'
-                        && res.data.Data.List[0].TimeEnd === '23:59:59' ?
-                        true : false
-                    );
+                    if (res.data.Data.List[0]) {
+                        setMenu(res.data.Data.List[0]);
+                        setInput({
+                            id: res.data.Data.List[0].MenuId, 
+                            name: res.data.Data.List[0].MenuName || '', 
+                            description: res.data.Data.List[0].MenuDescription || '', 
+                            includeBaseMenu: res.data.Data.List[0].IncludeBaseMenu,
+                            startTime: DateTime.fromFormat(res.data.Data.List[0].TimeStart, 'TT').toUTC().toISO(),
+                            endTime: res.data.Data.List[0].TimeEnd === '23:59:59' ?
+                                DateTime.fromFormat('00:00:00', 'TT').toUTC().toISO() 
+                                : DateTime.fromFormat(res.data.Data.List[0].TimeEnd, 'TT').toUTC().toISO()
+                        });
+                        setRepeatDay({
+                            t2: res.data.Data.List[0].RepeatDate.includes('1') ? true : false,
+                            t3: res.data.Data.List[0].RepeatDate.includes('2') ? true : false,
+                            t4: res.data.Data.List[0].RepeatDate.includes('3') ? true : false,
+                            t5: res.data.Data.List[0].RepeatDate.includes('4') ? true : false,
+                            t6: res.data.Data.List[0].RepeatDate.includes('5') ? true : false,
+                            t7: res.data.Data.List[0].RepeatDate.includes('6') ? true : false,
+                            cn: res.data.Data.List[0].RepeatDate.includes('0') ? true : false
+                        });
+                        setTwentyfour(
+                            res.data.Data.List[0].TimeStart === '00:00:00'
+                            && res.data.Data.List[0].TimeEnd === '23:59:59' ?
+                            true : false
+                        );
 
-                    api.get("menus?status=" + Constant.ACTIVE_MENU)
-                    .then(function (res1) {
-                        let array = [];
-    
-                        res1.data.Data.List.forEach(item => {
-                            if (!item.BaseMenu) {
-                                let repeatDate = item.RepeatDate;
-                                if (repeatDate.includes('0')) {
-                                    repeatDate = repeatDate.substr(1) + '7';
-                                }
-    
-                                let repeatDateArray = [];
-                                for (var i = 0; i < repeatDate.length; i++) {
-                                    let string = repeatDate.charAt(i);
-                                    if (repeatDateArray.length && repeatDateArray[repeatDateArray.length - 1].includes(parseInt(string) - 1)) {
-                                        repeatDateArray[repeatDateArray.length - 1] = repeatDateArray[repeatDateArray.length - 1] + string;
-                                    } else {
-                                        repeatDateArray.push(string);
+                        api.get("menus?status=" + Constant.ACTIVE_MENU)
+                        .then(function (res1) {
+                            let array = [];
+        
+                            res1.data.Data.List.forEach(item => {
+                                if (!item.BaseMenu) {
+                                    let repeatDate = item.RepeatDate;
+                                    if (repeatDate.includes('0')) {
+                                        repeatDate = repeatDate.substr(1) + '7';
                                     }
+        
+                                    let repeatDateArray = [];
+                                    for (var i = 0; i < repeatDate.length; i++) {
+                                        let string = repeatDate.charAt(i);
+                                        if (repeatDateArray.length && repeatDateArray[repeatDateArray.length - 1].includes(parseInt(string) - 1)) {
+                                            repeatDateArray[repeatDateArray.length - 1] = repeatDateArray[repeatDateArray.length - 1] + string;
+                                        } else {
+                                            repeatDateArray.push(string);
+                                        }
+                                    }
+        
+                                    repeatDateArray.forEach(date => {
+                                        array.push({
+                                            MenuId: item.MenuId,
+                                            MenuName: item.MenuName,
+                                            RepeatDate: date, 
+                                            TimeStart: item.TimeStart.slice(0,5),
+                                            TimeEnd: item.TimeEnd !== '23:59:59' ? item.TimeEnd.slice(0,5) : '24:00',
+                                            TimeStartMillis: milliseconds(item.TimeStart.split(":")[0], item.TimeStart.split(":")[1], 0), 
+                                            TimeEndMillis: item.TimeEnd !== '23:59:59' ? 
+                                            milliseconds(item.TimeEnd.split(":")[0], item.TimeEnd.split(":")[1], 0)
+                                            : milliseconds(24, 0, 0),
+                                            Status: item.Status,
+                                            Focus: item.MenuId === id ? true : false
+                                        });
+                                    })
                                 }
-    
-                                repeatDateArray.forEach(date => {
-                                    array.push({
-                                        MenuId: item.MenuId,
-                                        MenuName: item.MenuName,
-                                        RepeatDate: date, 
-                                        TimeStart: item.TimeStart.slice(0,5),
-                                        TimeEnd: item.TimeEnd !== '23:59:59' ? item.TimeEnd.slice(0,5) : '24:00',
-                                        TimeStartMillis: milliseconds(item.TimeStart.split(":")[0], item.TimeStart.split(":")[1], 0), 
-                                        TimeEndMillis: item.TimeEnd !== '23:59:59' ? 
-                                        milliseconds(item.TimeEnd.split(":")[0], item.TimeEnd.split(":")[1], 0)
-                                        : milliseconds(24, 0, 0),
-                                        Status: item.Status,
-                                        Focus: item.MenuId === id ? true : false
-                                    });
-                                })
-                            }
+                            })
+                            setMenuSchedule(array);
+                            setMenuLoading(false);
                         })
-                        setMenuSchedule(array);
-                        setMenuLoading(false);
-                    })
 
-                    let url2 = "menu-products" 
-                        + "?menuid=" + id
-                        + "&status=" + Constant.ACTIVE_PRODUCT_IN_MENU
-                        + "&sort=" + sort
-                        + "&include=product";
-                    api.get(url2).then(function (res2) {
-                        if (res2.data.ResultMessage === "SUCCESS") {
-                            setProducts(res2.data.Data);
-                            setNewProducts(res2.data.Data.map((item) => ({ 
-                                ...item, 
-                                Price: item.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-                                RelatedProductInMenu: item.RelatedProductInMenu.map((related) => ({
-                                    ...related,
-                                    Price: related.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                                }))
-                            })));
-                            setPimLoading(false);
-                    
-                            let url3 = "products"
-                                + "?sort=" + sort
-                                + "&status=" + Constant.VERIFIED_PRODUCT
-                                + "&status=" + Constant.UNVERIFIED_PRODUCT
-                                + "&status=" + Constant.REJECTED_PRODUCT
-                                + "&include=related";
-                            api.get(url3).then(function (res3) {
-                                if (res3.data.ResultMessage === "SUCCESS") {
-                                    const tempStock = res3.data.Data.List.map((item) => (
-                                        {
-                                            Product: item, 
-                                            RelatedProductInMenu: item.RelatedProducts.map((related) => ({
-                                                Product: related,
-                                                Price: related.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                        let url2 = "menu-products" 
+                            + "?menuid=" + id
+                            + "&status=" + Constant.ACTIVE_PRODUCT_IN_MENU
+                            + "&sort=" + sort
+                            + "&include=product";
+                        api.get(url2).then(function (res2) {
+                            if (res2.data.ResultMessage === "SUCCESS") {
+                                setProducts(res2.data.Data);
+                                setNewProducts(res2.data.Data.map((item) => ({ 
+                                    ...item, 
+                                    Price: item.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                                    RelatedProductInMenu: item.RelatedProductInMenu.map((related) => ({
+                                        ...related,
+                                        Price: related.Price.toString().replace(/\D/g, "").toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                                    }))
+                                })));
+                                setPimLoading(false);
+                        
+                                let url3 = "products"
+                                    + "?sort=" + sort
+                                    + "&status=" + Constant.VERIFIED_PRODUCT
+                                    + "&status=" + Constant.UNVERIFIED_PRODUCT
+                                    + "&status=" + Constant.REJECTED_PRODUCT
+                                    + "&include=related";
+                                api.get(url3).then(function (res3) {
+                                    if (res3.data.ResultMessage === "SUCCESS") {
+                                        const tempStock = res3.data.Data.List.map((item) => (
+                                            {
+                                                Product: item, 
+                                                RelatedProductInMenu: item.RelatedProducts.map((related) => ({
+                                                    Product: related,
+                                                    Price: related.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                                                    ProductInMenuId: null,
+                                                    checked: false,
+                                                    MaxBuy: 1,
+                                                    Quantity: 0
+                                                })),
+                                                Price: item.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
                                                 ProductInMenuId: null,
                                                 checked: false,
                                                 MaxBuy: 1,
                                                 Quantity: 0
-                                            })),
-                                            Price: item.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
-                                            ProductInMenuId: null,
-                                            checked: false,
-                                            MaxBuy: 1,
-                                            Quantity: 0
-                                        }
-                                    ));
-                                    const productExistInStock = res2.data.Data.filter(o1 => tempStock.some(o2 => o1.ProductId === o2.Product.ProductId));
-                                    productExistInStock.forEach((item) => {
-                                        let index = tempStock.findIndex(obj => item.ProductId === obj.Product.ProductId);
-                                        let product = tempStock[index].Product;
-                                        tempStock[index] = {
-                                            Product: product,
-                                            RelatedProductInMenu: product.RelatedProducts.map((related) => ({
-                                                Product: related,
-                                                Price: item.Price.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                                            }
+                                        ));
+                                        const productExistInStock = res2.data.Data.filter(o1 => tempStock.some(o2 => o1.ProductId === o2.Product.ProductId));
+                                        productExistInStock.forEach((item) => {
+                                            let index = tempStock.findIndex(obj => item.ProductId === obj.Product.ProductId);
+                                            let product = tempStock[index].Product;
+                                            tempStock[index] = {
+                                                Product: product,
+                                                RelatedProductInMenu: product.RelatedProducts.map((related) => ({
+                                                    Product: related,
+                                                    Price: item.Price.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                                                    ProductInMenuId: item.ProductInMenuId,
+                                                    checked: true,
+                                                    MaxBuy: product.MaxBuy,
+                                                    Quantity: product.Quantity
+                                                })),
+                                                Price: item.Price.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
                                                 ProductInMenuId: item.ProductInMenuId,
                                                 checked: true,
-                                                MaxBuy: product.MaxBuy,
-                                                Quantity: product.Quantity
-                                            })),
-                                            Price: item.Price.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ","), 
-                                            ProductInMenuId: item.ProductInMenuId,
-                                            checked: true,
-                                            MaxBuy: item.MaxBuy,
-                                            Quantity: item.Quantity
-                                        };
-                                    });
-                                    setStock(tempStock);
-                                    setProductLoading(false);
-                                }
-                            })
-                        }
-                    })
+                                                MaxBuy: item.MaxBuy,
+                                                Quantity: item.Quantity
+                                            };
+                                        });
+                                        setStock(tempStock);
+                                        setProductLoading(false);
+                                    }
+                                })
+                            }
+                        })
+                    } else {
+                        navigate("/404");
+                        setPimLoading(false);
+                        setMenuLoading(false);
+                        setProductLoading(false);
+                    }
                 }
             })
             .catch(function (error) {
-                console.log(error);
+                navigate("/404");
                 setPimLoading(false);
                 setMenuLoading(false);
                 setProductLoading(false);

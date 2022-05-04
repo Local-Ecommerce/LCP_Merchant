@@ -188,6 +188,7 @@ const HiddenInputFile = styled.input`
 const StyledReportIcon = styled(Report)`
     && {
         color: ${props => props.theme.red};
+        margin-left: 5px;
     }
 `;
 

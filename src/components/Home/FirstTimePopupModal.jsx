@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from "styled-components";
 import Modal from 'react-modal';
-import { Link } from 'react-router-dom';
 
 const ModalContentWrapper = styled.div`
     display: flex;
@@ -11,6 +10,7 @@ const ModalContentWrapper = styled.div`
 const LeftWrapper = styled.div`
     flex: 1;
     display: flex;
+    align-items: flex-start;
     flex-direction: column;
     justify-content: center;
     margin-left: 10px;
@@ -30,15 +30,16 @@ const NoItemTitle = styled.div`
 
 const NoItemText = styled.div`
     text-decoration: none;
-    font-size: 15px;
-    color: #383838;
+    font-size: 14px;
+    color: ${props => props.theme.orange};
     line-height: 1.5;
+    margin-top: 20px;
 `;
 
-const NoItemButton = styled.button`
+const NoItemButton = styled.div`
     border-radius: 20px;
     border: none;
-    padding: 8px 12px;
+    padding: 8px 15px;
     cursor: pointer;
     background-color: ${props => props.theme.blue};
     color: white;
@@ -97,14 +98,12 @@ const FirstTimePopupModal = ({ display, toggle }) => {
                     </NoItemTitle>
 
                     <NoItemText>
-                        Hãy bắt đầu với việc tạo sản phẩm đầu tiên cho cửa hàng của bạn.
+                        *Tài khoản của bạn cần được xác thực trước khi có thể sử dụng hệ thống.
                     </NoItemText>
 
-                    <Link to="/products">
-                        <NoItemButton>
-                            Tạo sản phẩm
-                        </NoItemButton>
-                    </Link>
+                    <NoItemButton onClick={toggle}>
+                        Bắt đầu
+                    </NoItemButton>
                 </LeftWrapper>
 
                 <RightWrapper>

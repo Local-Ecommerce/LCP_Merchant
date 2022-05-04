@@ -5,6 +5,8 @@ import { api } from "../RequestMethod";
 import * as Constant from '../Constant';
 import * as FileSaver from 'file-saver';
 import * as XLSX from 'xlsx';
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import useClickOutside from "../contexts/useClickOutside";
 import { Notifications, ShoppingCart, ArrowDropDown, RemoveShoppingCart, AttachMoney, ShoppingCartCheckout, ExitToApp } from '@mui/icons-material';
 
@@ -255,6 +257,9 @@ const Footer = styled.div`
 
 const Home = () => {
     const user = JSON.parse(localStorage.getItem('USER'));
+    const { logout } = useAuth();
+    let navigate = useNavigate();
+
     const [activeTab, setActiveTab] = useState(1);
     const [day, setDay] = useState(7);
 
@@ -365,7 +370,9 @@ const Home = () => {
                         storeImage: null
                     })
                 } else {
-                    
+                    if (res.data.Data.List[0].Warned >= 3) {
+                        handleLogout();
+                    }
                 }
             })
             .catch(function (error) {
@@ -445,6 +452,13 @@ const Home = () => {
             const data = new Blob([excelBuffer], {type: fileType});
             FileSaver.saveAs(data, fileName + fileExtension);
         }
+    }
+
+    async function handleLogout() {
+        try {
+            await logout();
+            navigate("/");
+        } catch {}
     }
 
     return (

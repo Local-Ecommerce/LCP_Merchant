@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
 import { KeyboardBackspace, Warning, RemoveCircle, ArrowDropDown, ArrowDropUp } from '@mui/icons-material';
@@ -232,6 +232,7 @@ const StyledCheckIcon = styled(RemoveCircle)`
 
 const EditProduct = () => {
     const { id } = useParams();
+    let navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem('USER'));
 
     const [dropdown, setDropdown] = useState(false);
@@ -276,99 +277,108 @@ const EditProduct = () => {
 
                     api.get("products?id=" + id + "&include=related")
                     .then(function (res2) {
-                        setItem(res2.data.Data.List[0]);
+                        if (res2.data.Data.List[0]) {
+                            setItem(res2.data.Data.List[0]);
 
-                        let colorArray = [...new Map(res2.data.Data.List[0].RelatedProducts.map(({ Color }) => ({ 
-                            value: Color, error: '', old: true
-                        })).map(item => [item['value'], item])).values()].filter(item => (item.value))
-                        .map((item, index) => ({ name: index, ...item }));
+                            let colorArray = [...new Map(res2.data.Data.List[0].RelatedProducts.map(({ Color }) => ({ 
+                                value: Color, error: '', old: true
+                            })).map(item => [item['value'], item])).values()].filter(item => (item.value))
+                            .map((item, index) => ({ name: index, ...item }));
 
-                        let sizeArray = [...new Map(res2.data.Data.List[0].RelatedProducts.map(({ Size }) => ({ 
-                            value: Size, error: '', old: true
-                        })).map(item => [item['value'], item])).values()].filter(item => (item.value))
-                        .map((item, index) => ({ name: index, ...item }));
+                            let sizeArray = [...new Map(res2.data.Data.List[0].RelatedProducts.map(({ Size }) => ({ 
+                                value: Size, error: '', old: true
+                            })).map(item => [item['value'], item])).values()].filter(item => (item.value))
+                            .map((item, index) => ({ name: index, ...item }));
 
-                        let weightArray = [...new Map(res2.data.Data.List[0].RelatedProducts.map(({ Weight }) => ({ 
-                            value: Weight, error: '', old: true
-                        })).map(item => [item['value'], item])).values()].filter(item => (item.value))
-                        .map((item, index) => ({ name: index, ...item }));
+                            let weightArray = [...new Map(res2.data.Data.List[0].RelatedProducts.map(({ Weight }) => ({ 
+                                value: Weight, error: '', old: true
+                            })).map(item => [item['value'], item])).values()].filter(item => (item.value))
+                            .map((item, index) => ({ name: index, ...item }));
 
-                        setCurrentCombination(res2.data.Data.List[0].RelatedProducts.map((item) => ({ 
-                            id: item.ProductId, edit: false, color: item.Color, size: item.Size, weight: item.Weight, price: item.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), error: ''
-                        })));
+                            setCurrentCombination(res2.data.Data.List[0].RelatedProducts.map((item) => ({ 
+                                id: item.ProductId, edit: false, color: item.Color, size: item.Size, weight: item.Weight, price: item.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), error: ''
+                            })));
 
-                        setCombination(res2.data.Data.List[0].RelatedProducts.map((item) => ({ 
-                            id: item.ProductId, edit: false, color: item.Color, size: item.Size, weight: item.Weight, price: item.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), error: ''
-                        })));
+                            setCombination(res2.data.Data.List[0].RelatedProducts.map((item) => ({ 
+                                id: item.ProductId, edit: false, color: item.Color, size: item.Size, weight: item.Weight, price: item.DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","), error: ''
+                            })));
 
-                        let images = res2.data.Data.List[0].Image.split("|").map((item, index) => (
-                            { name: index, image: item }
-                        ));
+                            let images = res2.data.Data.List[0].Image.split("|").map((item, index) => (
+                                { name: index, image: item }
+                            ));
 
-                        setImages(images);
-                        setCurrentImages(images);
+                            setImages(images);
+                            setCurrentImages(images);
 
-                        setInput(input => ({
-                            ...input,
-                            code: res2.data.Data.List[0].ProductCode,
-                            name: res2.data.Data.List[0].ProductName,
-                            description: res2.data.Data.List[0].Description,
-                            shortDescription: res2.data.Data.List[0].BriefDescription,
-                            price: res2.data.Data.List[0].DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-                            status: res2.data.Data.List[0].Status,
-                            colors: colorArray,
-                            sizes: sizeArray,
-                            weights: weightArray,
-                        }));
+                            setInput(input => ({
+                                ...input,
+                                code: res2.data.Data.List[0].ProductCode,
+                                name: res2.data.Data.List[0].ProductName,
+                                description: res2.data.Data.List[0].Description,
+                                shortDescription: res2.data.Data.List[0].BriefDescription,
+                                price: res2.data.Data.List[0].DefaultPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+                                status: res2.data.Data.List[0].Status,
+                                colors: colorArray,
+                                sizes: sizeArray,
+                                weights: weightArray,
+                            }));
 
-                        api.get("categories?id=" + res2.data.Data.List[0].SystemCategoryId + "&include=parent")
-                        .then(function (res3) {
-                            if (res3.data.Data.List[0].CategoryLevel === 3) {
-                                setInput(input => ({
-                                    ...input,
-                                    category: {
-                                        lv1: res3.data.Data.List[0].Parent.BelongTo,
-                                        lv2: res3.data.Data.List[0].Parent.SystemCategoryId,
-                                        lv3: res3.data.Data.List[0].SystemCategoryId
-                                    }
-                                }));
-                                let lv2CategoryList = res1.data.Data.List.filter((item) => {
-                                    return item.SystemCategoryId === res3.data.Data.List[0].Parent.BelongTo;
-                                })[0].Children;
-                                setLv2Category(lv2CategoryList);
-                                setLv3Category(lv2CategoryList.filter((item) => {
-                                    return item.SystemCategoryId === res3.data.Data.List[0].Parent.SystemCategoryId;
-                                })[0].Children);
-                            } else if (res3.data.Data.List[0].CategoryLevel === 2) {
-                                setInput(input => ({
-                                    ...input,
-                                    category: {
-                                        lv1: res3.data.Data.List[0].Parent.SystemCategoryId,
-                                        lv2: res3.data.Data.List[0].SystemCategoryId,
-                                        lv3: ''
-                                    }
-                                }));
-                                let lv2CategoryList = res1.data.Data.List.filter((item) => {
-                                    return item.SystemCategoryId === res3.data.Data.List[0].Parent.SystemCategoryId;
-                                })[0].Children;
-                                setLv2Category(lv2CategoryList);
-                            } else if (res3.data.Data.List[0].CategoryLevel === 1) {
-                                setInput(input => ({
-                                    ...input,
-                                    category: {
-                                        lv1: res3.data.Data.List[0].SystemCategoryId,
-                                        lv2: '',
-                                        lv3: ''
-                                    }
-                                }));
-                            }
+                            api.get("categories?id=" + res2.data.Data.List[0].SystemCategoryId + "&include=parent")
+                            .then(function (res3) {
+                                if (res3.data.Data.List[0].CategoryLevel === 3) {
+                                    setInput(input => ({
+                                        ...input,
+                                        category: {
+                                            lv1: res3.data.Data.List[0].Parent.BelongTo,
+                                            lv2: res3.data.Data.List[0].Parent.SystemCategoryId,
+                                            lv3: res3.data.Data.List[0].SystemCategoryId
+                                        }
+                                    }));
+                                    let lv2CategoryList = res1.data.Data.List.filter((item) => {
+                                        return item.SystemCategoryId === res3.data.Data.List[0].Parent.BelongTo;
+                                    })[0].Children;
+                                    setLv2Category(lv2CategoryList);
+                                    setLv3Category(lv2CategoryList.filter((item) => {
+                                        return item.SystemCategoryId === res3.data.Data.List[0].Parent.SystemCategoryId;
+                                    })[0].Children);
+                                } else if (res3.data.Data.List[0].CategoryLevel === 2) {
+                                    setInput(input => ({
+                                        ...input,
+                                        category: {
+                                            lv1: res3.data.Data.List[0].Parent.SystemCategoryId,
+                                            lv2: res3.data.Data.List[0].SystemCategoryId,
+                                            lv3: ''
+                                        }
+                                    }));
+                                    let lv2CategoryList = res1.data.Data.List.filter((item) => {
+                                        return item.SystemCategoryId === res3.data.Data.List[0].Parent.SystemCategoryId;
+                                    })[0].Children;
+                                    setLv2Category(lv2CategoryList);
+                                } else if (res3.data.Data.List[0].CategoryLevel === 1) {
+                                    setInput(input => ({
+                                        ...input,
+                                        category: {
+                                            lv1: res3.data.Data.List[0].SystemCategoryId,
+                                            lv2: '',
+                                            lv3: ''
+                                        }
+                                    }));
+                                }
+                                setLoading(false);
+                            })
+                        } else {
+                            navigate("/404");
                             setLoading(false);
-                        })
+                        }
+                    })
+                    .catch(function (error) {
+                        navigate("/404");
+                        setLoading(false);
                     })
                 })
             })
             .catch(function (error) {
-                console.log(error);
+                navigate("/404");
                 setLoading(false);
             });
         }
