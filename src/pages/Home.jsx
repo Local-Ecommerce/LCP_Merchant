@@ -370,8 +370,9 @@ const Home = () => {
                         storeImage: null
                     })
                 } else {
-                    if (res.data.Data.List[0].Warned >= 3) {
-                        handleLogout();
+                    if (res.data.Data.List[0].Status === Constant.DELETED_MERCHANT_STORE || res.data.Data.List[0].Warned >= 3) {
+                        logout();
+                        navigate("/");
                     }
                 }
             })
@@ -452,13 +453,6 @@ const Home = () => {
             const data = new Blob([excelBuffer], {type: fileType});
             FileSaver.saveAs(data, fileName + fileExtension);
         }
-    }
-
-    async function handleLogout() {
-        try {
-            await logout();
-            navigate("/");
-        } catch {}
     }
 
     return (
