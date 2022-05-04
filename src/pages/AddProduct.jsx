@@ -494,8 +494,8 @@ const AddProduct = () => {
                     systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
                     image: images.filter(item => item.image !== '').map(item => item.image.split(',')[1]),
                     toBaseMenu: input.toBaseMenu,
-                    quantity: input.quantity.trim(),
-                    maxBuy: input.maxBuy.trim(),
+                    quantity: input.quantity.toString().trim(),
+                    maxBuy: input.maxBuy.toString().trim(),
                     relatedProducts: 
                         combination.length === 0 ? [] : combination.map(combination => {
                             return {
@@ -569,11 +569,11 @@ const AddProduct = () => {
                 check = true;
             }
         })
-        if (input.maxBuy.trim() === null || input.maxBuy.trim() === '' || parseInt(input.maxBuy.trim()) >= 1000) {
+        if (input.maxBuy.toString().trim() === null || input.maxBuy.toString().trim() === '' || parseInt(input.maxBuy.toString().trim()) >= 1000) {
             setError(error => ({ ...error, maxBuy: 'Vui lòng nhập hạn mức mua' }));
             check = true;
         }
-        if (input.quantity.trim() === null || input.quantity.trim() === '' || parseInt(input.quantity.trim()) >= 9999999) {
+        if (input.quantity.toString().trim() === null || input.quantity.toString().trim() === '' || parseInt(input.quantity.toString().trim()) >= 9999999) {
             setError(error => ({ ...error, quantity: 'Vui lòng nhập số lượng' }));
             check = true;
         }
