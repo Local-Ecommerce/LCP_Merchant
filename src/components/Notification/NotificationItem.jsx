@@ -174,7 +174,7 @@ const NotificationItem = ({ item, handleGetFeedback }) => {
                 <NotificationWrapper to={
                     item.type === '001' || item.type === '002' ?
                     "/product/" + item.data.id
-                    : item.type === '003' || item.type === '004' ?
+                    : item.type === '3' || item.type === '4' ?
                     "/menu/" + item.data.menuId
                     : item.type === '101' || item.type === '102' ?
                     "/storeDetail"
@@ -191,9 +191,9 @@ const NotificationItem = ({ item, handleGetFeedback }) => {
                     <TextWrapper>
                         <TopText>
                             {
-                                item.type === '003' ?
+                                item.type === '3' ?
                                 <>Bảng giá <b>{item.data.menuName}</b> có sản phẩm hết hàng.</>
-                                : item.type === '004' ?
+                                : item.type === '4' ?
                                 <>Bảng giá <b>{item.data.menuName}</b> có sản phẩm gần hết hàng.</>
                                 :
                                 <>
