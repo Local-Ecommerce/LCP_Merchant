@@ -334,7 +334,7 @@ const AddProduct = () => {
         const { value } = e.target;
 
         let pattern = /^([0-9]*)$/;
-        if (value.length + 1 <= 4 && pattern.test(value.trim())) {
+        if (value.length + 1 <= 4 && pattern.test(value)) {
             setInput(input => ({ ...input, maxBuy: value}));
         }
     }
@@ -344,7 +344,7 @@ const AddProduct = () => {
         const { value } = e.target;
 
         let pattern = /^([0-9]*)$/;
-        if (value.length + 1 <= 8 && pattern.test(value.trim())) {
+        if (value.length + 1 <= 8 && pattern.test(value)) {
             setInput(input => ({ ...input, quantity: value}));
         }
     }
@@ -486,23 +486,23 @@ const AddProduct = () => {
             const notification = toast.loading("Đang xử lí yêu cầu...");
             const addData = async () => {                
                 api.post("products", {
-                    productCode: input.code.trim(),
-                    productName: input.name.trim(),
-                    briefDescription: input.shortDescription.trim(),
-                    description: input.description.trim(),
+                    productCode: input.code,
+                    productName: input.name,
+                    briefDescription: input.shortDescription,
+                    description: input.description,
                     defaultPrice: input.price.replace(/\D/g, ""),
                     systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
                     image: images.filter(item => item.image !== '').map(item => item.image.split(',')[1]),
                     toBaseMenu: input.toBaseMenu,
-                    quantity: input.quantity.toString().trim(),
-                    maxBuy: input.maxBuy.toString().trim(),
+                    quantity: input.quantity.toString(),
+                    maxBuy: input.maxBuy.toString(),
                     relatedProducts: 
                         combination.length === 0 ? [] : combination.map(combination => {
                             return {
                                 defaultPrice: combination.price.replace(/\D/g, ""),
-                                size: combination.size.trim(),
-                                color: combination.color.trim(),
-                                weight: combination.weight.trim(),
+                                size: combination.size.toString(),
+                                color: combination.color.toString(),
+                                weight: combination.weight.toString(),
                                 systemCategoryId: input.category.lv3 ? input.category.lv3 : input.category.lv2 ? input.category.lv2 : input.category.lv1,
                                 image: []
                             }
@@ -541,7 +541,7 @@ const AddProduct = () => {
         let check = false;
         setError(error => ({ ...error, name: '', colors: '', sizes: '', weights: '', category: '', price: '', optionPrice: '' }));
 
-        if (input.name.trim() === null || input.name.trim() === '') {
+        if (input.name === null || input.name === '') {
             setError(error => ({ ...error, name: 'Vui lòng nhập tên sản phẩm' }));
             check = true;
         }
@@ -549,7 +549,7 @@ const AddProduct = () => {
             setError(error => ({ ...error, category: 'Vui lòng chọn danh mục sản phẩm' }));
             check = true;
         }
-        if (input.price.trim() === null || input.price.trim() === '' || parseFloat(input.price.trim().replace(/\D/g, "")) < 1000) {
+        if (input.price === null || input.price === '' || parseFloat(input.price.replace(/\D/g, "")) < 1000) {
             setError(error => ({ ...error, price: 'Vui lòng nhập giá trên 1000 vnđ' }));
             check = true;
         }
@@ -558,7 +558,7 @@ const AddProduct = () => {
             check = true;
         }
         combination.forEach((item) => {
-            if (item.price.trim() === '' || item.price.trim() === null || parseFloat(item.price.trim().replace(/\D/g, "")) < 1000) {
+            if (item.price === '' || item.price === null || parseFloat(item.price.replace(/\D/g, "")) < 1000) {
                 let newCombination = [...combination];
                 let index = newCombination.findIndex(obj => obj.color === item.color && obj.size === item.size && obj.weight === item.weight);
                 let error = "Vui lòng nhập giá tùy chọn trên 1000 vnđ";
@@ -569,11 +569,11 @@ const AddProduct = () => {
                 check = true;
             }
         })
-        if (input.maxBuy.toString().trim() === null || input.maxBuy.toString().trim() === '' || parseInt(input.maxBuy.toString().trim()) >= 1000) {
+        if (input.maxBuy.toString() === null || input.maxBuy.toString() === '' || parseInt(input.maxBuy.toString()) >= 1000) {
             setError(error => ({ ...error, maxBuy: 'Vui lòng nhập hạn mức mua' }));
             check = true;
         }
-        if (input.quantity.toString().trim() === null || input.quantity.toString().trim() === '' || parseInt(input.quantity.toString().trim()) >= 9999999) {
+        if (input.quantity.toString() === null || input.quantity.toString() === '' || parseInt(input.quantity.toString()) >= 9999999) {
             setError(error => ({ ...error, quantity: 'Vui lòng nhập số lượng' }));
             check = true;
         }
