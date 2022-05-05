@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../RequestMethod";
 import { toast } from 'react-toastify';
+import * as Constant from '../Constant';
 import { KeyboardBackspace, Warning, Help } from '@mui/icons-material';
 import { TextField, InputAdornment, Checkbox, FormControlLabel } from '@mui/material';
 import ProductOption from '../components/Product/ProductOption';
@@ -232,6 +233,12 @@ const StyledHelpIcon = styled(Help)`
             opacity: 1.0;
         }
     }
+`;
+
+const StoreMessage = styled.div`
+    font-size: 14px;
+    color: ${props => props.theme.orange};
+    margin-bottom: 5px;
 `;
 
 const AddProduct = () => {    
@@ -586,6 +593,12 @@ const AddProduct = () => {
 
     return (
         <PageWrapper>
+            {
+                user.Residents[0].Status === Constant.UNVERIFIED_RESIDENT ? 
+                <StoreMessage>Tài khoản của bạn đang được xác thực bởi người quản lí chợ, vui lòng chờ đợi...</StoreMessage> 
+                : null
+            }
+
             <Row>
                 <Link to="/products"><StyledBackIcon /></Link>
                 <Title><TitleGrey>Danh sách sản phẩm </TitleGrey>/ Tạo mới sản phẩm</Title>
@@ -774,6 +787,13 @@ const AddProduct = () => {
                 <FooterWrapper>
                     <FloatRight>
                         {
+                            user.Residents[0].Status === Constant.UNVERIFIED_RESIDENT ?
+                            <>
+                                <StyledWarningIcon />
+                                <WarningText>Tài khoản của bạn đang được xác thực bởi người quản lí chợ, vui lòng chờ đợi</WarningText>
+                                <Button disabled>Tạo mới</Button>
+                            </>
+                            :
                             (error.colors !== '' || error.sizes !== '' || error.weights !== '') ?
                             <>
                                 <StyledWarningIcon />

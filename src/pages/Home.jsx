@@ -251,6 +251,12 @@ const ExportButton = styled.div`
     }
 `;
 
+const StoreMessage = styled.div`
+    font-size: 14px;
+    color: ${props => props.theme.orange};
+    margin-left: 10px;
+`;
+
 const Footer = styled.div`
     padding: 20px;
 `;
@@ -272,6 +278,7 @@ const Home = () => {
     const [news, setNews] = useState([]);
     const [pois, setPois] = useState([]);
 
+    const [storeMessage, setStoreMessage] = useState('');
     const [firstTimePopup, setFirstTimePopup] = useState(false);
     const toggleFirstTimePopup = () => { setFirstTimePopup(!firstTimePopup) };
 
@@ -364,6 +371,7 @@ const Home = () => {
             .then(function (res) {
                 if (!res.data.Data.List[0]) {
                     toggleFirstTimePopup();
+                    setStoreMessage('Tài khoản của bạn đang được xác thực bởi người quản lí chợ, vui lòng chờ đợi...')
 
                     api.post("stores", {
                         storeName: 'Cửa hàng của ' + user.Residents[0].ResidentName,
@@ -373,6 +381,8 @@ const Home = () => {
                     if (res.data.Data.List[0].Status === Constant.DELETED_MERCHANT_STORE || res.data.Data.List[0].Warned >= 3) {
                         logout();
                         navigate("/");
+                    } else if (user.Residents[0].Status === Constant.UNVERIFIED_RESIDENT) {
+                        setStoreMessage('Tài khoản của bạn đang được xác thực bởi người quản lí chợ, vui lòng chờ đợi...')
                     }
                 }
             })
@@ -457,6 +467,9 @@ const Home = () => {
 
     return (
         <PageWrapper>
+            {
+                storeMessage !== '' ? <StoreMessage>{storeMessage}</StoreMessage> : null
+            }
             <Row mb>
                 <Title>Trang chủ</Title>
 

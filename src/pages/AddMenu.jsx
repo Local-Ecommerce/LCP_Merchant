@@ -115,8 +115,9 @@ const Button = styled.button`
     border: none;
     padding: 10px 15px;
     cursor: pointer;
-    background-color: ${props => props.theme.blue};
-    color: white;
+    border: 1px solid ${props => props.disabled ? props.theme.disabled : props.theme.blue};
+    background-color: ${props => props.disabled ? props.theme.disabled : props.theme.blue};
+    color: ${props => props.white ? props.theme.grey : "white"};
     font-weight: 600;
 
     &:active {
@@ -197,6 +198,12 @@ const ModalButton = styled.button`
     }
 `;
 
+const StoreMessage = styled.div`
+    font-size: 14px;
+    color: ${props => props.theme.orange};
+    margin-bottom: 5px;
+`;
+
 const customStyles = {
     content: {
         top: '50%',
@@ -211,6 +218,8 @@ const customStyles = {
 
 const AddMenu = () => {
     let navigate = useNavigate();
+    const user = JSON.parse(localStorage.getItem('USER'));
+
     const [storeId, setStoreId] = useState('');
 
     const [aboutModal, setAboutModal] = useState(false);
@@ -413,6 +422,12 @@ const AddMenu = () => {
 
     return (
         <PageWrapper>
+            {
+                user.Residents[0].Status === Constant.UNVERIFIED_RESIDENT ? 
+                <StoreMessage>Tài khoản của bạn đang được xác thực bởi người quản lí chợ, vui lòng chờ đợi...</StoreMessage> 
+                : null
+            }
+
             <Row>
                 <Link to="/menus"><StyledBackIcon /></Link>
                 <Title><TitleGrey>Bảng giá </TitleGrey>/ Tạo bảng giá mới</Title>
@@ -519,7 +534,12 @@ const AddMenu = () => {
 
                 <FooterWrapper>
                     <FloatRight>
-                        <Button>Lưu</Button>
+                        {
+                            user.Residents[0].Status === Constant.UNVERIFIED_RESIDENT ?
+                            <Button disabled>Tạo mới</Button>
+                            :
+                            <Button>Lưu</Button>
+                        }
                     </FloatRight>
                 </FooterWrapper>
             </form>

@@ -102,7 +102,7 @@ const FirstTimePopupModal = ({ display, toggle }) => {
                     </NoItemText>
 
                     <NoItemButton onClick={toggle}>
-                        Bắt đầu
+                        Tiếp tục
                     </NoItemButton>
                 </LeftWrapper>
 
